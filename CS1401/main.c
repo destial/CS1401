@@ -1,26 +1,75 @@
 #include "cprocessing.h"
+#include <stdio.h>
 
 CP_Image logo;
 float timeDelta = 1 / 60.f;
 float splashScreenAlpha = 0.f;
 int revert = 0;
+CP_Font font;
+float mouseX, mouseY;
+int cookies = 0;
+int clicked = 0;
+
+void to_string(int f, const char* buffer)
+{
+	sprintf_s(buffer, 50, "%d", f);
+}
+
+void debug_draw(void)
+{
+	CP_Settings_Scale(1.f, 1.f);
+	char r[50];
+	to_string(mouseX, r);
+	CP_Font_DrawText(r, 0, 20);
+
+	to_string(mouseY, r);
+	CP_Font_DrawText(r, 0, 40);
+
+	char b[50];
+	to_string(cookies, b);
+	CP_Font_DrawTextBox(b, 40, 80, 50);
+}
 
 void game_init(void)
 {
-
+	font = CP_Font_Load("Assets/arial.ttf");
+	CP_Font_Set(font);
 }
 
 void game_update(void)
 {
 	CP_Graphics_ClearBackground(CP_Color_Create(0, 0, 0, 255));
+	mouseX = CP_Input_GetMouseX();
+	mouseY = CP_Input_GetMouseY();
+	float circleDiameter = CP_System_GetDisplayWidth() / 4;
+	float fixedCircleDiameter = circleDiameter;
+	float x = (CP_System_GetDisplayWidth() - circleDiameter) / 2;
+	float y = (CP_System_GetDisplayHeight() - circleDiameter) / 2;
+
+	if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+		if (CP_Math_Square(mouseX - x) <= CP_Math_Square(circleDiameter / 2) && CP_Math_Square(mouseY - y) < CP_Math_Square(circleDiameter / 2) && clicked == 0) {
+			circleDiameter *= 1.1f;
+			cookies++;
+		}
+		clicked = 1;
+	}
+	else {
+		clicked = 0;
+	}
+	
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
 		CP_Engine_Terminate();
 	}
+
+	CP_Graphics_DrawCircle(x, y, circleDiameter);
+	CP_Font_DrawText("Cookie Clicker", x, y + fixedCircleDiameter);
+
+	debug_draw();
 }
 
 void game_exit(void)
 {
-
+	CP_Font_Free(&font);
 }
 
 void splash_screen_init(void)
