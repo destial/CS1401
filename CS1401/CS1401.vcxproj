@@ -19,7 +19,17 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="game.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="scale.c" />
+    <ClCompile Include="splash_screen.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="game.h" />
+    <ClInclude Include="gameobject.h" />
+    <ClInclude Include="physics.h" />
+    <ClInclude Include="scale.h" />
+    <ClInclude Include="splash_screen.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
