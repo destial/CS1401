@@ -8,7 +8,7 @@ float duration = 2.f;
 int revert = 0;
 void splash_screen_init(void)
 {
-	logo = CP_Image_Load("Assets/DigiPen_Singapore_WEB_RED.png");
+	logo = CP_Image_Load("Assets/Images/DigiPen_Singapore_WEB_RED.png");
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(1600, 900);
