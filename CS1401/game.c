@@ -10,30 +10,35 @@ typedef struct Wall {
 	CP_Vector left;
 	CP_Color color;
 	float angle;
+	float angle_radians;
 
 } Wall;
 
 CP_Font font;
+CP_Image golf_ball_image;
 CP_Vector mouse = { 0, 0 };
 CP_Vector golf_pos = { 0, 0 };
 CP_Vector golf_prev_pos = { 0, 0 };
 CP_Vector golf_vel = { 0, 0 };
+float golf_angle;
 CP_Color NO_STROKE;
 float golf_diameter;
+float resistance = 1.f;
 int debug_enabled = 1;
 int dragging = 0;
 
-const float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz full screen
-static const int WALLS_AMOUNT = 10;
-Wall walls[10];
+const float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz requirement
+static const int WALLS_AMOUNT = 50;
+Wall walls[50];
 
 // Update the wall's normal based on its angle of rotation
 void update_wall(Wall* wall) {
 	if (wall->angle > 360.f) {
 		wall->angle = 360.f - wall->angle;
 	}
-	wall->normal.x = cos(CP_Math_Radians(-wall->angle));
-	wall->normal.y = sin(CP_Math_Radians(-wall->angle));
+	wall->angle_radians = CP_Math_Radians(wall->angle);
+	wall->normal.x = cos(-wall->angle_radians);
+	wall->normal.y = sin(-wall->angle_radians);
 
 	wall->left.x = -wall->normal.y;
 	wall->left.y = wall->normal.x;
@@ -58,6 +63,10 @@ void debug_draw(void) {
 	sprintf_s(wm, 50, "World Mouse: (%f, %f)", world.x, world.y);
 	CP_Font_DrawText(wm, 0, 60);
 
+	char r[50];
+	sprintf_s(r, 50, "Resistance: %f", resistance);
+	CP_Font_DrawText(r, 0, 80);
+
 	CP_Vector coords = world_to_screen(golf_pos.x, golf_pos.y, world_width, world_height);
 	CP_Settings_Fill(CP_Color_Create(0, 255, 0, 255));
 	char p[50];
@@ -72,6 +81,7 @@ void debug_draw(void) {
 // Initialize the font, golf positions and wall positions
 void game_init(void) {
 	font = CP_Font_Load("Assets/esl.ttf");
+	golf_ball_image = CP_Image_Load("Assets/golf_ball.png");
 	NO_STROKE = CP_Color_Create(0, 0, 0, 0);
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
@@ -105,7 +115,7 @@ char check_collision(Wall* wall) {
 	CP_Vector r = CP_Vector_Subtract(golf_pos, wall->pos);
 
 	// rotate local position back to axis
-	CP_Vector local_golf_pos = CP_Vector_Rotate(r, CP_Math_Radians(wall->angle));
+	CP_Vector local_golf_pos = CP_Vector_Rotate(r, wall->angle_radians);
 
 	// AABB collision testing
 	CP_Vector closest_point = { local_golf_pos.x, local_golf_pos.y };
@@ -137,20 +147,21 @@ char check_collision(Wall* wall) {
 	if (collision) {
 		// make sure it doesnt clip through lmao
 		golf_pos = golf_prev_pos;
-		collision_response(wall, CP_Vector_Rotate(CP_Vector_Normalize(ball_to_wall), -CP_Math_Radians(wall->angle)));
+		collision_response(wall, CP_Vector_Rotate(CP_Vector_Normalize(ball_to_wall), -wall->angle_radians));
 	}
 
 	if (debug_enabled) {
 		// draw the closest point after rotating it back to original
 		CP_Color green = CP_Color_Create(0, 255, 0, 255);
-		closest_point = CP_Vector_Rotate(closest_point, -CP_Math_Radians(wall->angle));
+		closest_point = CP_Vector_Rotate(closest_point, -wall->angle_radians);
 		CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_width, world_height);
 		CP_Settings_Fill(green);
 		CP_Settings_Stroke(green);
 		CP_Graphics_DrawPoint(c.x, c.y);
 
+		// draw the collision normal
 		if (collision) {
-			local_golf_pos = CP_Vector_Rotate(local_golf_pos, -CP_Math_Radians(wall->angle));
+			local_golf_pos = CP_Vector_Rotate(local_golf_pos, -wall->angle_radians);
 			CP_Vector coords = world_to_screen(wall->pos.x + local_golf_pos.x, wall->pos.y + local_golf_pos.y, world_width, world_height);
 			CP_Settings_Fill(green);
 			CP_Settings_Stroke(green);
@@ -162,14 +173,14 @@ char check_collision(Wall* wall) {
 
 void collision_response(Wall* wall, CP_Vector normal) {
 	// r = d - 2(d . n)n
-	// sourced this from https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+	// sourced from https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 
 	// todo: add rolling support (it gets stuck if too slow)
 	float dot = 2 * CP_Vector_DotProduct(golf_vel, normal);
 	CP_Vector rhs = { dot * normal.x, dot * normal.y };
 	CP_Vector reflection = CP_Vector_Subtract(golf_vel, rhs);
-	golf_vel.x = reflection.x / 1.5f;
-	golf_vel.y = reflection.y / 1.5f;
+	golf_vel.x = reflection.x / resistance;
+	golf_vel.y = reflection.y / resistance;
 }
 
 void game_update(void)
@@ -204,6 +215,15 @@ void game_update(void)
 		debug_enabled = !debug_enabled;
 	}
 
+	if (debug_enabled) {
+		if (CP_Input_KeyTriggered(KEY_E)) {
+			resistance += 0.5f;
+		}
+		if (CP_Input_KeyTriggered(KEY_Q)) {
+			resistance -= 0.5f;
+		}
+	}
+
 	// Drag the golf ball
 	if (CP_Input_MouseDown(MOUSE_BUTTON_1) && CP_Vector_Distance(mouse_world, golf_pos) < golf_diameter) {
 		dragging = 1;
@@ -223,7 +243,10 @@ void game_update(void)
 		// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 		if (CP_Vector_Length(golf_vel) > 0.01f) {
 			CP_Vector vel = CP_Vector_Scale(golf_vel, CP_System_GetDt());
-			golf_vel = CP_Vector_Subtract(golf_vel, vel);
+			float friction = resistance - 1;
+			if (friction != 0) {
+				golf_vel = CP_Vector_Subtract(golf_vel, CP_Vector_Scale(vel, resistance - 1));
+			}
 			golf_pos = CP_Vector_Add(golf_pos, vel);
 		}
 		else {
@@ -234,36 +257,43 @@ void game_update(void)
 		// bound the ball at the right border
 		if (golf_pos.x > world_width - golf_diameter * 0.5f) {
 			golf_pos.x = world_width - golf_diameter * 0.5f;
-			golf_vel.x = -golf_vel.x / 1.5f;
+			golf_vel.x = -golf_vel.x / resistance;
 		}
 
 		// bound the ball at the left border
 		if (golf_pos.x < golf_diameter * 0.5f) {
 			golf_pos.x = golf_diameter * 0.5f;
-			golf_vel.x = -golf_vel.x / 1.5f;
+			golf_vel.x = -golf_vel.x / resistance;
 		}
 
 		// bound the ball at the top border
 		if (golf_pos.y > world_height - golf_diameter * 0.5f) {
 			golf_pos.y = world_height - golf_diameter * 0.5f;
-			golf_vel.y = -golf_vel.y / 1.5f;
+			golf_vel.y = -golf_vel.y / resistance;
 		}
 
 		// bound the ball at the bottom border
 		if (golf_pos.y < golf_diameter * 0.5f) {
 			golf_pos.y = golf_diameter * 0.5f;
-			golf_vel.y = -golf_vel.y / 1.5f;
+			golf_vel.y = -golf_vel.y / resistance;
 		}
 	}
 	
 	// Render golf and wall to screen
 	CP_Vector coords = world_to_screen(golf_pos.x, golf_pos.y, world_width, world_height);
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
-	CP_Graphics_DrawCircle(coords.x, coords.y, golf_diameter * CP_System_GetWindowWidth() / world_width);
+	CP_Image_DrawAdvanced(golf_ball_image,
+		coords.x - golf_diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
+		coords.y - golf_diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
+		golf_diameter * CP_System_GetWindowWidth() / world_width,
+		golf_diameter * CP_System_GetWindowWidth() / world_width,
+		255,
+		golf_angle += (golf_vel.x * 0.25f));
+	//CP_Graphics_DrawCircle(coords.x, coords.y, golf_diameter * CP_System_GetWindowWidth() / world_width);
 
 	for (int i = 0; i < WALLS_AMOUNT; i++) {
 		Wall* wall = walls + i;
-		//w->angle += 10.f * CP_System_GetDt();
+		wall->angle += 20.f * CP_System_GetDt();
 
 		update_wall(wall);
 
@@ -290,6 +320,7 @@ void game_update(void)
 
 void game_exit(void)
 {
-	// free the font memory
+	// free the allocated memory
 	CP_Font_Free(&font);
+	CP_Image_Free(&golf_ball_image);
 }
