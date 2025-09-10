@@ -32,3 +32,7 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length) {
 	}
 	return CP_Vector_Scale(vect, length / current);
 }
+
+char CP_Vector_IsZero(CP_Vector vect) {
+	return CP_Vector_Length(vect) <= 0.000001f;
+}
