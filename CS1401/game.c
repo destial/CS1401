@@ -34,17 +34,34 @@ typedef struct GolfBall {
 	char scored;
 };
 
+typedef enum ColorCode {
+	BLACK=0,
+	RED,
+	GREEN,
+	BLUE,
+	PURPLE,
+	VIOLET,
+	ORANGE,
+	YELLOW,
+	CYAN,
+	PINK,
+	WHITE,
+	CLEAR,
+	LAST
+};
+
 CP_Font font;
 CP_Image golf_ball_image;
 CP_Image background_image;
 CP_Vector mouse = { 0, 0 };
-CP_Color NO_STROKE;
 float resistance = 1.25f;
 float power = 1.f;
-int debug_enabled = 1;
+char debug_enabled = 1;
 GolfBall* current;
+char current_level = 1;
+CP_Color colors[LAST];
 
-const float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
+float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
 static const int WALLS_AMOUNT = 11;
 Wall walls[11];
 GolfBall golf_balls[2];
@@ -55,9 +72,24 @@ void game_init(void)
 	font = CP_Font_Load("Assets/Fonts/esl.ttf");
 	golf_ball_image = CP_Image_Load("Assets/Images/golf_ball.png");
 	background_image = CP_Image_Load("Assets/Images/game_background.png");
-	NO_STROKE = CP_Color_Create(0, 0, 0, 0);
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
+
+	// world_width = CP_System_GetWindowWidth() / 33.3f;
+	// world_height = CP_System_GetWindowHeight() / 33.3f;
+
+	colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
+	colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
+	colors[RED] = CP_Color_Create(255, 0, 0, 255);
+	colors[GREEN] = CP_Color_Create(0, 255, 0, 255);
+	colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
+	colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
+	colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);
+	colors[CYAN] = CP_Color_Create(0, 255, 255, 255);
+	colors[ORANGE] = CP_Color_Create(255, 128, 0, 255);
+	colors[YELLOW] = CP_Color_Create(255, 255, 0, 255);
+	colors[PINK] = CP_Color_Create(255, 0, 200, 255);
+	colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
 
 	load_level();
 }
@@ -65,11 +97,11 @@ void game_init(void)
 void game_update(void)
 {
 	// Clear background and render the background image
-	CP_Graphics_ClearBackground(CP_Color_Create(0, 0, 0, 255));
+	CP_Graphics_ClearBackground(colors[BLACK]);
 
 	// reset the color and stroke settings
-	CP_Settings_Stroke(CP_Color_Create(255, 255, 255, 255));
-	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_Stroke(colors[BLACK]);
+	CP_Settings_Fill(colors[BLACK]);
 	CP_Image_Draw(background_image, 0, 0, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
 	mouse.x = CP_Input_GetMouseX();
@@ -218,7 +250,8 @@ void game_update(void)
 
 		// Render golf and wall to screen
 		CP_Vector coords = world_to_screen(golf->pos.x, golf->pos.y, world_width, world_height);
-		CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+		CP_Settings_Fill(colors[WHITE]);
+		CP_Settings_Stroke(colors[CLEAR]);
 		CP_Image_DrawAdvanced(golf_ball_image,
 			coords.x - golf->diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
 			coords.y - golf->diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
@@ -242,7 +275,7 @@ void game_update(void)
 			// draw wall
 			CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
 			CP_Settings_Fill(wall->color);
-			CP_Settings_Stroke(NO_STROKE);
+			CP_Settings_Stroke(colors[CLEAR]);
 			CP_Graphics_DrawRectAdvanced(
 				c.x, c.y,
 				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
@@ -255,7 +288,7 @@ void game_update(void)
 		golf->prev_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 
 		if (debug_enabled) {
-			CP_Settings_Fill(CP_Color_Create(0, 255, 0, 255));
+			CP_Settings_Fill(colors[GREEN]);
 			char p[50];
 			sprintf_s(p, 50, "Golf Pos: (%f, %f)", golf->pos.x, golf->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 40);
@@ -351,19 +384,18 @@ char check_collision(Wall* wall, GolfBall* ball) {
 
 	if (debug_enabled) {
 		// draw the closest point after rotating it back to original
-		CP_Color green = CP_Color_Create(0, 255, 0, 255);
 		closest_point = CP_Vector_Rotate(closest_point, -wall->angle_radians);
 		CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_width, world_height);
-		CP_Settings_Fill(green);
-		CP_Settings_Stroke(green);
+		CP_Settings_Fill(colors[GREEN]);
+		CP_Settings_Stroke(colors[GREEN]);
 		CP_Graphics_DrawPoint(c.x, c.y);
 
 		// draw the collision normal
 		if (collision) {
 			local_golf_pos = CP_Vector_Rotate(local_golf_pos, -wall->angle_radians);
 			CP_Vector coords = world_to_screen(wall->pos.x + local_golf_pos.x, wall->pos.y + local_golf_pos.y, world_width, world_height);
-			CP_Settings_Fill(green);
-			CP_Settings_Stroke(green);
+			CP_Settings_Fill(colors[GREEN]);
+			CP_Settings_Stroke(colors[GREEN]);
 			CP_Graphics_DrawLine(c.x, c.y, coords.x, coords.y);
 		}
 	}
@@ -388,7 +420,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void debug_draw(void) {
-	CP_Settings_Fill(CP_Color_Create(0, 255, 0, 255));
+	CP_Settings_Fill(colors[GREEN]);
 	CP_Settings_Scale(1.f, 1.f);
 	char fps[50];
 	sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
@@ -463,4 +495,12 @@ void load_level(void) {
 		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
 		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 	}
+}
+
+void set_game_level(char level) {
+	current_level = level;
+}
+
+char get_game_level(void) {
+	return current_level;
 }
