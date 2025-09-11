@@ -30,8 +30,8 @@ typedef struct GolfBall {
 	CP_Image image;
 	float angle;
 	char dragging;
-
-	CP_Vector mouse_start;
+	char halt;
+	char scored;
 };
 
 CP_Font font;
@@ -42,10 +42,11 @@ CP_Color NO_STROKE;
 float resistance = 1.25f;
 float power = 1.f;
 int debug_enabled = 1;
+GolfBall* current;
 
 const float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
-static const int WALLS_AMOUNT = 4;
-Wall walls[4];
+static const int WALLS_AMOUNT = 11;
+Wall walls[11];
 GolfBall golf_balls[2];
 
 // Initialize the font, golf positions and wall positions
@@ -108,22 +109,45 @@ void game_update(void)
 		}
 	}
 
+	char win = 1;
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
+		if (golf->scored)
+			continue;
 
+		win = 0;
 		// Dragging the power of the ball
 		if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
 
 			// make sure the mouse is on the ball and its currently not moving
-			if (CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && !golf->dragging && CP_Vector_Length(golf->vel) < 0.01f) {
-				golf->dragging = 1;
-				//golf->mouse_start = mouse_world;
-			}
+			if (CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
+				int all_balls_stopped = 1;
+				for (int j = 0; j < 2; j++) {
+					GolfBall* other_golf = golf_balls + j;
+					if (other_golf->dragging || other_golf->halt || other_golf->scored)
+						continue;
+					if (CP_Vector_Length(other_golf->vel) > 0.1f) {
+						all_balls_stopped = 0;
+						break;
+					}
+				}
+				current = golf;
+				golf->dragging = all_balls_stopped;
+			} 
 
 			// manipulate the velocity based on the mouse coordinates
-			if (golf->dragging) {
+			if (golf->dragging && golf == current) {
 				golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
 				golf->vel = CP_Vector_Scale(golf->vel, power);
+
+				for (int j = 0; j < 2; j++) {
+					GolfBall* other_golf = golf_balls + j;
+					if (other_golf->scored)
+						continue;
+					if (i == j) continue;
+					other_golf->vel = CP_Vector_Set(golf->vel.x, golf->vel.y);
+					other_golf->halt = 1;
+				}
 
 				// render the current power of the ball
 				CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_width, world_height);
@@ -137,13 +161,15 @@ void game_update(void)
 		}
 		else {
 			golf->dragging = 0;
+			golf->halt = 0;
+			current = 0;
 		}
 
 		// apply velocity to the golf ball if not being dragged
-		if (!golf->dragging) {
+		if (!golf->dragging && !golf->halt) {
 
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
-			if (CP_Vector_Length(golf->vel) > 0.01f) {
+			if (CP_Vector_Length(golf->vel) > 0.1f) {
 				CP_Vector vel = CP_Vector_Scale(golf->vel, CP_System_GetDt());
 				float friction = resistance - 1;
 				if (friction != 0) {
@@ -202,7 +228,7 @@ void game_update(void)
 			golf->angle);
 		//CP_Graphics_DrawCircle(coords.x, coords.y, golf_diameter * CP_System_GetWindowWidth() / world_width);
 
-		for (int i = 0; i < WALLS_AMOUNT; i++) {
+		for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
 			Wall* wall = walls + i;
 			if (wall == NULL)
 				continue;
@@ -238,6 +264,12 @@ void game_update(void)
 			sprintf_s(b, 50, "Golf Vel: (%f, %f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
+	}
+
+	if (win) {
+		/*
+		@todo: win condition response (all balls have scored)
+		*/
 	}
 
 	if (debug_enabled)
@@ -390,23 +422,45 @@ void save_level(void) {
 }
 
 void load_level(void) {
-	golf_balls[0].diameter = 2.f;
-	golf_balls[0].pos.x = 2.f;
-	golf_balls[0].pos.y = world_height * 0.5f;
+	golf_balls[0].diameter = 1.f;
+	golf_balls[0].pos.x = world_width * 0.25f;
+	golf_balls[0].pos.y = 2.f;
 	golf_balls[0].vel.x = 0.f;
 	golf_balls[0].vel.y = 0.f;
 
-	// left wall
-	walls[0].pos.x = world_width * 0.15f;
+	golf_balls[1].diameter = 1.f;
+	golf_balls[1].pos.x = world_width * 0.75f;
+	golf_balls[1].pos.y = 2.f;
+	golf_balls[1].vel.x = 0.f;
+	golf_balls[1].vel.y = 0.f;
+
+	// middle wall
+	walls[0].pos.x = world_width * 0.5f;
 	walls[0].pos.y = world_height * 0.5f;
-	walls[0].scale.x = 1.f;
-	walls[0].scale.y = world_height * 0.5f;
+	walls[0].scale.x = 0.5f;
+	walls[0].scale.y = world_height;
 	walls[0].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 
-	// right wall
-	walls[1].pos.x = world_width * 0.85f;
-	walls[1].pos.y = world_height * 0.5f;
-	walls[1].scale.x = 1.f;
-	walls[1].scale.y = world_height * 0.5f;
-	walls[1].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+	int i = 1;
+	for (; i < (WALLS_AMOUNT * 0.5f); i++) {
+		walls[i].pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+
+		walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+		walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+
+		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
+		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+	}
+
+	for (; i < WALLS_AMOUNT; i++) {
+		walls[i].pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+
+		walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+		walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+
+		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
+		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+	}
 }
