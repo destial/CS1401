@@ -7,7 +7,10 @@ CP_Vector world_to_screen(float x, float y, float world_width, float world_heigh
 }
 
 CP_Vector screen_to_world(float x, float y, float world_width, float world_height) {
-	CP_Vector a = { x * (world_width / CP_System_GetWindowWidth()), world_height - (y * (world_height / CP_System_GetWindowHeight())) };
+	CP_Vector a = { 
+		x * (world_width / CP_System_GetWindowWidth()),
+		world_height - (y * (world_height / CP_System_GetWindowHeight())) 
+	};
 	return a;
 }
 
@@ -35,4 +38,8 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length) {
 
 char CP_Vector_IsZero(CP_Vector vect) {
 	return CP_Vector_Length(vect) <= 0.000001f;
+}
+
+float CP_Vector_LengthSquared(CP_Vector vect) {
+	return pow(vect.x, 2) + pow(vect.y, 2);
 }

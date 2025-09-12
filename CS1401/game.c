@@ -158,7 +158,7 @@ void game_update(void)
 					GolfBall* other_golf = golf_balls + j;
 					if (other_golf->dragging || other_golf->halt || other_golf->scored)
 						continue;
-					if (CP_Vector_Length(other_golf->vel) > 0.1f) {
+					if (CP_Vector_LengthSquared(other_golf->vel) > 0.01f) {
 						all_balls_stopped = 0;
 						break;
 					}
@@ -184,7 +184,7 @@ void game_update(void)
 				// render the current power of the ball
 				CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_width, world_height);
 				CP_Vector b = world_to_screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_width, world_height);
-				int red = CP_Math_ClampInt(CP_Vector_Length(golf->vel) * ((world_width / world_height) * 5), 0, 255);
+				int red = CP_Math_ClampInt(CP_Vector_LengthSquared(golf->vel) * (world_width / world_height), 0, 255);
 				int green = 255 - red;
 				CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
 				CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
@@ -201,7 +201,7 @@ void game_update(void)
 		if (!golf->dragging && !golf->halt) {
 
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
-			if (CP_Vector_Length(golf->vel) > 0.1f) {
+			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
 				CP_Vector vel = CP_Vector_Scale(golf->vel, CP_System_GetDt());
 				float friction = resistance - 1;
 				if (friction != 0) {
@@ -370,7 +370,7 @@ char check_collision(Wall* wall, GolfBall* ball) {
 	CP_Vector ball_to_wall = CP_Vector_Subtract(local_golf_pos, closest_point);
 
 	char collision = 0;
-	if (CP_Vector_Length(ball_to_wall) <= ball->diameter * 0.5f) {
+	if (CP_Vector_LengthSquared(ball_to_wall) <= pow(ball->diameter * 0.5f, 2)) {
 		collision = 1;
 	}
 

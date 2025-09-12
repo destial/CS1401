@@ -70,4 +70,14 @@ true if length < 0.000001f
 */
 char CP_Vector_IsZero(CP_Vector vect);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Additional vector optimization because sqrt is slow
+@param
+The vector to get the length square of
+@return
+float length squared
+*/
+float CP_Vector_LengthSquared(CP_Vector vect);
+
 #endif
