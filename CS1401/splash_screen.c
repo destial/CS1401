@@ -1,6 +1,7 @@
 #include "splash_screen.h"
 #include "cprocessing.h"
 #include "game.h"
+#include "main_menu.h"
 
 CP_Image logo;
 float splashScreenAlpha = 0.f;
@@ -36,8 +37,8 @@ void splash_screen_update(void)
 	CP_Image_Draw(logo, (CP_System_GetWindowWidth() - width) / 2.f, (CP_System_GetWindowHeight() - height) / 2.f, width, height, alpha);
 
 	if (revert && splashScreenAlpha == 0) {
-		// @todo: set this to menu screen instead of game screen
-		CP_Engine_SetNextGameState(game_init, game_update, game_exit);
+		
+		CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
 	}
 }
 
