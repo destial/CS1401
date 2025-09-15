@@ -330,7 +330,6 @@ void game_update(void)
 	}
 
 	if (win) {
-		//set_win(win);
 
 		draw_scoreboard(sBoard, world_width, world_height);
 		/*
