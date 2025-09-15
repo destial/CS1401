@@ -21,12 +21,14 @@
   <ItemGroup>
     <ClCompile Include="game.c" />
     <ClCompile Include="main.c" />
+    <ClCompile Include="main_menu.c" />
     <ClCompile Include="physics.c" />
     <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
+    <ClInclude Include="main_menu.h" />
     <ClInclude Include="physics.h" />
     <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />
