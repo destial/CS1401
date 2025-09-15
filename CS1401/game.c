@@ -6,10 +6,12 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "game.h"
 #include "math.h"
 #include "physics.h"
 #include "scoring.h"
+//#include "level_manager.h"
 
 typedef struct Wall {
 	CP_Vector pos;
@@ -17,6 +19,7 @@ typedef struct Wall {
 	CP_Vector normal;
 	CP_Vector left;
 	CP_Color color;
+	CP_Image image;
 	float angle;
 	float angle_radians;
 	float rotation_rate;
@@ -66,10 +69,12 @@ CP_Vector hole1;
 CP_Vector hole2;
 CP_Vector sBoard;
 
-float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
+int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
 static const int WALLS_AMOUNT = 11;
 Wall walls[11];
 GolfBall golf_balls[2];
+char playable = 0;
+float translate = 1.f;
 
 // Initialize the font, golf positions and wall positions
 void game_init(void) 
@@ -96,7 +101,7 @@ void game_init(void)
 	colors[PINK] = CP_Color_Create(255, 0, 200, 255);
 	colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
 
-	load_level();
+	load();
 }
 
 void game_update(void)
@@ -104,6 +109,16 @@ void game_update(void)
 	// Clear background and render the background image
 	CP_Graphics_ClearBackground(colors[BLACK]);
 
+	if (translate != 0) {
+		translate -= CP_System_GetDt();
+	}
+	else {
+		playable = 1;
+	}
+
+	if (translate < 0) {
+		translate = 0;
+	}
 	// reset the color and stroke settings
 	CP_Settings_Stroke(colors[BLACK]);
 	CP_Settings_Fill(colors[BLACK]);
@@ -145,6 +160,7 @@ void game_update(void)
 			}
 		}
 	}
+
 	draw_hole(hole1, world_width, world_height);
 	draw_hole(hole2, world_width, world_height);
 
@@ -156,7 +172,7 @@ void game_update(void)
 
 		win = 0;
 		// Dragging the power of the ball
-		if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && playable) {
 
 			// make sure the mouse is on the ball and its currently not moving
 			if (CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
@@ -195,9 +211,8 @@ void game_update(void)
 				int green = 255 - red;
 				CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
 				CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
+				CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
 				CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
-
-
 			}
 		}
 		else {
@@ -273,7 +288,7 @@ void game_update(void)
 		CP_Settings_Fill(colors[WHITE]);
 		CP_Settings_Stroke(colors[CLEAR]);
 		CP_Image_DrawAdvanced(golf_ball_image,
-			coords.x - golf->diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
+			CP_Math_LerpFloat(coords.x - golf->diameter * 0.5f * CP_System_GetWindowWidth() / world_width, CP_System_GetWindowWidth(), translate),
 			coords.y - golf->diameter * 0.5f * CP_System_GetWindowWidth() / world_width,
 			golf->diameter * CP_System_GetWindowWidth() / world_width,
 			golf->diameter * CP_System_GetWindowWidth() / world_width,
@@ -295,6 +310,7 @@ void game_update(void)
 
 		if (debug_enabled) {
 			CP_Settings_Fill(colors[GREEN]);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50];
 			sprintf_s(p, 50, "Golf Pos: (%f, %f)", golf->pos.x, golf->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 40);
@@ -307,9 +323,10 @@ void game_update(void)
 		golf->prev_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 	}
 
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	char b[50];
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
-	CP_Font_DrawText(b, 0, 500);
+	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
 	for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
 		Wall* wall = walls + i;
@@ -318,15 +335,29 @@ void game_update(void)
 
 		// draw wall
 		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
-		CP_Settings_Fill(wall->color);
-		CP_Settings_Stroke(colors[CLEAR]);
-		CP_Graphics_DrawRectAdvanced(
-			c.x, c.y,
-			wall->scale.x * (CP_System_GetWindowWidth() / world_width),
-			wall->scale.y * (CP_System_GetWindowHeight() / world_height),
-			wall->angle,
-			0.f
-		);
+		if (wall->image == NULL) {
+			CP_Settings_Fill(wall->color);
+			CP_Settings_Stroke(colors[CLEAR]);
+			CP_Graphics_DrawRectAdvanced(
+				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
+				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
+				wall->scale.y * (CP_System_GetWindowHeight() / world_height),
+				wall->angle,
+				0.f
+			);
+		}
+		else {
+			CP_Settings_Fill(colors[WHITE]);
+			CP_Settings_Stroke(colors[WHITE]);
+			CP_Image_DrawAdvanced(wall->image,
+				CP_Math_LerpFloat(c.x - wall->scale.x * 0.5f * (CP_System_GetWindowWidth() / world_width), CP_System_GetWindowWidth(), translate),
+				c.y - wall->scale.y * 0.5f * (CP_System_GetWindowHeight() / world_height),
+				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
+				wall->scale.y * (CP_System_GetWindowHeight() / world_height),
+				255,
+				wall->angle
+			);
+		}
 	}
 
 	if (win) {
@@ -336,12 +367,8 @@ void game_update(void)
 		@todo: win condition response (all balls have scored)
 		*/
 	}
-
-	
-
 	if (debug_enabled)
 		debug_draw();
-
 }
 
 void game_exit(void)
@@ -350,6 +377,13 @@ void game_exit(void)
 	CP_Font_Free(&font);
 	CP_Image_Free(&golf_ball_image);
 	CP_Image_Free(&background_image);
+	for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
+		Wall* wall = walls + i;
+		if (wall == NULL || wall->image == NULL)
+			continue;
+
+		CP_Image_Free(&wall->image);
+	}
 }
 
 // Update the wall's normal based on its angle of rotation
@@ -372,8 +406,8 @@ void update_wall(Wall* wall) {
 
 // collision detection between golf_ball and walls
 char check_collision(Wall* wall, GolfBall* ball) {
-	CP_Vector wall_min = { -wall->scale.x / 2.f, -wall->scale.y / 2.f };
-	CP_Vector wall_max = { wall->scale.x / 2.f, wall->scale.y / 2.f };
+	CP_Vector wall_min = { -wall->scale.x * 0.5f, -wall->scale.y * 0.5f };
+	CP_Vector wall_max = { wall->scale.x * 0.5f, wall->scale.y * 0.5f };
 
 	// ball location position in respect to the wall
 	CP_Vector r = CP_Vector_Subtract(ball->pos, wall->pos);
@@ -397,8 +431,10 @@ char check_collision(Wall* wall, GolfBall* ball) {
 		closest_point.y = wall_max.y;
 	}
 
-	CP_Vector normal_face = wall->normal;
-	CP_Vector point_to_check = { closest_point.x * 1.f / wall->scale.x, closest_point.y * 1.f / wall->scale.y };
+	CP_Vector point_to_check = { 
+		closest_point.x / wall->scale.x, 
+		closest_point.y / wall->scale.y 
+	};
 	// get back the distance between the golf pos and the closest point
 	// this is also the normal for collision response
 	CP_Vector ball_to_wall = CP_Vector_Subtract(local_golf_pos, closest_point);
@@ -456,6 +492,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 void debug_draw(void) {
 	CP_Settings_Fill(colors[GREEN]);
 	CP_Settings_Scale(1.f, 1.f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	char fps[50];
 	sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 0, 20);
@@ -478,16 +515,62 @@ void debug_draw(void) {
 	char p[50];
 	sprintf_s(p, 50, "Power: %f", power);
 	CP_Font_DrawText(p, 0, 100);
-}
 
+	//render();
+}
+	
 void save_level(void) {
-	FILE* fptr = fopen("Assets/level.txt", "w");
+	char level_path[100];
+	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
+	FILE* check = fopen(level_path, "r");
+	if (check != NULL) {
+		fclose(check);
+		return;
+	}
+	FILE* fptr = fopen(level_path, "w");
 	GolfBall* ball = golf_balls;
-	fputs("ball", fptr);
+	char level_file[4000];
+	sprintf_s(level_file, 4000,
+		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nwalls_amount=%d\n", 
+		world_width, world_height, 
+		golf_balls[0].pos.x, golf_balls[0].pos.y, 
+		golf_balls[1].pos.x, golf_balls[1].pos.y,
+		hole1.x, hole1.y,
+		hole2.x, hole2.y,
+		WALLS_AMOUNT
+		);
+	for (int i = 0; i < WALLS_AMOUNT; i++) {
+		Wall* wall = walls + i;
+		if (wall == NULL)
+			continue;
+
+		char wall_data[100];
+		sprintf_s(wall_data, 100,
+			"wall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\n", 
+			i, wall->pos.x, wall->pos.y, 
+			i, wall->scale.x, wall->scale.y,
+			i, wall->angle
+		);
+		strcat_s(level_file, 4000, wall_data);
+	}
+	fputs(level_file, fptr);
 	fclose(fptr);
 }
 
-void load_level(void) {
+void load(void) {
+	//char level_path[100];
+	//sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
+	//FILE* fptr = fopen(level_path, 'r');
+	//char level_file[4000];
+	//fgets(level_file, 4000, fptr);
+	//char* found_equals;
+	//if (fptr != NULL) {
+		//found_equals = strtok(level_file, '\n');
+	//	fclose(fptr);
+	//	return;
+	//}
+	//Level** levels = load_all_levels();
+
 	golf_balls[0].diameter = 1.f;
 	golf_balls[0].pos.x = world_width * 0.25f;
 	golf_balls[0].pos.y = 2.f;
@@ -523,6 +606,8 @@ void load_level(void) {
 
 		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
 		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+		walls[i].image = CP_Image_Load("Assets/Images/wall_left.png");
 	}
 
 	for (; i < WALLS_AMOUNT; i++) {
@@ -534,6 +619,8 @@ void load_level(void) {
 
 		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
 		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+		walls[i].image = CP_Image_Load("Assets/Images/wall_right.png");
 	}
 }
 

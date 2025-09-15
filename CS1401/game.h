@@ -25,7 +25,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal);
 void debug_draw(void);
 
 void save_level(void);
-void load_level(void);
+void load(void);
 
 void set_game_level(char level);
 char get_game_level(void);
