@@ -96,7 +96,7 @@ void main_menu_update(void)
 	int mouse_x = CP_Input_GetMouseX();
 	int mouse_y = CP_Input_GetMouseY();
 
-	//render all each buttons and defining its use
+	//MAIN MENU SCREEN BUTTON
 	for (int i = 0; i < 3; i++) {
 		//defining the position of the button
 		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
@@ -106,7 +106,7 @@ void main_menu_update(void)
 		};
 
 		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x - local_scale.x * 0.5f, coords.y - local_scale.y * 0.5f, local_scale.x, local_scale.y, 255, 0);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5) 
@@ -128,6 +128,7 @@ void main_menu_update(void)
 		}
 	}
 
+	//LEVEL SELECT BUTTONS
 	for (int i = 3; i < 10; i++) {
 		//defining the position of the button
 		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
@@ -136,15 +137,16 @@ void main_menu_update(void)
 			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
 		};
 
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x - local_scale.x * 0.1f, coords.y - local_scale.y * 0.5f, local_scale.x, local_scale.y, 255, 0);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 		if (is_clicked == 1) {
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].ending_pos.x, CP_System_GetDt() * 4);
 		}
 		
 		//telling what the button should do
-		if (mouse_x >= coords.x * 1.5f - local_scale.x && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * 0.9f && mouse_y <= coords.y + local_scale.y * .5)
+		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 5.0f, CP_System_GetDt() * 5);
