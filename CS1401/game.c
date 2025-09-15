@@ -6,6 +6,7 @@
 */
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "game.h"
 #include "math.h"
@@ -84,6 +85,7 @@ void game_init(void)
 	background_image = CP_Image_Load("Assets/Images/game_background.png");
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	// world_width = CP_System_GetWindowWidth() / 33.3f;
 	// world_height = CP_System_GetWindowHeight() / 33.3f;
@@ -107,6 +109,7 @@ void game_init(void)
 void game_update(void)
 {
 	// Clear background and render the background image
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Graphics_ClearBackground(colors[BLACK]);
 
 	if (translate != 0) {
@@ -130,7 +133,7 @@ void game_update(void)
 
 	// Quit the engine if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
-		save_level();
+		//save_level();
 		CP_Engine_Terminate();
 	}
 
@@ -558,18 +561,25 @@ void save_level(void) {
 }
 
 void load(void) {
-	//char level_path[100];
-	//sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
-	//FILE* fptr = fopen(level_path, 'r');
-	//char level_file[4000];
-	//fgets(level_file, 4000, fptr);
-	//char* found_equals;
-	//if (fptr != NULL) {
-		//found_equals = strtok(level_file, '\n');
-	//	fclose(fptr);
-	//	return;
-	//}
-	//Level** levels = load_all_levels();
+	char level_path[100];
+	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level + 1);
+	FILE* fptr = fopen(level_path, "r");
+	if (fptr != NULL) {
+		char level_file[4000];
+		fgets(level_file, 4000, fptr);
+		char* line = strtok(level_file, "\n");
+		while (line) {
+			char* key = strtok(line, "=");
+			if (strcmp(key, "width") == 0) {
+				char* value = strtok(NULL, "=");
+				//world_width = atoi(value);
+			}
+			char* line2 = strtok(NULL, "\n");
+			line = line2;
+		}
+		fclose(fptr);
+	}
+	return 0;
 
 	golf_balls[0].diameter = 1.f;
 	golf_balls[0].pos.x = world_width * 0.25f;
