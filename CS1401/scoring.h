@@ -13,6 +13,8 @@ void add_stroke(void);
 int get_strokes(void);
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height);
+
+
 //
 //void add_stroke();
 //
