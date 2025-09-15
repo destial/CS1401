@@ -522,12 +522,12 @@ void debug_draw(void) {
 void save_level(void) {
 	char level_path[100];
 	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
-	FILE* fptr = fopen(level_path, "r");
-	if (fptr != NULL) {
-		fclose(fptr);
+	FILE* check = fopen(level_path, "r");
+	if (check != NULL) {
+		fclose(check);
 		return;
 	}
-	fptr = fopen(level_path, "w");
+	FILE* fptr = fopen(level_path, "w");
 	GolfBall* ball = golf_balls;
 	char level_file[4000];
 	sprintf_s(level_file, 4000,
@@ -558,17 +558,17 @@ void save_level(void) {
 }
 
 void load(void) {
-	char level_path[100];
-	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
-	FILE* fptr = fopen(level_path, "r");
-	char level_file[4000];
-	fgets(level_file, 4000, fptr);
-	char* found_equals;
-	if (fptr != NULL) {
-		found_equals = strtok_r(level_file, "\n", "=");
-		fclose(fptr);
-		return;
-	}
+	//char level_path[100];
+	//sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
+	//FILE* fptr = fopen(level_path, 'r');
+	//char level_file[4000];
+	//fgets(level_file, 4000, fptr);
+	//char* found_equals;
+	//if (fptr != NULL) {
+		//found_equals = strtok(level_file, '\n');
+	//	fclose(fptr);
+	//	return;
+	//}
 	//Level** levels = load_all_levels();
 
 	golf_balls[0].diameter = 1.f;
