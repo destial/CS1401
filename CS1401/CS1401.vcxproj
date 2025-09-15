@@ -23,6 +23,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="physics.c" />
     <ClCompile Include="scale.c" />
+    <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
   </ItemGroup>
   <ItemGroup>
@@ -30,6 +31,7 @@
     <ClInclude Include="gameobject.h" />
     <ClInclude Include="physics.h" />
     <ClInclude Include="scale.h" />
+    <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

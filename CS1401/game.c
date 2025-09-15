@@ -9,6 +9,7 @@
 #include "game.h"
 #include "math.h"
 #include "physics.h"
+#include "scoring.h"
 
 typedef struct Wall {
 	CP_Vector pos;
@@ -60,6 +61,10 @@ char debug_enabled = 1;
 GolfBall* current;
 char current_level = 1;
 CP_Color colors[LAST];
+
+CP_Vector hole1;
+CP_Vector hole2;
+CP_Vector sBoard;
 
 float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
 static const int WALLS_AMOUNT = 11;
@@ -140,6 +145,8 @@ void game_update(void)
 			}
 		}
 	}
+	draw_hole(hole1, world_width, world_height);
+	draw_hole(hole2, world_width, world_height);
 
 	char win = 1;
 	for (int i = 0; i < 2; i++) {
@@ -189,6 +196,8 @@ void game_update(void)
 				CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
 				CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
 				CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+
+
 			}
 		}
 		else {
@@ -246,6 +255,17 @@ void game_update(void)
 			else if (golf->angle < 0) {
 				golf->angle = golf->angle + 360.f;
 			}
+			//Math to calculate if ball is inside the ball
+			if (CP_Vector_Distance(golf->pos, hole1) < 0.75f - (golf->diameter * 0.5f)) {
+				golf->scored = 1;
+			}
+			if (CP_Vector_Distance(golf->pos, hole2) < 0.75f - (golf->diameter * 0.5f)) {
+				golf->scored = 1;
+			}
+		}
+
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && golf->dragging) {
+			add_stroke();
 		}
 
 		// Render golf and wall to screen
@@ -271,21 +291,7 @@ void game_update(void)
 
 			// check collision detection
 			check_collision(wall, golf);
-
-			// draw wall
-			CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
-			CP_Settings_Fill(wall->color);
-			CP_Settings_Stroke(colors[CLEAR]);
-			CP_Graphics_DrawRectAdvanced(
-				c.x, c.y,
-				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
-				wall->scale.y * (CP_System_GetWindowHeight() / world_height),
-				wall->angle,
-				0.f
-			);
 		}
-
-		golf->prev_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 
 		if (debug_enabled) {
 			CP_Settings_Fill(colors[GREEN]);
@@ -297,13 +303,42 @@ void game_update(void)
 			sprintf_s(b, 50, "Golf Vel: (%f, %f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
+
+		golf->prev_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
+	}
+
+	char b[50];
+	sprintf_s(b, 50, "Strokes: %d", get_strokes());
+	CP_Font_DrawText(b, 0, 500);
+
+	for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
+		Wall* wall = walls + i;
+		if (wall == NULL)
+			continue;
+
+		// draw wall
+		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
+		CP_Settings_Fill(wall->color);
+		CP_Settings_Stroke(colors[CLEAR]);
+		CP_Graphics_DrawRectAdvanced(
+			c.x, c.y,
+			wall->scale.x * (CP_System_GetWindowWidth() / world_width),
+			wall->scale.y * (CP_System_GetWindowHeight() / world_height),
+			wall->angle,
+			0.f
+		);
 	}
 
 	if (win) {
+		//set_win(win);
+
+		draw_scoreboard(sBoard, world_width, world_height);
 		/*
 		@todo: win condition response (all balls have scored)
 		*/
 	}
+
+	
 
 	if (debug_enabled)
 		debug_draw();
@@ -376,7 +411,7 @@ char check_collision(Wall* wall, GolfBall* ball) {
 
 	if (collision) {
 		// make sure it doesnt clip through lmao
-		ball->pos = ball->prev_pos;
+		ball->pos = CP_Vector_Set(ball->prev_pos.x, ball->prev_pos.y);
 
 		// do the appropriate collision response if detected
 		collision_response(wall, ball, CP_Vector_Rotate(CP_Vector_Normalize(ball_to_wall), -wall->angle_radians));
@@ -466,12 +501,18 @@ void load_level(void) {
 	golf_balls[1].vel.x = 0.f;
 	golf_balls[1].vel.y = 0.f;
 
+	sBoard.x = world_width * 0.5f;
+	sBoard.y = world_height * 0.5f;
+
 	// middle wall
 	walls[0].pos.x = world_width * 0.5f;
 	walls[0].pos.y = world_height * 0.5f;
 	walls[0].scale.x = 0.5f;
 	walls[0].scale.y = world_height;
 	walls[0].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+	hole1 = CP_Vector_Set(world_width * 0.25f, world_height * 0.75f);
+	hole2 = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
 
 	int i = 1;
 	for (; i < (WALLS_AMOUNT * 0.5f); i++) {
