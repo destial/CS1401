@@ -48,6 +48,7 @@ void main_menu_init(void)
 	buttons[3].pos.x = world_width1 * 1.1;
 	buttons[3].pos.y = world_height1 * .8;
 	buttons[3].ending_pos.x = world_width1 * 0.1;
+	buttons[3].func = change_screen;
 
 	buttons[4].button_image = CP_Image_Load("Assets/Images/Play Button.png");
 	buttons[4].scale.x = 3.0f;
@@ -55,6 +56,7 @@ void main_menu_init(void)
 	buttons[4].pos.x = world_width1 * 1.2;
 	buttons[4].pos.y = world_height1 * .8;
 	buttons[4].ending_pos.x = world_width1 * 0.2;
+	buttons[4].func = change_screen;
 
 	buttons[5].button_image = CP_Image_Load("Assets/Images/Play Button.png");
 	buttons[5].scale.x = 3.0f;
@@ -62,6 +64,7 @@ void main_menu_init(void)
 	buttons[5].pos.x = world_width1 * 1.3;
 	buttons[5].pos.y = world_height1 * .8;
 	buttons[5].ending_pos.x = world_width1 * 0.3;
+	buttons[5].func = change_screen;
 
 	buttons[6].button_image = CP_Image_Load("Assets/Images/Play Button.png");
 	buttons[6].scale.x = 3.0f;
@@ -69,6 +72,7 @@ void main_menu_init(void)
 	buttons[6].pos.x = world_width1 * 1.4;
 	buttons[6].pos.y = world_height1 * .8;
 	buttons[6].ending_pos.x = world_width1 * 0.4;
+	buttons[6].func = change_screen;
 
 	buttons[7].button_image = CP_Image_Load("Assets/Images/Play Button.png");
 	buttons[7].scale.x = 3.0f;
@@ -76,6 +80,7 @@ void main_menu_init(void)
 	buttons[7].pos.x = world_width1 * 1.5;
 	buttons[7].pos.y = world_height1 * .8;
 	buttons[7].ending_pos.x = world_width1 * 0.5;
+	buttons[7].func = change_screen;
 
 	//setting the button anchor to the corner of the world
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -143,6 +148,10 @@ void main_menu_update(void)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 5.0f, CP_System_GetDt() * 5);
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+			{
+				buttons[i].func();
+			}
 		}
 		else {
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 3.0f, CP_System_GetDt() * 5);
