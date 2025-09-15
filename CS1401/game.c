@@ -6,6 +6,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 #include "game.h"
 #include "math.h"
 #include "physics.h"
@@ -68,7 +69,7 @@ CP_Vector hole1;
 CP_Vector hole2;
 CP_Vector sBoard;
 
-float world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
+int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
 static const int WALLS_AMOUNT = 11;
 Wall walls[11];
 GolfBall golf_balls[2];
@@ -517,15 +518,57 @@ void debug_draw(void) {
 
 	//render();
 }
-
+	
 void save_level(void) {
-	FILE* fptr = fopen("Assets/level.txt", "w");
+	char level_path[100];
+	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
+	FILE* fptr = fopen(level_path, "r");
+	if (fptr != NULL) {
+		fclose(fptr);
+		return;
+	}
+	fptr = fopen(level_path, "w");
 	GolfBall* ball = golf_balls;
-	fputs("ball", fptr);
+	char level_file[4000];
+	sprintf_s(level_file, 4000,
+		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nwalls_amount=%d\n", 
+		world_width, world_height, 
+		golf_balls[0].pos.x, golf_balls[0].pos.y, 
+		golf_balls[1].pos.x, golf_balls[1].pos.y,
+		hole1.x, hole1.y,
+		hole2.x, hole2.y,
+		WALLS_AMOUNT
+		);
+	for (int i = 0; i < WALLS_AMOUNT; i++) {
+		Wall* wall = walls + i;
+		if (wall == NULL)
+			continue;
+
+		char wall_data[100];
+		sprintf_s(wall_data, 100,
+			"wall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\n", 
+			i, wall->pos.x, wall->pos.y, 
+			i, wall->scale.x, wall->scale.y,
+			i, wall->angle
+		);
+		strcat_s(level_file, 4000, wall_data);
+	}
+	fputs(level_file, fptr);
 	fclose(fptr);
 }
 
 void load(void) {
+	char level_path[100];
+	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level);
+	FILE* fptr = fopen(level_path, "r");
+	char level_file[4000];
+	fgets(level_file, 4000, fptr);
+	char* found_equals;
+	if (fptr != NULL) {
+		found_equals = strtok_r(level_file, "\n", "=");
+		fclose(fptr);
+		return;
+	}
 	//Level** levels = load_all_levels();
 
 	golf_balls[0].diameter = 1.f;

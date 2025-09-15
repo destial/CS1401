@@ -150,6 +150,7 @@ void main_menu_update(void)
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 5.0f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
+				set_game_level(i - 3);
 				buttons[i].func();
 			}
 		}
