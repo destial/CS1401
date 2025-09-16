@@ -1,43 +1,49 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 16 September 2025
+@course CSD1401
+@brief Definition file for loading levels from text file into memory
+*/
+
 #include "level_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
 
-char* get_value(Map* map, const char* key) {
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, key) == 0) {
-            return ptr->value;
-        }
-    }
-}
-
 Level* get_level(int level) {
     char level_path[100];
     sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", level);
-    char* level_file = read_content(level_path);
-    const char outerdel[] = "\n";
-    const char innerdel[] = "=";
 
-    Map* root = malloc(sizeof(Map));
-    Map* next = root;
+    // read the level text file
+    char* level_file = read_content(level_path);
+
+    // make sure this file actually exists
     if (level_file != NULL) {
+        // set contexts for string tokenizer ('\n' to split between lines, '=' to split between key and value)
+        const char outerdel[] = "\n";
+        const char innerdel[] = "=";
+
+        // allocate the root of this level map
+        Map* root = malloc(sizeof(Map));
+        Map* next = root;
         char* outerptr = NULL;
         char* innerptr = NULL;
 
+        // set initial variable pointers for string tokenization (strtok)
         char* k, * v;
         char* line = strtok_s(level_file, outerdel, &outerptr);
         while (line) {
-            // key
+            // set the key (left side)
             k = strtok_s(line, innerdel, &innerptr);
             next->key = malloc(strlen(k) + 1);
             strcpy_s(next->key, strlen(k) + 1, k);
 
-            // value
+            // set the value (right side)
             v = strtok_s(NULL, innerdel, &innerptr);
             next->value = malloc(strlen(v) + 1);
             strcpy_s(next->value, strlen(v) + 1, v);
 
-            // end of check
+            // end of check, go to next line or quit if already at the end
             line = strtok_s(NULL, outerdel, &outerptr);
             if (line) {
                 next->next = malloc(sizeof(Map));
@@ -47,14 +53,17 @@ Level* get_level(int level) {
                 next->next = NULL;
             }
         }
+
+        // make sure to free up allocated memory for the text file contents
         free(level_file);
 
+        // create the level to load and set all the values
         Level* lvl = malloc(sizeof(Level));
         lvl->world_width = atof(get_value(root, "width"));
         lvl->world_height = atof(get_value(root, "height"));
 
         lvl->walls_size = atoi(get_value(root, "walls_amount"));
-        lvl->walls = malloc(sizeof(float) * lvl->walls_size * 5);
+        lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
 
         lvl->golf_pos_1 = get_vector(get_value(root, "golf_1"));
         lvl->golf_pos_2 = get_vector(get_value(root, "golf_2"));
@@ -62,34 +71,93 @@ Level* get_level(int level) {
         lvl->hole_1 = get_vector(get_value(root, "hole_1"));
         lvl->hole_2 = get_vector(get_value(root, "hole_2"));
 
+        // some versions of the level file dont include the par, so make sure to check
+        char* line_par = get_value(root, "par");
+        if (line_par) {
+            lvl->par = atoi(line_par);
+        }
+        else {
+            lvl->par = 3;
+        }
+
+        // set the walls position, scaling, angle and rotation rates
+        // check if any of them exists first, if not use default values
         int wall_index = 0;
-        for (int i = 0; i < lvl->walls_size * 5; i += 5, wall_index++) {
+        for (int i = 0; i < lvl->walls_size * WALLS_OFFSET; i += WALLS_OFFSET, wall_index++) {
+
+            // set wall position if exists
             char wall_pos[32];
             sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
-            CP_Vector pos = get_vector(get_value(root, wall_pos));
+            char* line_pos = get_value(root, wall_pos);
+            if (line_pos) {
+                CP_Vector pos = get_vector(line_pos);
+                lvl->walls[i + 0] = pos.x;
+                lvl->walls[i + 1] = pos.y;
+            }
+            else {
+                lvl->walls[i + 0] = 0.f;
+                lvl->walls[i + 1] = 0.f;
+            }
 
+            // set wall scale if exists
             char wall_scale[32];
             sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
-            CP_Vector scale = get_vector(get_value(root, wall_scale));
+            char* line_scale = get_value(root, wall_scale);
+            if (line_scale) {
+                CP_Vector scale = get_vector(line_scale);
+                lvl->walls[i + 2] = scale.x;
+                lvl->walls[i + 3] = scale.y;
+            }
+            else {
+                lvl->walls[i + 2] = 0.f;
+                lvl->walls[i + 3] = 0.f;
+            }
 
+            // set wall angle if exists
             char wall_angle[32];
             sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
-            float angle = atof(get_value(root, wall_angle));
-
-            lvl->walls[i + 0] = pos.x;
-            lvl->walls[i + 1] = pos.y;
-            lvl->walls[i + 2] = scale.x;
-            lvl->walls[i + 3] = scale.y;
-            lvl->walls[i + 4] = angle;              
+            char* line_angle = get_value(root, wall_angle);
+            if (line_angle) {
+                float angle = atof(line_angle);
+                lvl->walls[i + 4] = angle;
+            }
+            else {
+                lvl->walls[i + 4] = 0.f;
+            }
+            
+            // set wall rotation rate if exists
+            char wall_rot[32];
+            sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
+            char* line_rot = get_value(root, wall_rot);
+            if (line_rot) {
+                float rot = atof(line_rot);
+                lvl->walls[i + 5] = rot;
+            }
+            else {
+                lvl->walls[i + 5] = 0.f;
+            }
         }
-        free_map(root);
 
+        // we are done loading the level, we can now free up the map
+        free_map(root);
         return lvl;
     }
-
+    
+    // no level file detected, so no level will be loaded
     return NULL;
 }
 
+char* get_value(Map* map, const char* key) {
+    // loop through each leaf and compare the key value with the given key
+    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            return ptr->value;
+        }
+    }
+    return NULL;
+}
+
+// sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
 char* read_content(const char* filename) {
     char* fcontent = NULL;
     int fsize = 0;
@@ -107,6 +175,7 @@ char* read_content(const char* filename) {
     return fcontent;
 }
 
+// tokenize the given string from (131231,14512) to a proper vector
 CP_Vector get_vector(char* line) {
     const char innerdel[] = ",";
     char* innerptr = NULL;
@@ -117,6 +186,7 @@ CP_Vector get_vector(char* line) {
     return CP_Vector_Set(x, y);
 }
 
+// recursively loops through the map to free up the map, starting with the last
 void free_map(Map* map) {
     if (map->next) {
         free_map(map->next);
