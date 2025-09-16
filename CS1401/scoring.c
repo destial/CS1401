@@ -9,13 +9,13 @@ int bogey, birdie, eagle, d_bogey, t_bogey, albatross;
 
 
 
-void draw_hole(CP_Vector hole, float world_width, float world_height) {
+void draw_hole(CP_Vector hole, float world_width, float world_height, float animation) {
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 
 	CP_Vector coords = world_to_screen(hole.x, hole.y, world_width, world_height);
 	CP_Graphics_DrawCircle(
-		coords.x, 
+		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth(), animation),
 		coords.y, 
 		1.5f * CP_System_GetWindowWidth() / world_width);
 }
@@ -71,6 +71,7 @@ void score(void) {
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	CP_Vector coords = world_to_screen(sBoard.x, sBoard.y, world_width, world_height);
 	CP_Graphics_DrawRect(

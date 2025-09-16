@@ -6,7 +6,7 @@
 #define SCORE_H
 #include "cprocessing.h"
 
-void draw_hole(CP_Vector hole, float world_width, float world_height);
+void draw_hole(CP_Vector hole, float world_width, float world_height, float animation);
 
 void add_stroke(void);
 

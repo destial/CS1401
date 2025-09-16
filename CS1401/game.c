@@ -109,6 +109,7 @@ void game_init(void)
 
 void game_update(void)
 {
+	// entry animation
 	if (translate != 0) {
 		translate -= CP_System_GetDt();
 	}
@@ -161,9 +162,7 @@ void game_update(void)
 		}
 	}
 
-	draw_hole(hole1, world_width, world_height);
-	draw_hole(hole2, world_width, world_height);
-
+	win = 1;
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
 		if (golf->scored)
@@ -305,6 +304,9 @@ void game_render(void)
 	char b[50];
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
+
+	draw_hole(hole1, world_width, world_height, translate);
+	draw_hole(hole2, world_width, world_height, translate);
 
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
@@ -590,6 +592,9 @@ void save_level(void) {
 }
 
 void load(void) {
+	sBoard.x = world_width * 0.5f;
+	sBoard.y = world_height * 0.5f;
+
 	golf_balls[0].diameter = 1.f;
 	golf_balls[1].diameter = 1.f;
 
@@ -638,7 +643,7 @@ void load(void) {
 		walls[wall_index].pos.x = world_width * 0.5f;
 		walls[wall_index].pos.y = world_height * 0.5f;
 		walls[wall_index].scale.x = 0.5f;
-		walls[wall_index].scale.y = world_height;
+		walls[wall_index].scale.y = world_height * 1.1f;
 		walls[wall_index].angle = 0;
 		walls[wall_index].rotation_rate = 0;
 		walls[wall_index].color = CP_Color_Create(255, 255, 255, 255);
@@ -657,9 +662,6 @@ void load(void) {
 
 	golf_balls[1].pos.x = world_width * 0.75f;
 	golf_balls[1].pos.y = 2.f;
-
-	sBoard.x = world_width * 0.5f;
-	sBoard.y = world_height * 0.5f;
 
 	hole1 = CP_Vector_Set(world_width * 0.25f, world_height * 0.75f);
 	hole2 = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
@@ -697,7 +699,7 @@ void load(void) {
 	walls[i].pos.x = world_width * 0.5f;
 	walls[i].pos.y = world_height * 0.5f;
 	walls[i].scale.x = 0.5f;
-	walls[i].scale.y = world_height;
+	walls[i].scale.y = world_height * 1.1f;
 	walls[i].color = CP_Color_Create(255, 255, 255, 255);
 }
 
