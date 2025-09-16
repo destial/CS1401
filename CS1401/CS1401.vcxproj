@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="game.c" />
+    <ClCompile Include="level_manager.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="main_menu.c" />
     <ClCompile Include="physics.c" />
@@ -28,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
+    <ClInclude Include="level_manager.h" />
     <ClInclude Include="main_menu.h" />
     <ClInclude Include="physics.h" />
     <ClInclude Include="scoring.h" />

@@ -12,7 +12,7 @@
 #include "math.h"
 #include "physics.h"
 #include "scoring.h"
-//#include "level_manager.h"
+#include "level_manager.h"
 
 typedef struct Wall {
 	CP_Vector pos;
@@ -71,8 +71,8 @@ CP_Vector hole2;
 CP_Vector sBoard;
 
 int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
-static const int WALLS_AMOUNT = 11;
-Wall walls[11];
+int walls_amount;
+Wall* walls;
 GolfBall golf_balls[2];
 char playable = 0;
 float translate = 1.f;
@@ -299,7 +299,7 @@ void game_update(void)
 			golf->angle);
 		//CP_Graphics_DrawCircle(coords.x, coords.y, golf_diameter * CP_System_GetWindowWidth() / world_width);
 
-		for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
+		for (int i = walls_amount - 1; i > -1; i--) {
 			Wall* wall = walls + i;
 			if (wall == NULL)
 				continue;
@@ -331,7 +331,7 @@ void game_update(void)
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
-	for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
+	for (int i = walls_amount - 1; i > -1; i--) {
 		Wall* wall = walls + i;
 		if (wall == NULL)
 			continue;
@@ -380,13 +380,14 @@ void game_exit(void)
 	CP_Font_Free(&font);
 	CP_Image_Free(&golf_ball_image);
 	CP_Image_Free(&background_image);
-	for (int i = WALLS_AMOUNT - 1; i > -1; i--) {
+	for (int i = walls_amount - 1; i > -1; i--) {
 		Wall* wall = walls + i;
 		if (wall == NULL || wall->image == NULL)
 			continue;
 
 		CP_Image_Free(&wall->image);
 	}
+	free(walls);
 }
 
 // Update the wall's normal based on its angle of rotation
@@ -540,9 +541,9 @@ void save_level(void) {
 		golf_balls[1].pos.x, golf_balls[1].pos.y,
 		hole1.x, hole1.y,
 		hole2.x, hole2.y,
-		WALLS_AMOUNT
+		walls_amount
 		);
-	for (int i = 0; i < WALLS_AMOUNT; i++) {
+	for (int i = 0; i < walls_amount; i++) {
 		Wall* wall = walls + i;
 		if (wall == NULL)
 			continue;
@@ -561,37 +562,57 @@ void save_level(void) {
 }
 
 void load(void) {
-	char level_path[100];
-	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level + 1);
-	FILE* fptr = fopen(level_path, "r");
-	if (fptr != NULL) {
-		char level_file[4000];
-		fgets(level_file, 4000, fptr);
-		char* line = strtok(level_file, "\n");
-		while (line) {
-			char* key = strtok(line, "=");
-			if (strcmp(key, "width") == 0) {
-				char* value = strtok(NULL, "=");
-				//world_width = atoi(value);
-			}
-			char* line2 = strtok(NULL, "\n");
-			line = line2;
-		}
-		fclose(fptr);
-	}
-	return 0;
-
 	golf_balls[0].diameter = 1.f;
-	golf_balls[0].pos.x = world_width * 0.25f;
-	golf_balls[0].pos.y = 2.f;
+	golf_balls[1].diameter = 1.f;
+
 	golf_balls[0].vel.x = 0.f;
 	golf_balls[0].vel.y = 0.f;
 
-	golf_balls[1].diameter = 1.f;
-	golf_balls[1].pos.x = world_width * 0.75f;
-	golf_balls[1].pos.y = 2.f;
 	golf_balls[1].vel.x = 0.f;
 	golf_balls[1].vel.y = 0.f;
+
+	Level* loaded_level = get_level(current_level + 1);
+	if (loaded_level != NULL) {
+		golf_balls[0].pos = loaded_level->golf_pos_1;
+		golf_balls[1].pos = loaded_level->golf_pos_2;
+
+		hole1 = loaded_level->hole_1;
+		hole2 = loaded_level->hole_2;
+
+		walls_amount = loaded_level->walls_size;
+		walls = malloc(sizeof(Wall) * walls_amount);
+
+		int wall_index = 0;
+		for (int i = 0; i < loaded_level->walls_size * 5; i += 5) {
+			walls[wall_index].pos.x = loaded_level->walls[i];
+			walls[wall_index].pos.y = loaded_level->walls[i + 1];
+
+			walls[wall_index].scale.x = loaded_level->walls[i + 2];
+			walls[wall_index].scale.y = loaded_level->walls[i + 3];
+
+			walls[wall_index].angle = loaded_level->walls[i + 4];
+
+			walls[wall_index].color = CP_Color_Create(255, 255, 255, 255);
+			walls[wall_index].image = CP_Image_Load("Assets/Images/wall_left.png");
+
+			walls[wall_index].rotation_rate = 0.f;
+
+			wall_index++;
+		}
+
+		free(loaded_level->walls);
+		free(loaded_level);
+		return;
+	}
+
+	walls_amount = 11;
+	walls = malloc(sizeof(Wall) * walls_amount);
+
+	golf_balls[0].pos.x = world_width * 0.25f;
+	golf_balls[0].pos.y = 2.f;
+
+	golf_balls[1].pos.x = world_width * 0.75f;
+	golf_balls[1].pos.y = 2.f;
 
 	sBoard.x = world_width * 0.5f;
 	sBoard.y = world_height * 0.5f;
@@ -607,7 +628,7 @@ void load(void) {
 	hole2 = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
 
 	int i = 1;
-	for (; i < (WALLS_AMOUNT * 0.5f); i++) {
+	for (; i < (walls_amount * 0.5f); i++) {
 		walls[i].pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
 		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
@@ -620,7 +641,7 @@ void load(void) {
 		walls[i].image = CP_Image_Load("Assets/Images/wall_left.png");
 	}
 
-	for (; i < WALLS_AMOUNT; i++) {
+	for (; i < walls_amount; i++) {
 		walls[i].pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
 		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
