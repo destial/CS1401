@@ -23,13 +23,13 @@ void splash_screen_update(void)
 	int width = CP_Image_GetWidth(logo);
 	int height = CP_Image_GetHeight(logo);
 	if (revert == 0) {
-		splashScreenAlpha += CP_System_GetDt() * (1 / duration);
+		splashScreenAlpha += CP_System_GetDt() / duration;
 		if (splashScreenAlpha >= 1.f) {
 			revert = 1;
 		}
 	}
 	else {
-		splashScreenAlpha -= CP_System_GetDt() * (1 / duration);
+		splashScreenAlpha -= CP_System_GetDt() / duration;
 	}
 	splashScreenAlpha = CP_Math_ClampFloat(splashScreenAlpha, 0, 1.f);
 	float alpha = CP_Math_LerpFloat(0, 255, splashScreenAlpha);

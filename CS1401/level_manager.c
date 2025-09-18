@@ -33,6 +33,7 @@ Level* get_level(int level) {
         char* k, * v;
         char* line = strtok_s(level_file, outerdel, &outerptr);
         while (line) {
+            // +1 because last character is '\0' to terminate the string
             // set the key (left side)
             k = strtok_s(line, innerdel, &innerptr);
             next->key = malloc(strlen(k) + 1);
@@ -53,11 +54,13 @@ Level* get_level(int level) {
                 next->next = NULL;
             }
         }
+        next = NULL;
 
         // make sure to free up allocated memory for the text file contents
         free(level_file);
+        level_file = NULL;
 
-        // create the level to load and set all the values
+        // create the level to load and set all the values *** all must have values!!!
         Level* lvl = malloc(sizeof(Level));
         lvl->world_width = atof(get_value(root, "width"));
         lvl->world_height = atof(get_value(root, "height"));
@@ -140,6 +143,7 @@ Level* get_level(int level) {
 
         // we are done loading the level, we can now free up the map
         free_map(root);
+        root = NULL;
         return lvl;
     }
     
@@ -148,7 +152,7 @@ Level* get_level(int level) {
 }
 
 char* get_value(Map* map, const char* key) {
-    // loop through each leaf and compare the key value with the given key
+    // loop through each map node and compare the key value with the given key
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             return ptr->value;
@@ -167,10 +171,12 @@ char* read_content(const char* filename) {
         fsize = ftell(fp);
         rewind(fp);
 
-        fcontent = (char*)malloc(sizeof(char) * fsize);
-        fread(fcontent, 1, fsize, fp);
-
+        fcontent = malloc(sizeof(char) * fsize);
+        if (fcontent) {
+            fread(fcontent, 1, fsize, fp);
+        }
         fclose(fp);
+        fp = NULL;
     }
     return fcontent;
 }
@@ -179,19 +185,32 @@ char* read_content(const char* filename) {
 CP_Vector get_vector(char* line) {
     const char innerdel[] = ",";
     char* innerptr = NULL;
+
+    // get the x value (left side)
     char* xstr = strtok_s(line, innerdel, &innerptr);
     float x = atof(xstr);
+
+    // get the y value (right side)
     char* ystr = strtok_s(NULL, innerdel, &innerptr);
     float y = atof(ystr);
-    return CP_Vector_Set(x, y);
+    CP_Vector vector = CP_Vector_Set(x, y);
+
+    // clean up
+    xstr = NULL;
+    ystr = NULL;
+    return vector;
 }
 
-// recursively loops through the map to free up the map, starting with the last
+// recursively loops through the map to free up the allocations, starting from the last node
 void free_map(Map* map) {
     if (map->next) {
         free_map(map->next);
+        map->next = NULL;
     }
     free(map->key);
+    map->key = NULL;
     free(map->value);
+    map->value = NULL;
     free(map);
+    map = NULL;
 }
