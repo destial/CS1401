@@ -57,28 +57,44 @@ typedef enum ColorCode {
 	LAST
 };
 
+// static
+CP_Color colors[LAST];
+
 // initialize global variables here
 CP_Font* font;
 CP_Image* golf_ball_image;
 CP_Image* background_image;
+
+// mouse positions in screen and world space
 CP_Vector mouse = { 0, 0 };
 CP_Vector mouse_world = { 0, 0 };
+
+// golfball and hole positions
+GolfBall golf_balls[2];
+CP_Vector hole1;
+CP_Vector hole2;
+
+// currently dragging ball
+GolfBall* current;
+
+// scoreboard position
+CP_Vector sBoard;
+
+// editable setting
 float resistance = 1.25f;
 float power = 1.f;
 char debug_enabled = 1;
-GolfBall* current;
 char current_level = 1;
-CP_Color colors[LAST];
-CP_Vector hole1;
-CP_Vector hole2;
-CP_Vector sBoard;
-int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
-int walls_amount;
-short win;
-Wall* walls;
-GolfBall golf_balls[2];
+
+// reset on level loading
 short playable = 0;
 float translate = 1.f;
+short win = 0;
+
+// load based on level
+Wall* walls;
+int walls_amount;
+int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirement
 
 // Initialize the font, golf positions and wall positions
 void game_init(void)
@@ -107,6 +123,11 @@ void game_init(void)
 	colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
 
 	load();
+
+	// reset on level loading
+	translate = 1.f;
+	playable = 0.f;
+	win = 0;
 }
 
 void game_update(void)
