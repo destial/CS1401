@@ -280,7 +280,7 @@ void game_update(void)
 			add_stroke();
 		}
 
-		for (int i = walls_amount; i > -1; i--) {
+		for (int i = walls_amount - 1; i > 0; i--) {
 			Wall* wall = walls + i;
 			if (wall == NULL)
 				continue;
@@ -314,7 +314,7 @@ void game_render(void)
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
-	for (int i = walls_amount; i > -1; i--) {
+	for (int i = walls_amount - 1; i > -1; i--) {
 		Wall* wall = walls + i;
 		if (wall == NULL)
 			continue;
@@ -552,6 +552,8 @@ void debug_draw(void) {
 	sprintf_s(p, 50, "Power: %f", power);
 	CP_Font_DrawText(p, 0, 100);
 
+	CP_Font_DrawText("Press G to disable debug rendering", 0, 120);
+
 	//render();
 }
 	
@@ -624,8 +626,8 @@ void load(void) {
 		hole1 = loaded_level->hole_1;
 		hole2 = loaded_level->hole_2;
 
-		walls_amount = loaded_level->walls_size;
-		walls = malloc(sizeof(Wall) * (walls_amount + 1));
+		walls_amount = loaded_level->walls_size + 1;
+		walls = malloc(sizeof(Wall) * walls_amount);
 
 		// @todo: set par here into scoring
 		// set_lvl_par(loaded_level->par);
@@ -658,7 +660,7 @@ void load(void) {
 		walls[wall_index].scale.y = world_height * 1.1f;
 		walls[wall_index].angle = 0;
 		walls[wall_index].rotation_rate = 0;
-		walls[wall_index].color = CP_Color_Create(255, 255, 255, 255);
+		walls[wall_index].color = colors[WHITE];
 		walls[wall_index].image = NULL;
 
 		free(loaded_level->walls);
@@ -668,9 +670,6 @@ void load(void) {
 	}
 
 	// load a default randomized level if no level file exists
-	walls_amount = 10;
-	walls = malloc(sizeof(Wall) * walls_amount);
-
 	golf_balls[0].pos.x = world_width * 0.25f;
 	golf_balls[0].pos.y = 2.f;
 
@@ -680,43 +679,48 @@ void load(void) {
 	hole1 = CP_Vector_Set(world_width * 0.25f, world_height * 0.75f);
 	hole2 = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
 
-	int i = 0;
-	for (; i < (walls_amount * 0.5f); i++) {
-		walls[i].pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
-		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
-
-		walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-		walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
-
-		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
-		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
-
-		walls[i].image = get_image("Assets/Images/wall_left.png");
-	}
-
-	for (; i < walls_amount; i++) {
-		walls[i].pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
-		walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
-
-		walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-		walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
-
-		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
-		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
-
-		walls[i].image = get_image("Assets/Images/wall_right.png");
-	}
-
-	i++;
-	// middle wall
-	walls = realloc(walls, sizeof(Wall) * i);
+	walls_amount = 11;
+	walls = malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
+		int i = 0;
+		for (; i < (walls_amount * 0.5f); i++) {
+			walls[i].pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+			walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+
+			walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+			walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+
+			walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
+			walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+			walls[i].image = get_image("Assets/Images/wall_left.png");
+			walls[i].rotation_rate = 0;
+		}
+
+		for (; i < walls_amount - 1; i++) {
+			walls[i].pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+			walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+
+			walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+			walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+
+			walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
+			walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+			walls[i].image = get_image("Assets/Images/wall_right.png");
+			walls[i].rotation_rate = 0;
+		}
+
 		walls[i].pos.x = world_width * 0.5f;
 		walls[i].pos.y = world_height * 0.5f;
 		walls[i].scale.x = 0.5f;
 		walls[i].scale.y = world_height * 1.1f;
-		walls[i].color = CP_Color_Create(255, 255, 255, 255);
+		walls[i].color = colors[WHITE];
+		walls[i].image = NULL;
+		walls[i].angle = 0;
+		walls[i].rotation_rate = 0;
 	}
+
 }
 
 void set_game_level(char level) {
