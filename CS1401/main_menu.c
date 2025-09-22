@@ -23,6 +23,8 @@ CP_Font button_font;
 
 char is_clicked = 0;
 
+void play_button(void);
+
 void exit_main_menu(void) {
 	CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
 }
@@ -38,6 +40,7 @@ void main_menu_init(void)
 	buttons[0].pos.x = world_width1 * 0.5;
 	buttons[0].pos.y = world_height1 * 0.5;
 	buttons[0].start_pos.x = buttons[0].pos.x;
+	buttons[0].func = play_button;
 	buttons[0].text = "PLAY";
 
 	buttons[1].button_image = get_image("Assets/Images/button_blue.png");
@@ -144,7 +147,6 @@ void main_menu_update(void)
 
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) 
 			{
-				is_clicked = 1;
 				if (buttons[i].func) {
 					buttons[i].func();
 				}
@@ -214,6 +216,10 @@ void main_menu_update(void)
 		
 	}
 
+}
+
+void play_button(void) {
+	is_clicked = !is_clicked;
 }
 
 //changes the Main menu screen to the game start state
