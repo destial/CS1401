@@ -34,7 +34,6 @@ typedef struct GolfBall {
 	CP_Vector prev_pos;
 	CP_Vector vel;
 	float diameter;
-	CP_Image* image;
 	float angle;
 	char dragging;
 	char halt;
@@ -279,7 +278,7 @@ void game_update(void)
 			}
 
 			// rotate the ball based on its x-axis velocity
-			golf->angle += (golf->vel.x * 0.25f);
+			golf->angle += (CP_Vector_Length(golf->vel) * 0.25f) * (golf->vel.x > 0 ? 1 : -1);
 			if (golf->angle > 360.f) {
 				golf->angle = 360.f - golf->angle;
 			}
@@ -301,7 +300,7 @@ void game_update(void)
 			add_stroke();
 		}
 
-		for (int i = walls_amount - 1; i > 0; i--) {
+		for (int i = walls_amount - 1; i > -1; i--) {
 			Wall* wall = walls + i;
 			if (wall == NULL)
 				continue;
@@ -367,12 +366,14 @@ void game_render(void)
 		}
 	}
 
+	// draw hole goal
 	draw_hole(hole1, world_width, world_height, translate);
 	draw_hole(hole2, world_width, world_height, translate);
 
+	// draw golf balls
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
-		if (golf->scored)
+		if (golf->scored) // ignore if golf ball is already scored
 			continue;
 
 		CP_Vector coords = world_to_screen(golf->pos.x, golf->pos.y, world_width, world_height);
@@ -387,6 +388,7 @@ void game_render(void)
 			255,
 			golf->angle);
 
+		// render current stroke
 		if (golf->dragging && golf == current) {
 			golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
 			golf->vel = CP_Vector_Scale(golf->vel, power);
@@ -431,13 +433,15 @@ void game_render(void)
 		@todo: win condition response (all balls have scored)
 		*/
 	}
+
+	// render debug text on top of everything
 	if (debug_enabled)
 		debug_draw();
 }
 
 void game_exit(void)
 {
-	free_assets();
+	// free level allocations
 	free(walls);
 	walls = NULL;
 }
@@ -624,14 +628,16 @@ void load(void) {
 	sBoard.x = world_width * 0.5f;
 	sBoard.y = world_height * 0.5f;
 
-	golf_balls[0].diameter = 1.f;
-	golf_balls[1].diameter = 1.f;
-
-	golf_balls[0].vel.x = 0.f;
-	golf_balls[0].vel.y = 0.f;
-
-	golf_balls[1].vel.x = 0.f;
-	golf_balls[1].vel.y = 0.f;
+	// initialize golf balls default values
+	for (int j = 0; j < 2; j++) {
+		golf_balls[j].scored = 0;
+		golf_balls[j].halt = 0;
+		golf_balls[j].dragging = 0;
+		golf_balls[j].angle = 0;
+		golf_balls[j].diameter = 1.f;
+		golf_balls[j].vel.x = 0.f;
+		golf_balls[j].vel.y = 0.f;
+	}
 
 	// get the currently set level and load the level file
 	Level* loaded_level = get_level(current_level + 1);
@@ -655,34 +661,38 @@ void load(void) {
 
 		int wall_index = 0;
 		for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
-			walls[wall_index].pos.x = loaded_level->walls[i];
-			walls[wall_index].pos.y = loaded_level->walls[i + 1];
+			Wall* wall = walls + wall_index;
+			if (wall == NULL)
+				continue;
+			// loading walls according to index in array
+			wall->pos.x = loaded_level->walls[i];
+			wall->pos.y = loaded_level->walls[i + 1];
 
-			walls[wall_index].scale.x = loaded_level->walls[i + 2];
-			walls[wall_index].scale.y = loaded_level->walls[i + 3];
+			wall->scale.x = loaded_level->walls[i + 2];
+			wall->scale.y = loaded_level->walls[i + 3];
 
-			walls[wall_index].angle = loaded_level->walls[i + 4];
-			walls[wall_index].rotation_rate = loaded_level->walls[i + 5];
+			wall->angle = loaded_level->walls[i + 4];
+			wall->rotation_rate = loaded_level->walls[i + 5];
 
-			walls[wall_index].color = CP_Color_Create(255, 255, 255, 255);
+			wall->color = CP_Color_Create(255, 255, 255, 255);
 
-			if (walls[wall_index].pos.x <= world_width * 0.5f) {
-				walls[wall_index].image = get_image("Assets/Images/wall_left.png");
+			if (wall->pos.x <= world_width * 0.5f) {
+				wall->image = get_image("Assets/Images/wall_left.png");
 			}
 			else {
-				walls[wall_index].image = get_image("Assets/Images/wall_right.png");
+				wall->image = get_image("Assets/Images/wall_right.png");
 			}
 			wall_index++;
 		}
-
-		walls[wall_index].pos.x = world_width * 0.5f;
-		walls[wall_index].pos.y = world_height * 0.5f;
-		walls[wall_index].scale.x = 0.5f;
-		walls[wall_index].scale.y = world_height * 1.1f;
-		walls[wall_index].angle = 0;
-		walls[wall_index].rotation_rate = 0;
-		walls[wall_index].color = colors[WHITE];
-		walls[wall_index].image = NULL;
+		Wall* middle_wall = walls + wall_index;
+		middle_wall->pos.x = world_width * 0.5f;
+		middle_wall->pos.y = world_height * 0.5f;
+		middle_wall->scale.x = 0.5f;
+		middle_wall->scale.y = world_height * 1.1f;
+		middle_wall->angle = 0;
+		middle_wall->rotation_rate = 0;
+		middle_wall->color = colors[WHITE];
+		middle_wall->image = NULL;
 
 		free(loaded_level->walls);
 		free(loaded_level);
@@ -703,43 +713,55 @@ void load(void) {
 	walls_amount = 11;
 	walls = malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
-		int i = 0;
-		for (; i < (walls_amount * 0.5f); i++) {
-			walls[i].pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
-			walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+		int wall_index = 0;
+		for (; wall_index < (walls_amount * 0.5f); wall_index++) {
+			Wall* wall = walls + wall_index;
+			if (wall == NULL)
+				continue;
 
-			walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-			walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+			wall->pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
-			walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
-			walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+			wall->scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->scale.y = CP_Random_RangeFloat(0.5f, 5.f);
 
-			walls[i].image = get_image("Assets/Images/wall_left.png");
-			walls[i].rotation_rate = 0;
+			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
+			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+			wall->image = get_image("Assets/Images/wall_left.png");
+			wall->rotation_rate = 0;
 		}
 
-		for (; i < walls_amount - 1; i++) {
-			walls[i].pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
-			walls[i].pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
+		for (; wall_index < walls_amount - 1; wall_index++) {
+			Wall* wall = walls + wall_index;
+			if (wall == NULL)
+				continue;
 
-			walls[i].scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-			walls[i].scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
+			wall->pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
-			walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
-			walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+			wall->scale.x = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->scale.y = CP_Random_RangeFloat(0.5f, 5.f);
 
-			walls[i].image = get_image("Assets/Images/wall_right.png");
-			walls[i].rotation_rate = 0;
+			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
+			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
+
+			wall->image = get_image("Assets/Images/wall_right.png");
+			wall->rotation_rate = 0;
 		}
 
-		walls[i].pos.x = world_width * 0.5f;
-		walls[i].pos.y = world_height * 0.5f;
-		walls[i].scale.x = 0.5f;
-		walls[i].scale.y = world_height * 1.1f;
-		walls[i].color = colors[WHITE];
-		walls[i].image = NULL;
-		walls[i].angle = 0;
-		walls[i].rotation_rate = 0;
+		Wall* middle_wall = walls + wall_index;
+		if (middle_wall == NULL)
+			return;
+
+		middle_wall->pos.x = world_width * 0.5f;
+		middle_wall->pos.y = world_height * 0.5f;
+		middle_wall->scale.x = 0.5f;
+		middle_wall->scale.y = world_height * 1.1f;
+		middle_wall->color = colors[WHITE];
+		middle_wall->image = NULL;
+		middle_wall->angle = 0;
+		middle_wall->rotation_rate = 0;
 	}
 
 }
