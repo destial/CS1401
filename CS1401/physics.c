@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 11 September 2025
+@course CSD1401
+@brief Definition file for implementing basic vector math that is not included in CProcessing, but useful for conversion into game coordinates
+*/
+
 #include "physics.h"
 #include "math.h"
 
@@ -41,5 +48,5 @@ char CP_Vector_IsZero(CP_Vector vect) {
 }
 
 float CP_Vector_LengthSquared(CP_Vector vect) {
-	return pow(vect.x, 2) + pow(vect.y, 2);
+	return CP_Math_Square(vect.x) + CP_Math_Square(vect.y);
 }

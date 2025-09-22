@@ -2,7 +2,7 @@
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @date 22 September 2025
 @course CSD1401
-@brief Header file for implementing an asset manager that will handle loading and freeing of assets
+@brief Definition file for an asset manager that will handle loading and freeing of assets
 */
 
 #include "asset_manager.h"
@@ -90,7 +90,7 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer
 @param
-map - The root map
+map - The root asset map
 */
 static void free_assetmap(AssetMap* map) {
     if (map == NULL)

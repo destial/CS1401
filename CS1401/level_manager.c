@@ -221,3 +221,9 @@ void free_map(Map* map) {
     free(map);
     map = NULL;
 }
+
+void free_level(Level* level) {
+    free(level->walls);
+    free(level);
+    level = NULL;
+}

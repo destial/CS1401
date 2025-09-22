@@ -38,7 +38,7 @@ typedef struct GolfBall {
 	char dragging;
 	char halt;
 	char scored;
-};
+} GolfBall;
 
 typedef enum ColorCode {
 	BLACK=0,
@@ -121,6 +121,7 @@ void game_init(void)
 	colors[PINK] = CP_Color_Create(255, 0, 200, 255);
 	colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
 
+	// load the current level file set from current_level variable
 	load();
 
 	// reset on level loading
@@ -621,7 +622,9 @@ void save_level(void) {
 	fptr = NULL;
 }
 
-// load the current level from text file
+/*!
+@brief Load the current level from text file under "Assets/Levels/level_{current_level+1}.lvl"
+*/
 void load(void) {
 
 	// initialize standard default values
@@ -684,6 +687,8 @@ void load(void) {
 			}
 			wall_index++;
 		}
+
+		// add the middle wall last (never in the level file)
 		Wall* middle_wall = walls + wall_index;
 		middle_wall->pos.x = world_width * 0.5f;
 		middle_wall->pos.y = world_height * 0.5f;
@@ -694,8 +699,7 @@ void load(void) {
 		middle_wall->color = colors[WHITE];
 		middle_wall->image = NULL;
 
-		free(loaded_level->walls);
-		free(loaded_level);
+		free_level(loaded_level);
 		loaded_level = NULL;
 		return;
 	}
@@ -719,6 +723,7 @@ void load(void) {
 			if (wall == NULL)
 				continue;
 
+			// randomize the values
 			wall->pos.x = CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
 			wall->pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
@@ -737,6 +742,7 @@ void load(void) {
 			if (wall == NULL)
 				continue;
 
+			// randomize the values
 			wall->pos.x = (world_width * 0.5f) + CP_Random_RangeFloat(1.f, world_width * 0.5f - 1.f);
 			wall->pos.y = CP_Random_RangeFloat(1.f, world_height - 1.f);
 
@@ -750,6 +756,7 @@ void load(void) {
 			wall->rotation_rate = 0;
 		}
 
+		// add the middle wall last
 		Wall* middle_wall = walls + wall_index;
 		if (middle_wall == NULL)
 			return;

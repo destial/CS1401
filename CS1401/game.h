@@ -62,7 +62,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal);
 void save_level(void);
 
 /*!
-@brief Load the current level from text file under "Assets/Levels/level_{current_level}.lvl"
+@brief Load the current level from text file under "Assets/Levels/level_{current_level+1}.lvl"
 */
 void load(void);
 
