@@ -36,6 +36,12 @@
     <ClCompile Include="level_manager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="asset_manager.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="end_state.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="physics.h">
@@ -54,6 +60,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="level_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="asset_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="end_state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

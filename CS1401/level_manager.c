@@ -203,14 +203,21 @@ CP_Vector get_vector(char* line) {
 
 // recursively loops through the map to free up the allocations, starting from the last node
 void free_map(Map* map) {
+    if (map == NULL)
+        return;
+
     if (map->next) {
         free_map(map->next);
         map->next = NULL;
     }
-    free(map->key);
-    map->key = NULL;
-    free(map->value);
-    map->value = NULL;
+    if (map->key != NULL) {
+        free(map->key);
+        map->key = NULL;
+    }
+    if (map->value != NULL) {
+        free(map->value);
+        map->value = NULL;
+    }
     free(map);
     map = NULL;
 }

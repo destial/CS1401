@@ -13,6 +13,8 @@
 #include "physics.h"
 #include "scoring.h"
 #include "level_manager.h"
+#include "asset_manager.h"
+#include "end_state.h"
 
 typedef struct Wall {
 	CP_Vector pos;
@@ -20,7 +22,7 @@ typedef struct Wall {
 	CP_Vector normal;
 	CP_Vector left;
 	CP_Color color;
-	CP_Image image;
+	CP_Image* image;
 	float angle;
 	float angle_radians;
 	float rotation_rate;
@@ -32,7 +34,7 @@ typedef struct GolfBall {
 	CP_Vector prev_pos;
 	CP_Vector vel;
 	float diameter;
-	CP_Image image;
+	CP_Image* image;
 	float angle;
 	char dragging;
 	char halt;
@@ -56,9 +58,9 @@ typedef enum ColorCode {
 };
 
 // initialize global variables here
-CP_Font font;
-CP_Image golf_ball_image;
-CP_Image background_image;
+CP_Font* font;
+CP_Image* golf_ball_image;
+CP_Image* background_image;
 CP_Vector mouse = { 0, 0 };
 CP_Vector mouse_world = { 0, 0 };
 float resistance = 1.25f;
@@ -81,9 +83,9 @@ float translate = 1.f;
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
-	font = CP_Font_Load("Assets/Fonts/esl.ttf");
-	golf_ball_image = CP_Image_Load("Assets/Images/golf_ball.png");
-	background_image = CP_Image_Load("Assets/Images/game_background.png");
+	font = get_font("Assets/Fonts/esl.ttf");
+	golf_ball_image = get_image("Assets/Images/golf_ball.png");
+	background_image = get_image("Assets/Images/game_background.png");
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -128,7 +130,8 @@ void game_update(void)
 	// Quit the engine if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
 		//save_level();
-		CP_Engine_Terminate();
+		CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
+		return;
 	}
 
 	// Enable debug drawing (game data, hitboxes, collision line)
@@ -413,21 +416,7 @@ void game_render(void)
 
 void game_exit(void)
 {
-	// free the allocated memory
-	CP_Font_Free(&font);
-	font = NULL;
-	CP_Image_Free(&golf_ball_image);
-	golf_ball_image = NULL;
-	CP_Image_Free(&background_image);
-	background_image = NULL;
-	for (int i = walls_amount; i > -1; i--) {
-		Wall* wall = walls + i;
-		if (wall == NULL || wall->image == NULL)
-			continue;
-
-		CP_Image_Free(&wall->image);
-		wall->image = NULL;
-	}
+	free_assets();
 	free(walls);
 	walls = NULL;
 }
@@ -655,14 +644,11 @@ void load(void) {
 			walls[wall_index].color = CP_Color_Create(255, 255, 255, 255);
 
 			if (walls[wall_index].pos.x <= world_width * 0.5f) {
-				walls[wall_index].image = CP_Image_Load("Assets/Images/wall_left.png");
+				walls[wall_index].image = get_image("Assets/Images/wall_left.png");
 			}
 			else {
-				walls[wall_index].image = CP_Image_Load("Assets/Images/wall_right.png");
+				walls[wall_index].image = get_image("Assets/Images/wall_right.png");
 			}
-
-			walls[wall_index].rotation_rate = 0.f;
-
 			wall_index++;
 		}
 
@@ -705,7 +691,7 @@ void load(void) {
 		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
 		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 
-		walls[i].image = CP_Image_Load("Assets/Images/wall_left.png");
+		walls[i].image = get_image("Assets/Images/wall_left.png");
 	}
 
 	for (; i < walls_amount; i++) {
@@ -718,7 +704,7 @@ void load(void) {
 		walls[i].angle = CP_Random_RangeFloat(0.f, 90.f);
 		walls[i].color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 
-		walls[i].image = CP_Image_Load("Assets/Images/wall_right.png");
+		walls[i].image = get_image("Assets/Images/wall_right.png");
 	}
 
 	i++;
