@@ -231,24 +231,32 @@ void game_update(void)
 			if (golf->pos.x > world_width - golf->diameter * 0.5f) {
 				golf->pos.x = world_width - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
+				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
+				CP_Sound_Play(sound);
 			}
 
 			// bound the ball at the left border
 			if (golf->pos.x < golf->diameter * 0.5f) {
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
+				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
+				CP_Sound_Play(sound);
 			}
 
 			// bound the ball at the top border
 			if (golf->pos.y > world_height - golf->diameter * 0.5f) {
 				golf->pos.y = world_height - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
+				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
+				CP_Sound_Play(sound);
 			}
 
 			// bound the ball at the bottom border
 			if (golf->pos.y < golf->diameter * 0.5f) {
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
+				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
+				CP_Sound_Play(sound);
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -316,6 +324,7 @@ void game_render(void)
 	CP_Settings_Fill(colors[BLACK]);
 	CP_Image_Draw(background_image, 0, 0, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 
+	CP_Settings_TextSize(40.f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	char b[50];
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
@@ -400,6 +409,7 @@ void game_render(void)
 
 		if (debug_enabled) {
 			CP_Settings_Fill(colors[GREEN]);
+			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50];
 			sprintf_s(p, 50, "Golf Pos: (%f, %f)", golf->pos.x, golf->pos.y);
@@ -534,12 +544,15 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 	CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
 	ball->vel.x = reflection.x / resistance;
 	ball->vel.y = reflection.y / resistance;
+
+	CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
+	CP_Sound_Play(sound);
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void debug_draw(void) {
 	CP_Settings_Fill(colors[GREEN]);
-	CP_Settings_Scale(1.f, 1.f);
+	CP_Settings_TextSize(20.f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	char fps[50];
 	sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
