@@ -11,7 +11,8 @@
 typedef enum AssetType {
     IMAGE = 1,
     FONT,
-    AUDIO
+    AUDIO,
+    SPRITE
 } AssetType;
 
 typedef struct AssetMap {
@@ -145,7 +146,13 @@ static void free_assetmap(AssetMap* map) {
         else if (map->type == AUDIO) {
             CP_Sound_Free(map->value);
         }
-        else { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
+        else if (map->type == SPRITE) { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
+            SpriteSheet* sheet = (SpriteSheet*)map->value;
+            CP_Image_Free(sheet->root_image);
+            sheet->root_image = NULL;
+            free(map->value);
+        }
+        else {
             free(map->value);
         }
         map->value = NULL;
@@ -159,6 +166,16 @@ static void free_assetmap(AssetMap* map) {
 
     free(map);
     map = NULL;
+}
+
+static AssetMap* get_node(const char* key) {
+    AssetMap* ptr;
+    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            return (CP_Image*)ptr;
+        }
+    }
+    return NULL;
 }
 
 CP_Image* get_image(const char* filepath) {
@@ -247,6 +264,38 @@ CP_Sound* get_audio(const char* filepath) {
         }
     }
     return NULL;
+}
+
+SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration) {
+    if (!root_assets) {
+        root_assets = malloc(sizeof(AssetMap));
+    }
+
+    AssetMap* node = get_node(filepath);
+    if (node != NULL && node->type == SPRITE) {
+        return (AssetMap*)node->value;
+    }
+
+    if (node != NULL && node->type == IMAGE) {
+        SpriteSheet* sheet = malloc(sizeof(SpriteSheet));
+        sheet->root_image = (CP_Image*)node->value;
+        sheet->current_row = 0;
+        sheet->current_column = 0;
+        sheet->rows = rows;
+        sheet->columns = columns;
+        sheet->duration = duration;
+        sheet->elapsedDuration = 0.f;
+
+        node->value = sheet;
+        node->type = SPRITE;
+        return sheet;
+    }
+
+    CP_Image* image = get_image(filepath);
+    if (image == NULL)
+        return NULL;
+
+    return get_sprite(filepath, rows, columns, duration);
 }
 
 void free_assets(void) {

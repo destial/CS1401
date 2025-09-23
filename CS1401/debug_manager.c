@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 23 September 2025
+@course CSD1401
+@brief Definition file for debug and level editor UI
+*/
+
 #include "debug_manager.h"
 #include "physics.h"
 

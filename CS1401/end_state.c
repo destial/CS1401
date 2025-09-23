@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 22 September 2025
+@course CSD1401
+@brief Definition file for unloading the game's allocation
+*/
+
 #include "end_state.h"
 #include "asset_manager.h"
 

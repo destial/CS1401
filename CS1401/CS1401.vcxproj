@@ -29,6 +29,7 @@
     <ClCompile Include="physics.c" />
     <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
+    <ClCompile Include="sprite_manager.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset_manager.h" />
@@ -40,6 +41,7 @@
     <ClInclude Include="physics.h" />
     <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />
+    <ClInclude Include="sprite_manager.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

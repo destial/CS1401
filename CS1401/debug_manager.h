@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 23 September 2025
+@course CSD1401
+@brief Header file for debug and level editor UI
+*/
+
 #pragma once
 #ifndef DEBUG_MANAGER_H
 #define DEBUG_MANAGER_H

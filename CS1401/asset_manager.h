@@ -9,6 +9,7 @@
 #ifndef ASSET_MANAGER_H
 #define ASSET_MANAGER_H
 #include "cprocessing.h"
+#include "sprite_manager.h"
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -33,6 +34,14 @@ CP_Font* get_font(const char* filepath);
 filepath - The audio filepath
 */
 CP_Sound* get_audio(const char* filepath);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu
+@brief Get the spritesheet from this file path
+@param
+filepath - The spritesheet filepath
+*/
+SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

@@ -3,6 +3,7 @@
 #include "physics.h"
 #include "game.h"
 #include "asset_manager.h"
+#include "sprite_manager.h"
 #include "end_state.h"
 
 //setting button
@@ -135,6 +136,8 @@ void main_menu_init(void)
 void main_menu_update(void) 
 {
 	CP_Graphics_ClearBackground(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_Scale(1.f, 1.f);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Image_Draw(background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth(), CP_System_GetWindowHeight(), 255);
 	
 	CP_Color textColor = CP_Color_Create(0, 0, 0, 255);
@@ -326,7 +329,17 @@ void main_menu_update(void)
 		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 2.0f, CP_System_GetDt() * 5);
 		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 60.0f, CP_System_GetDt() * 5);
 	}
-	
+
+	if (!is_clicked) {
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		DrawSprite(get_sprite("Assets/Images/title_sprite.png", 12, 5, 2.f),
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() * 0.3f,
+			CP_System_GetWindowWidth() * 0.4f,
+			CP_System_GetWindowHeight() * 0.4f,
+			255);
+	}
 }
 
 void play_button(void) {

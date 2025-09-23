@@ -55,6 +55,7 @@ float translate = 1.f;
 short win = 0;
 short has_won = 0;
 short all_balls_stopped;
+float a = 0.f;
 
 // load based on level
 Wall* walls;
@@ -261,7 +262,7 @@ void game_update(void)
 			}
 
 			// rotate the ball based on its x-axis velocity
-			golf->angle += (CP_Vector_Length(golf->vel) * 0.25f) * (golf->vel.x > 0 ? 1 : -1);
+			golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
 			if (golf->angle > 360.f) {
 				golf->angle = 360.f - golf->angle;
 			}
@@ -360,6 +361,7 @@ void game_render(void)
 			CP_Settings_Fill(colors[WHITE]);
 			CP_Settings_Stroke(colors[WHITE]);
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 			CP_Image_DrawAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
 				wall->scale.x * ((float) CP_System_GetWindowWidth() / world_width),
@@ -382,6 +384,7 @@ void game_render(void)
 		CP_Settings_Fill(colors[WHITE]);
 		CP_Settings_Stroke(colors[WHITE]);
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image_DrawAdvanced(golf_ball_image,
 			CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth(), translate),
 			coords.y,
