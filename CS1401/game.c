@@ -296,7 +296,10 @@ void game_update(void)
 				continue;
 
 			// check collision detection
-			check_collision(wall, ball);
+			if (wall->pos.x <= world_width * 0.5f && ball->pos.x <= world_width * 0.5f)
+				check_collision(wall, ball);
+			else if (wall->pos.x >= world_width * 0.5f && ball->pos.x >= world_width * 0.5f)
+				check_collision(wall, ball);
 		}
 	}
 
@@ -431,7 +434,6 @@ void game_render(void)
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
 	}
-
 
 	// render debug text on top of everything
 	if (debug_enabled) {
