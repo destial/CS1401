@@ -53,6 +53,7 @@ char current_level = 1;
 short playable = 0;
 float translate = 1.f;
 short win = 0;
+short has_won = 0;
 short all_balls_stopped;
 
 // load based on level
@@ -93,6 +94,7 @@ void game_init(void)
 	translate = 1.f;
 	playable = 0.f;
 	win = 0;
+	has_won = 0;
 	all_balls_stopped = 1;
 }
 
@@ -311,6 +313,11 @@ void game_update(void)
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
 	}
 
+	if (win && !has_won) {
+		has_won = 1;
+		CP_Sound_Play(get_audio("Assets/Audio/victory.wav"));
+	}
+
 	game_render();
 }
 
@@ -343,8 +350,8 @@ void game_render(void)
 			CP_Settings_Stroke(colors[CLEAR]);
 			CP_Graphics_DrawRectAdvanced(
 				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
-				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
-				wall->scale.y * (CP_System_GetWindowHeight() / world_height),
+				wall->scale.x * ((float) CP_System_GetWindowWidth() / world_width),
+				wall->scale.y * ((float) CP_System_GetWindowHeight() / world_height),
 				wall->angle,
 				0.f
 			);
@@ -355,8 +362,8 @@ void game_render(void)
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
-				wall->scale.x * (CP_System_GetWindowWidth() / world_width),
-				wall->scale.y * (CP_System_GetWindowHeight() / world_height),
+				wall->scale.x * ((float) CP_System_GetWindowWidth() / world_width),
+				wall->scale.y * ((float) CP_System_GetWindowHeight() / world_height),
 				255,
 				wall->angle
 			);
@@ -378,8 +385,8 @@ void game_render(void)
 		CP_Image_DrawAdvanced(golf_ball_image,
 			CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth(), translate),
 			coords.y,
-			golf->diameter * CP_System_GetWindowWidth() / world_width,
-			golf->diameter * CP_System_GetWindowWidth() / world_width,
+			golf->diameter * (float) CP_System_GetWindowWidth() / world_width,
+			golf->diameter * (float) CP_System_GetWindowWidth() / world_width,
 			255,
 			golf->angle);
 
