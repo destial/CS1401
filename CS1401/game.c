@@ -53,6 +53,7 @@ char current_level = 1;
 short playable = 0;
 float translate = 1.f;
 short win = 0;
+short all_balls_stopped;
 
 // load based on level
 Wall* walls;
@@ -92,6 +93,7 @@ void game_init(void)
 	translate = 1.f;
 	playable = 0.f;
 	win = 0;
+	all_balls_stopped = 1;
 }
 
 void game_update(void)
@@ -166,23 +168,24 @@ void game_update(void)
 		if (debug_enabled)
 			continue;
 
+		all_balls_stopped = 1;
+		for (int j = 0; j < 2; j++) {
+			GolfBall* other_golf = golf_balls + j;
+			if (other_golf->dragging || other_golf->halt || other_golf->scored)
+				continue;
+
+			// if ball is still moving, cant play
+			if (CP_Vector_LengthSquared(other_golf->vel) > 0.01f) {
+				all_balls_stopped = 0;
+				break;
+			}
+		}
+
 		// Dragging the power of the ball
 		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && playable) {
 
 			// make sure the mouse is on the ball and its currently not moving
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
-				short all_balls_stopped = 1;
-				for (int j = 0; j < 2; j++) {
-					GolfBall* other_golf = golf_balls + j;
-					if (other_golf->dragging || other_golf->halt || other_golf->scored)
-						continue;
-
-					// if ball is still moving, cant play
-					if (CP_Vector_LengthSquared(other_golf->vel) > 0.01f) {
-						all_balls_stopped = 0;
-						break;
-					}
-				}
 				golf->dragging = all_balls_stopped;
 				if (all_balls_stopped) {
 					current = golf;
@@ -231,32 +234,28 @@ void game_update(void)
 			if (golf->pos.x > world_width - golf->diameter * 0.5f) {
 				golf->pos.x = world_width - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
-				CP_Sound_Play(sound);
+				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
 			}
 
 			// bound the ball at the left border
 			if (golf->pos.x < golf->diameter * 0.5f) {
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
-				CP_Sound_Play(sound);
+				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
 			}
 
 			// bound the ball at the top border
 			if (golf->pos.y > world_height - golf->diameter * 0.5f) {
 				golf->pos.y = world_height - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
-				CP_Sound_Play(sound);
+				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
 			}
 
 			// bound the ball at the bottom border
 			if (golf->pos.y < golf->diameter * 0.5f) {
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
-				CP_Sound_Play(sound);
+				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -282,7 +281,6 @@ void game_update(void)
 			add_stroke();
 		}
 	}
-
 
 	for (int i = walls_amount - 1; i > -1; i--) {
 		Wall* wall = walls + i;
@@ -421,13 +419,19 @@ void game_render(void)
 		}
 	}
 
-
 	if (win) {
 		draw_scoreboard(sBoard, world_width, world_height);
 		/*
 		@todo: win condition response (all balls have scored)
 		*/
+	} else if (playable && all_balls_stopped && !debug_enabled) {
+		CP_Settings_Fill(get_color(ORANGE));
+		CP_Settings_Stroke(get_color(ORANGE));
+		CP_Settings_TextSize(50.f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
 	}
+
 
 	// render debug text on top of everything
 	if (debug_enabled) {
@@ -545,8 +549,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 	ball->vel.x = reflection.x / resistance;
 	ball->vel.y = reflection.y / resistance;
 
-	CP_Sound* sound = get_audio("Assets/Audio/golf_hit_wall.wav");
-	CP_Sound_Play(sound);
+	CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
@@ -687,7 +690,7 @@ void load(void) {
 		middle_wall->scale.y = world_height * 1.1f;
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
-		middle_wall->color = colors[WHITE];
+		middle_wall->color = colors[BLACK];
 		middle_wall->image = NULL;
 
 		free_level(loaded_level);
@@ -756,7 +759,7 @@ void load(void) {
 		middle_wall->pos.y = world_height * 0.5f;
 		middle_wall->scale.x = 0.5f;
 		middle_wall->scale.y = world_height * 1.1f;
-		middle_wall->color = colors[WHITE];
+		middle_wall->color = colors[BLACK];
 		middle_wall->image = NULL;
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
