@@ -10,7 +10,8 @@
 
 typedef enum AssetType {
     IMAGE = 1,
-    FONT
+    FONT,
+    AUDIO
 } AssetType;
 
 typedef struct AssetMap {
@@ -88,6 +89,37 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Load an audio into the asset map
+@param
+node - The map node to load the audio into
+filepath - The filepath of the audio file
+*/
+static CP_BOOL load_audio(AssetMap* node, const char* filepath) {
+    // load the font into memory and check if it exists
+    node->value = CP_Sound_Load(filepath);
+    if (node->value == NULL) {
+        node->key = NULL;
+        node->next = NULL;
+        node->type = 0;
+        return 0;
+    }
+
+    // allocate the memory address for the key
+    node->key = malloc(strlen(filepath) + 1);
+    if (node->key) {
+        strcpy_s(node->key, strlen(filepath) + 1, filepath);
+    }
+    else {
+        node->key = filepath;
+    }
+
+    node->type = AUDIO;
+    node->next = NULL;
+    return 1;
+}
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer
 @param
 map - The root asset map
@@ -109,6 +141,9 @@ static void free_assetmap(AssetMap* map) {
         }
         else if (map->type == FONT) {
             CP_Font_Free(map->value);
+        }
+        else if (map->type == AUDIO) {
+            CP_Sound_Free(map->value);
         }
         else { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
             free(map->value);
@@ -174,6 +209,35 @@ CP_Font* get_font(const char* filepath) {
             // ensure the font exists and can actually be loaded
             if (load_font(ptr->next, filepath)) {
                 return get_font(filepath);
+            }
+            else { // filepath is wrong!
+                free(ptr->next);
+                ptr->next = NULL;
+                return NULL;
+            }
+        }
+    }
+    return NULL;
+}
+
+CP_Sound* get_audio(const char* filepath) {
+    // if the root is empty, we initialize it
+    if (!root_assets) {
+        root_assets = malloc(sizeof(AssetMap));
+    }
+
+    // traverse through the map nodes and find the key that matches this filepath (and asset type)
+    AssetMap* ptr;
+    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, filepath) == 0 && ptr->type == AUDIO) {
+            return (CP_Sound*)ptr->value;
+        }
+        if (ptr->next == NULL) {
+            ptr->next = malloc(sizeof(AssetMap));
+
+            // ensure the audio file exists and can actually be loaded
+            if (load_audio(ptr->next, filepath)) {
+                return get_audio(filepath);
             }
             else { // filepath is wrong!
                 free(ptr->next);

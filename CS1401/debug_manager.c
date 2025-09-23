@@ -113,7 +113,8 @@ void update_debug_utils(void) {
 void render_debug_utils(void) {
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
-	CP_Font_DrawText("Press G to toggle level editor mode!", CP_System_GetWindowWidth() * 0.5f, 0);
+	CP_Settings_TextSize(50.f);
+	CP_Font_DrawText("Game Paused! Press G to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 0);
 
 	if (current_editing == NULL)
 		return;
@@ -126,7 +127,7 @@ void render_debug_utils(void) {
 		CP_Vector screen_pos = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(get_color(RED));
 		CP_Settings_Stroke(get_color(RED));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->normal.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->normal.y * world_ratios.y * wall->scale.y));
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->normal.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->normal.y * world_ratios.y * wall->scale.y * 0.5f));
 
 		CP_Settings_Fill(get_color(BLUE));
 		CP_Settings_Stroke(get_color(BLUE));

@@ -27,6 +27,14 @@ filepath - The font filepath
 CP_Font* get_font(const char* filepath);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu
+@brief Get the audio from this file path
+@param
+filepath - The audio filepath
+*/
+CP_Sound* get_audio(const char* filepath);
+
+/*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free up all the loaded assets from the asset map. Do not call this in main()!
 */

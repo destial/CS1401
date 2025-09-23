@@ -130,8 +130,14 @@ CP_Vector get_mouse_world(void);
 */
 CP_Vector get_world_limits(void);
 
-CP_Color get_color(ColorCode code);
-
+/*
+@brief Get the world width and height ratios according to the display width and height (e.g. displayWidth / worldWidth)
+*/
 CP_Vector get_world_ratios(void);
+
+/*!
+@brief Get a defined color
+*/
+CP_Color get_color(ColorCode code);
 
 #endif
