@@ -14,47 +14,8 @@
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
+#include "debug_manager.h"
 #include "end_state.h"
-
-typedef struct Wall {
-	CP_Vector pos;
-	CP_Vector scale;
-	CP_Vector normal;
-	CP_Vector left;
-	CP_Color color;
-	CP_Image* image;
-	float angle;
-	float angle_radians;
-	float rotation_rate;
-
-} Wall;
-
-typedef struct GolfBall {
-	CP_Vector pos;
-	CP_Vector prev_pos;
-	CP_Vector vel;
-	float diameter;
-	float angle;
-	char dragging;
-	char halt;
-	char scored;
-} GolfBall;
-
-typedef enum ColorCode {
-	BLACK=0,
-	RED,
-	GREEN,
-	BLUE,
-	PURPLE,
-	VIOLET,
-	ORANGE,
-	YELLOW,
-	CYAN,
-	PINK,
-	WHITE,
-	CLEAR,
-	LAST
-};
 
 // static
 CP_Color colors[LAST];
@@ -70,8 +31,7 @@ CP_Vector mouse_world = { 0, 0 };
 
 // golfball and hole positions
 GolfBall golf_balls[2];
-CP_Vector hole1;
-CP_Vector hole2;
+Hole holes[2];
 
 // currently dragging ball
 GolfBall* current;
@@ -82,7 +42,11 @@ CP_Vector sBoard;
 // editable setting
 float resistance = 1.25f;
 float power = 1.f;
+#ifdef _DEBUG
 char debug_enabled = 1;
+#else
+char debug_enabled = 0;
+#endif
 char current_level = 1;
 
 // reset on level loading
@@ -184,6 +148,12 @@ void game_update(void)
 				power = 0.1f;
 			}
 		}
+
+		update_debug_walls(walls, walls_amount - 1);
+		update_debug_holes(holes, 2);
+		update_debug_golfs(golf_balls, 2);
+
+		update_debug_utils();
 	}
 
 	win = 1;
@@ -193,6 +163,9 @@ void game_update(void)
 			continue;
 
 		win = 0;
+		if (debug_enabled)
+			continue;
+
 		// Dragging the power of the ball
 		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && playable) {
 
@@ -288,10 +261,10 @@ void game_update(void)
 			}
 
 			// calculate if golf ball is inside the hole
-			if (CP_Vector_Distance(golf->pos, hole1) < 0.75f - (golf->diameter * 0.5f)) {
+			if (CP_Vector_Distance(golf->pos, holes[0].pos) < (holes[0].diameter * 0.5f) - (golf->diameter * 0.5f)) {
 				golf->scored = 1;
 			}
-			if (CP_Vector_Distance(golf->pos, hole2) < 0.75f - (golf->diameter * 0.5f)) {
+			if (CP_Vector_Distance(golf->pos, holes[1].pos) < (holes[1].diameter * 0.5f) - (golf->diameter * 0.5f)) {
 				golf->scored = 1;
 			}
 		}
@@ -300,20 +273,33 @@ void game_update(void)
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && golf->dragging) {
 			add_stroke();
 		}
+	}
 
-		for (int i = walls_amount - 1; i > -1; i--) {
-			Wall* wall = walls + i;
-			if (wall == NULL)
+
+	for (int i = walls_amount - 1; i > -1; i--) {
+		Wall* wall = walls + i;
+		if (wall == NULL)
+			continue;
+
+		// update wall's normal
+		update_wall(wall);
+
+		for (int j = 0; j < 2; j++) {
+			GolfBall* ball = golf_balls + j;
+			if (ball == NULL || ball->scored)
 				continue;
 
-			// update wall's normal
-			update_wall(wall);
-
 			// check collision detection
-			check_collision(wall, golf);
+			check_collision(wall, ball);
 		}
+	}
 
-		golf->prev_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
+	for (int j = 0; j < 2; j++) {
+		GolfBall* ball = golf_balls + j;
+		if (ball == NULL || ball->scored)
+			continue;
+
+		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
 	}
 
 	game_render();
@@ -367,12 +353,10 @@ void game_render(void)
 		}
 	}
 
-	// draw hole goal
-	draw_hole(hole1, world_width, world_height, translate);
-	draw_hole(hole2, world_width, world_height, translate);
-
-	// draw golf balls
+	// draw hole && golf balls
 	for (int i = 0; i < 2; i++) {
+		draw_hole(holes[i].pos, holes[i].diameter, world_width, world_height, translate);
+
 		GolfBall* golf = golf_balls + i;
 		if (golf->scored) // ignore if golf ball is already scored
 			continue;
@@ -436,8 +420,10 @@ void game_render(void)
 	}
 
 	// render debug text on top of everything
-	if (debug_enabled)
+	if (debug_enabled) {
 		debug_draw();
+		render_debug_utils();
+	}
 }
 
 void game_exit(void)
@@ -577,29 +563,20 @@ void debug_draw(void) {
 	char p[50];
 	sprintf_s(p, 50, "Power: %f", power);
 	CP_Font_DrawText(p, 0, 100);
-
-	CP_Font_DrawText("Press G to disable debug rendering", 0, 120);
-
-	//render();
 }
 	
 void save_level(void) {
 	char level_path[100];
 	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level + 1);
-	//FILE* check = fopen(level_path, "r");
-	//if (check != NULL) {
-	//	fclose(check);
-	//	return;
-	//}
 	FILE* fptr = fopen(level_path, "w");
 	char level_file[4000];
 	sprintf_s(level_file, 4000,
-		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nwalls_amount=%d\n", 
+		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nwalls_amount=%d", 
 		world_width, world_height, 
 		golf_balls[0].pos.x, golf_balls[0].pos.y, 
 		golf_balls[1].pos.x, golf_balls[1].pos.y,
-		hole1.x, hole1.y,
-		hole2.x, hole2.y,
+		holes[0].pos.x, holes[0].pos.y,
+		holes[1].pos.x, holes[1].pos.y,
 		walls_amount
 		);
 	for (int i = 0; i < walls_amount; i++) {
@@ -609,7 +586,7 @@ void save_level(void) {
 
 		char wall_data[1000];
 		sprintf_s(wall_data, 1000,
-			"wall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f\n", 
+			"\nwall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f", 
 			i, wall->pos.x, wall->pos.y, 
 			i, wall->scale.x, wall->scale.y,
 			i, wall->angle,
@@ -640,6 +617,7 @@ void load(void) {
 		golf_balls[j].diameter = 1.f;
 		golf_balls[j].vel.x = 0.f;
 		golf_balls[j].vel.y = 0.f;
+		holes[j].diameter = 1.5f;
 	}
 
 	// get the currently set level and load the level file
@@ -653,8 +631,8 @@ void load(void) {
 		golf_balls[0].pos = loaded_level->golf_pos_1;
 		golf_balls[1].pos = loaded_level->golf_pos_2;
 
-		hole1 = loaded_level->hole_1;
-		hole2 = loaded_level->hole_2;
+		holes[0].pos = loaded_level->hole_1;
+		holes[1].pos = loaded_level->hole_2;
 
 		walls_amount = loaded_level->walls_size + 1;
 		walls = malloc(sizeof(Wall) * walls_amount);
@@ -711,8 +689,8 @@ void load(void) {
 	golf_balls[1].pos.x = world_width * 0.75f;
 	golf_balls[1].pos.y = 2.f;
 
-	hole1 = CP_Vector_Set(world_width * 0.25f, world_height * 0.75f);
-	hole2 = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
+	holes[0].pos = CP_Vector_Set(world_width * 0.25f, world_height * 0.75f);
+	holes[1].pos = CP_Vector_Set(world_width * 0.75f, world_height * 0.75f);
 
 	walls_amount = 11;
 	walls = malloc(sizeof(Wall) * walls_amount);
@@ -770,7 +748,6 @@ void load(void) {
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
 	}
-
 }
 
 void set_game_level(char level) {
@@ -779,4 +756,20 @@ void set_game_level(char level) {
 
 char get_game_level(void) {
 	return current_level;
+}
+
+CP_Vector get_mouse_world(void) {
+	return mouse_world;
+}
+
+CP_Vector get_world_limits(void) {
+	return CP_Vector_Set(world_width, world_height);
+}
+
+CP_Vector get_world_ratios(void) {
+	return CP_Vector_Set(CP_System_GetWindowWidth() / (float) world_width, CP_System_GetWindowHeight() / (float) world_height);
+}
+
+CP_Color get_color(ColorCode code) {
+	return colors[code];
 }

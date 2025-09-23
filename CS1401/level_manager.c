@@ -19,6 +19,7 @@ Level* get_level(int level) {
 
     // make sure this file actually exists
     if (level_file != NULL) {
+        //trim_string(level_file);
         // set contexts for string tokenizer ('\n' to split between lines, '=' to split between key and value)
         const char outerdel[] = "\n";
         const char innerdel[] = "=";
@@ -226,4 +227,15 @@ void free_level(Level* level) {
     free(level->walls);
     free(level);
     level = NULL;
+}
+
+// sourced from: https://www.delftstack.com/howto/c/trim-string-in-c
+void trim_string(char* str) {
+    while (isspace((unsigned char)str[0])) {
+        memmove(str, str + 1, strlen(str));
+    }
+
+    while (isspace((unsigned char)str[strlen(str) - 1])) {
+        str[strlen(str) - 1] = '\0';
+    }
 }

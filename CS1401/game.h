@@ -10,10 +10,49 @@
 #define GAME_H
 #include "cprocessing.h"
 
-typedef struct Wall Wall;
-typedef struct GolfBall GolfBall;
+typedef struct Wall {
+	CP_Vector pos;
+	CP_Vector scale;
+	CP_Vector normal;
+	CP_Vector left;
+	CP_Color color;
+	CP_Image* image;
+	float angle;
+	float angle_radians;
+	float rotation_rate;
+} Wall;
 
-typedef enum ColorCode;
+typedef struct GolfBall {
+	CP_Vector pos;
+	CP_Vector prev_pos;
+	CP_Vector vel;
+	float diameter;
+	float angle;
+	char dragging;
+	char halt;
+	char scored;
+} GolfBall;
+
+typedef struct Hole {
+	CP_Vector pos;
+	float diameter;
+} Hole;
+
+typedef enum ColorCode {
+	BLACK = 0,
+	RED,
+	GREEN,
+	BLUE,
+	PURPLE,
+	VIOLET,
+	ORANGE,
+	YELLOW,
+	CYAN,
+	PINK,
+	WHITE,
+	CLEAR,
+	LAST
+} ColorCode;
 
 /*!
 @brief Game scene init
@@ -80,5 +119,19 @@ char get_game_level(void);
 @brief Render debug information such as FPS, mouse coords, ball positions & velocity and collision markers
 */
 void debug_draw(void);
+
+/*!
+@brief Get the mouse position in world space
+*/
+CP_Vector get_mouse_world(void);
+
+/*!
+@brief Get the world width and height
+*/
+CP_Vector get_world_limits(void);
+
+CP_Color get_color(ColorCode code);
+
+CP_Vector get_world_ratios(void);
 
 #endif

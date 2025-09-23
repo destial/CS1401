@@ -84,4 +84,12 @@ The parsed vector
 */
 CP_Vector get_vector(char* line);
 
+/*!
+@author https://www.martinbroadhurst.com/trim-a-string-in-c
+@brief Trim a string to remove leading and trailing whitespace
+@param
+content - The string content to trim
+*/
+void trim_string(char* str);
+
 #endif
