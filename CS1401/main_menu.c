@@ -336,8 +336,8 @@ void main_menu_update(void)
 		DrawSprite(get_sprite("Assets/Images/title_sprite.png", 12, 5, 2.f),
 			CP_System_GetWindowWidth() * 0.5f,
 			CP_System_GetWindowHeight() * 0.3f,
-			CP_System_GetWindowWidth() * 0.4f,
-			CP_System_GetWindowHeight() * 0.4f,
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() * 0.5f,
 			255);
 	}
 }
