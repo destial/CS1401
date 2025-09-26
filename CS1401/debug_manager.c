@@ -6,7 +6,7 @@
 */
 
 #include "debug_manager.h"
-#include "physics.h"
+#include "utils.h"
 
 typedef enum EditMode {
 	TRANSLATE = 0,
@@ -21,6 +21,8 @@ typedef enum EditingType {
 } EditingType;
 
 void* current_editing = NULL;
+void* current_dragging = NULL;
+CP_Vector current_editing_offset;
 EditMode current_mode = TRANSLATE;
 EditingType current_type = 0;
 
@@ -45,13 +47,29 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
 }
 
 void update_debug_walls(Wall* walls, int size) {
-	for (int i = 0; i < size; i++) {
+	if (CP_Input_KeyTriggered(KEY_P)) {
+		Wall* wall = add_wall(get_mouse_world());
+		if (wall) {
+			size++;
+			current_editing = wall;
+			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
+			current_type = WALL;
+		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
+		remove_wall((Wall*)current_editing);
+		size--;
+	}
+
+	for (int i = 1; i < size; i++) {
 		Wall* wall = walls + i;
-		if (wall == NULL || current_editing == wall)
+		if (wall == NULL)
 			continue;
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_quad(wall)) {
 			current_editing = wall;
+			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
 			current_type = WALL;
 		}
 	}
@@ -60,11 +78,12 @@ void update_debug_walls(Wall* walls, int size) {
 void update_debug_holes(Hole* holes, int size) {
 	for (int i = 0; i < size; i++) {
 		Hole* hole = holes + i;
-		if (hole == NULL || current_editing == hole)
+		if (hole == NULL )
 			continue;
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(hole->pos, hole->diameter)) {
 			current_editing = hole;
+			current_editing_offset = CP_Vector_Subtract(hole->pos, get_mouse_world());
 			current_type = HOLE;
 		}
 	}
@@ -73,14 +92,14 @@ void update_debug_holes(Hole* holes, int size) {
 void update_debug_golfs(GolfBall* balls, int size) {
 	for (int i = 0; i < size; i++) {
 		GolfBall* golf = balls + i;
-		if (golf == NULL || current_editing == golf)
+		if (golf == NULL)
 			continue;
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(golf->pos, golf->diameter)) {
 			current_editing = golf;
+			current_editing_offset = CP_Vector_Subtract(golf->pos, get_mouse_world());
 			current_type = GOLF_BALL;
 		}
-
 	}
 }
 
@@ -91,27 +110,38 @@ void update_debug_utils(void) {
 	CP_Vector world_limits = get_world_limits();
 	CP_Vector world_ratios = get_world_ratios();
 
-	if (current_type == WALL) {
-		Wall* wall = (Wall*)current_editing;
-		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && check_on_quad(wall)) {
-			if (current_mode == TRANSLATE) {
-				wall->pos = get_mouse_world();
-			}
+	if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) {
+		if (current_type == WALL && check_on_quad((Wall*)current_editing)) {
+			current_dragging = current_editing;
+		}
+		else if (current_type == HOLE && check_on_circle(((Hole*)current_editing)->pos, ((Hole*)current_editing)->diameter)) {
+			current_dragging = current_editing;
+		}
+		else if (current_type == GOLF_BALL && check_on_circle(((GolfBall*)current_editing)->pos, ((GolfBall*)current_editing)->diameter)) {
+			current_dragging = current_editing;
 		}
 	}
-	else if (current_type == HOLE) {
-		Hole* hole = (Hole*)current_editing;
-		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && check_on_circle(hole->pos, hole->diameter)) {
+	else {
+		current_dragging = NULL;
+	}
+
+	if (CP_Input_MouseDragged(MOUSE_BUTTON_1) && current_dragging != NULL) {
+		if (current_type == WALL) {
+			Wall* wall = (Wall*)current_dragging;
 			if (current_mode == TRANSLATE) {
-				hole->pos = get_mouse_world();
+				wall->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
 			}
 		}
-	}
-	else if (current_type == GOLF_BALL) {
-		GolfBall* ball = (GolfBall*)current_editing;
-		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && check_on_circle(ball->pos, ball->diameter)) {
+		else if (current_type == HOLE) {
+			Hole* hole = (Hole*)current_dragging;
 			if (current_mode == TRANSLATE) {
-				ball->pos = get_mouse_world();
+				hole->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+			}
+		}
+		else if (current_type == GOLF_BALL) {
+			GolfBall* ball = (GolfBall*)current_dragging;
+			if (current_mode == TRANSLATE) {
+				ball->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
 			}
 		}
 	}
@@ -138,7 +168,7 @@ void render_debug_utils(void) {
 
 		CP_Settings_Fill(get_color(BLUE));
 		CP_Settings_Stroke(get_color(BLUE));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->left.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->left.y * world_ratios.y * wall->scale.y * 0.5f));
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->right.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->right.y * world_ratios.y * wall->scale.y * 0.5f));
 	}
 	else if (current_type == HOLE) {
 		Hole* hole = (Hole*)current_editing;

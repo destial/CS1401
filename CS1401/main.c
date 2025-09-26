@@ -1,6 +1,5 @@
 #include "cprocessing.h"
 #include "splash_screen.h"
-#include "asset_manager.h"
 
 int main(void)
 {

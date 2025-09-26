@@ -13,6 +13,7 @@ void splash_screen_init(void)
 	logo = get_image("Assets/Images/DigiPen_Singapore_WEB_RED.png");
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
+	CP_Settings_AntiAlias(TRUE);
 	CP_System_SetWindowSize(1600, 900);
 	//CP_System_SetWindowSize(CP_System_GetDisplayWidth(), CP_System_GetDisplayHeight());
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate());

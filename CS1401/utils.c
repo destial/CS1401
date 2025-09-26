@@ -5,7 +5,7 @@
 @brief Definition file for implementing basic vector math that is not included in CProcessing, but useful for conversion into game coordinates
 */
 
-#include "physics.h"
+#include "utils.h"
 #include "math.h"
 
 CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {

@@ -14,12 +14,13 @@ typedef struct Wall {
 	CP_Vector pos;
 	CP_Vector scale;
 	CP_Vector normal;
-	CP_Vector left;
+	CP_Vector right;
 	CP_Color color;
 	CP_Image* image;
 	float angle;
 	float angle_radians;
 	float rotation_rate;
+	char destroyed;
 } Wall;
 
 typedef struct GolfBall {
@@ -139,5 +140,9 @@ CP_Vector get_world_ratios(void);
 @brief Get a defined color
 */
 CP_Color get_color(ColorCode code);
+
+Wall* add_wall(CP_Vector pos);
+
+void remove_wall(Wall* wall);
 
 #endif

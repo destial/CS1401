@@ -6,8 +6,8 @@
 */
 
 #pragma once
-#ifndef PHYSICS_H
-#define PHYSICS_H
+#ifndef UTILS_H
+#define UTILS_H
 #include "cprocessing.h"
 
 /*!

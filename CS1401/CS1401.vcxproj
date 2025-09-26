@@ -26,7 +26,7 @@
     <ClCompile Include="level_manager.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="main_menu.c" />
-    <ClCompile Include="physics.c" />
+    <ClCompile Include="utils.c" />
     <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
     <ClCompile Include="sprite_manager.c" />
@@ -38,7 +38,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="level_manager.h" />
     <ClInclude Include="main_menu.h" />
-    <ClInclude Include="physics.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />
     <ClInclude Include="sprite_manager.h" />
@@ -49,6 +49,7 @@
     <ProjectGuid>{0d8266e8-e8c4-48c1-adee-93240ba6f118}</ProjectGuid>
     <RootNamespace>CS1401</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>GolfGame</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

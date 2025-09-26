@@ -10,7 +10,7 @@
 #include <string.h>
 #include "game.h"
 #include "math.h"
-#include "physics.h"
+#include "utils.h"
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
@@ -154,7 +154,7 @@ void game_update(void)
 			}
 		}
 
-		update_debug_walls(walls, walls_amount - 1);
+		update_debug_walls(walls, walls_amount);
 		update_debug_holes(holes, 2);
 		update_debug_golfs(golf_balls, 2);
 
@@ -285,13 +285,16 @@ void game_update(void)
 		}
 	}
 
-	for (int i = walls_amount - 1; i > -1; i--) {
+	for (int i = 0; i < walls_amount; i++) {
 		Wall* wall = walls + i;
-		if (wall == NULL)
+		if (wall == NULL || wall->destroyed)
 			continue;
 
 		// update wall's normal
 		update_wall(wall);
+
+		if (debug_enabled)
+			continue;
 
 		for (int j = 0; j < 2; j++) {
 			GolfBall* ball = golf_balls + j;
@@ -339,7 +342,7 @@ void game_render(void)
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
-	for (int i = walls_amount - 1; i > -1; i--) {
+	for (int i = 0; i < walls_amount; i++) {
 		Wall* wall = walls + i;
 		if (wall == NULL)
 			continue;
@@ -369,6 +372,23 @@ void game_render(void)
 				255,
 				wall->angle
 			);
+		}
+
+		if (debug_enabled) {
+			CP_Settings_Fill(colors[GREEN]);
+			CP_Settings_TextSize(20.f);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
+			char p[50];
+			sprintf_s(p, 50, "Wall Index: %d", i);
+			CP_Font_DrawText(p, c.x, c.y + 40);
+
+			char b[50];
+			sprintf_s(b, 50, "Wall Pos: (%f, %f)", wall->pos.x, wall->pos.y);
+			CP_Font_DrawText(b, c.x, c.y + 60);
+
+			char d[50];
+			sprintf_s(d, 50, "Wall Normal: (%f, %f)", wall->normal.x, wall->normal.y);
+			CP_Font_DrawText(d, c.x, c.y + 80);
 		}
 	}
 
@@ -461,7 +481,10 @@ void game_exit(void)
 
 // Update the wall's normal based on its angle of rotation
 void update_wall(Wall* wall) {
-	wall->angle += wall->rotation_rate * CP_System_GetDt();
+	if (!debug_enabled) {
+		wall->angle += wall->rotation_rate * CP_System_GetDt();
+	}
+
 	if (wall->angle > 360.f) {
 		wall->angle = 360.f - wall->angle;
 	}
@@ -473,8 +496,8 @@ void update_wall(Wall* wall) {
 	wall->normal.x = cos(-wall->angle_radians);
 	wall->normal.y = sin(-wall->angle_radians);
 
-	wall->left.x = -wall->normal.y;
-	wall->left.y = wall->normal.x;
+	wall->right.x = -wall->normal.y;
+	wall->right.y = wall->normal.x;
 }
 
 // collision detection between golf_ball and walls
@@ -599,29 +622,36 @@ void save_level(void) {
 	FILE* fptr = fopen(level_path, "w");
 	char level_file[4000];
 	sprintf_s(level_file, 4000,
-		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nwalls_amount=%d", 
+		"width=%d\nheight=%d\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f", 
 		world_width, world_height, 
 		golf_balls[0].pos.x, golf_balls[0].pos.y, 
 		golf_balls[1].pos.x, golf_balls[1].pos.y,
 		holes[0].pos.x, holes[0].pos.y,
-		holes[1].pos.x, holes[1].pos.y,
-		walls_amount
+		holes[1].pos.x, holes[1].pos.y
 		);
-	for (int i = 0; i < walls_amount; i++) {
+
+	int wall_index = 0;
+	for (int i = 1; i < walls_amount; i++) {
 		Wall* wall = walls + i;
-		if (wall == NULL)
+		if (wall == NULL || wall->destroyed)
 			continue;
 
 		char wall_data[1000];
 		sprintf_s(wall_data, 1000,
 			"\nwall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f", 
-			i, wall->pos.x, wall->pos.y, 
-			i, wall->scale.x, wall->scale.y,
-			i, wall->angle,
-			i, wall->rotation_rate
+			wall_index, wall->pos.x, wall->pos.y,
+			wall_index, wall->scale.x, wall->scale.y,
+			wall_index, wall->angle,
+			wall_index, wall->rotation_rate
 		);
 		strcat_s(level_file, 4000, wall_data);
+		wall_index++;
 	}
+
+	char last[50];
+	sprintf_s(last, 50, "\nwalls_amount=%d", wall_index);
+	strcat_s(level_file, 4000, last);
+
 	fputs(level_file, fptr);
 	fclose(fptr);
 	fptr = NULL;
@@ -668,7 +698,7 @@ void load(void) {
 		// @todo: set par here into scoring
 		// set_lvl_par(loaded_level->par);
 
-		int wall_index = 0;
+		int wall_index = 1;
 		for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
@@ -683,7 +713,7 @@ void load(void) {
 			wall->angle = loaded_level->walls[i + 4];
 			wall->rotation_rate = loaded_level->walls[i + 5];
 
-			wall->color = CP_Color_Create(255, 255, 255, 255);
+			wall->color = get_color(WHITE);
 
 			if (wall->pos.x <= world_width * 0.5f) {
 				wall->image = get_image("Assets/Images/wall_left.png");
@@ -691,19 +721,21 @@ void load(void) {
 			else {
 				wall->image = get_image("Assets/Images/wall_right.png");
 			}
+			wall->destroyed = FALSE;
 			wall_index++;
 		}
 
-		// add the middle wall last (never in the level file)
-		Wall* middle_wall = walls + wall_index;
+		// middle wall is always the first (never in the level file)
+		Wall* middle_wall = walls;
 		middle_wall->pos.x = world_width * 0.5f;
 		middle_wall->pos.y = world_height * 0.5f;
 		middle_wall->scale.x = 0.5f;
 		middle_wall->scale.y = world_height * 1.1f;
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
-		middle_wall->color = colors[BLACK];
+		middle_wall->color = get_color(BLACK);
 		middle_wall->image = NULL;
+		middle_wall->destroyed = FALSE;
 
 		free_level(loaded_level);
 		loaded_level = NULL;
@@ -723,7 +755,7 @@ void load(void) {
 	walls_amount = 11;
 	walls = malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
-		int wall_index = 0;
+		int wall_index = 1;
 		for (; wall_index < (walls_amount * 0.5f); wall_index++) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
@@ -741,9 +773,10 @@ void load(void) {
 
 			wall->image = get_image("Assets/Images/wall_left.png");
 			wall->rotation_rate = 0;
+			wall->destroyed = FALSE;
 		}
 
-		for (; wall_index < walls_amount - 1; wall_index++) {
+		for (; wall_index < walls_amount; wall_index++) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
 				continue;
@@ -760,10 +793,11 @@ void load(void) {
 
 			wall->image = get_image("Assets/Images/wall_right.png");
 			wall->rotation_rate = 0;
+			wall->destroyed = FALSE;
 		}
 
-		// add the middle wall last
-		Wall* middle_wall = walls + wall_index;
+		// middle wall is always the first
+		Wall* middle_wall = walls;
 		if (middle_wall == NULL)
 			return;
 
@@ -775,6 +809,69 @@ void load(void) {
 		middle_wall->image = NULL;
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
+		middle_wall->destroyed = FALSE;
+	}
+}
+
+Wall* add_wall(CP_Vector pos) {
+	for (int wall_index = 1; wall_index < walls_amount; wall_index++) {
+		Wall* w = walls + wall_index;
+		if (w == NULL)
+			continue;
+
+		if (w->destroyed) {
+			w->pos = pos;
+			w->scale.x = 1.f;
+			w->scale.y = 1.f;
+			w->color = get_color(WHITE);
+			if (w->pos.x <= world_width * 0.5f) {
+				w->image = get_image("Assets/Images/wall_left.png");
+			}
+			else {
+				w->image = get_image("Assets/Images/wall_right.png");
+			}
+			w->angle = 0;
+			w->rotation_rate = 0;
+			w->destroyed = FALSE;
+			return w;
+		}
+	}
+
+	walls_amount++;
+	walls = realloc(walls, sizeof(Wall) * walls_amount);
+
+	Wall* new_wall = walls + (walls_amount - 1);
+	new_wall->pos = pos;
+	new_wall->scale.x = 1.f;
+	new_wall->scale.y = 1.f;
+	new_wall->color = get_color(WHITE);
+	if (new_wall->pos.x <= world_width * 0.5f) {
+		new_wall->image = get_image("Assets/Images/wall_left.png");
+	}
+	else {
+		new_wall->image = get_image("Assets/Images/wall_right.png");
+	}
+	new_wall->angle = 0;
+	new_wall->rotation_rate = 0;
+	new_wall->destroyed = FALSE;
+	return new_wall;
+}
+
+void remove_wall(Wall* wall) {
+	for (int wall_index = 1; wall_index < walls_amount; wall_index++) {
+		Wall* w = walls + wall_index;
+		if (w == NULL)
+			continue;
+
+		if (w == wall) {
+			w->pos.x = -10;
+			w->pos.y = -10;
+			w->scale.x = 0;
+			w->scale.y = 0;
+			w->rotation_rate = 0;
+			w->angle = 0;
+			w->destroyed = TRUE;
+		}
 	}
 }
 

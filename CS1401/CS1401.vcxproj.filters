@@ -24,7 +24,7 @@
     <ClCompile Include="game.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="physics.c">
+    <ClCompile Include="utils.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="scoring.c">
@@ -50,7 +50,7 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="physics.h">
+    <ClInclude Include="utils.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="splash_screen.h">
