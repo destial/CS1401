@@ -19,7 +19,7 @@
 #define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
 #define VICTORY_ASSET "Assets/Audio/victory.wav"
-#define GAME_BACKGROUND_ASSET "Assets/Images/game_background.png"
+#define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
 #define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
 #define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
 #define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
