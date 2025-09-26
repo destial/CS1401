@@ -6,13 +6,14 @@
 */
 
 #include "level_manager.h"
+#include "asset_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
 
 Level* get_level(int level) {
     char level_path[100];
-    sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", level);
+    sprintf_s(level_path, 100, LEVEL_FILEPATH, level);
 
     // read the level text file
     char* level_file = read_content(level_path);

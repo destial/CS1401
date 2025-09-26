@@ -7,11 +7,40 @@
 
 #include "end_state.h"
 #include "asset_manager.h"
+#include "game.h"
 
-void end_state_init(void) {}
+CP_Image* logo;
+float end_alpha = 0.f;
+float end_duration = 2.f;
+char end_revert = 0;
+
+void end_state_init(void) {
+	logo = get_image(SPLASH_SCREEN_ASSET);
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
+	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
+	CP_Settings_AntiAlias(TRUE);
+}
 
 void end_state_update(void) {
-	CP_Engine_Terminate();
+	CP_Graphics_ClearBackground(get_color(BLACK));
+	if (end_revert == 0) {
+		end_alpha += CP_System_GetDt() / end_duration;
+		if (end_alpha >= 1.f) {
+			end_revert = 1;
+		}
+	}
+	else {
+		end_alpha -= CP_System_GetDt() / end_duration;
+	}
+	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);
+	int alpha = CP_Math_LerpInt(0, 255, end_alpha);
+
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
+	CP_Image_Draw((CP_Image)logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, alpha);
+
+	if (end_revert && end_alpha == 0.f) {
+		CP_Engine_Terminate();
+	}
 }
 
 void end_state_end(void) {

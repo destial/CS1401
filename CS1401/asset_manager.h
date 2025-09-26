@@ -28,7 +28,8 @@
 #define BUTTON_GREY_ASSET "Assets/Images/button_grey.png"
 #define LEVEL_BUTTON_ASSET "Assets/Images/level button.png"
 #define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
-#define SPLASH_SCREEN_ASSET "Assets/Images/DigiPen_Singapore_WEB_RED.png"
+#define SPLASH_SCREEN_ASSET "Assets/Images/splash_screen.png"
+#define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
