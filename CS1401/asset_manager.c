@@ -148,7 +148,7 @@ static void free_assetmap(AssetMap* map) {
         }
         else if (map->type == SPRITE) { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
             SpriteSheet* sheet = (SpriteSheet*)map->value;
-            CP_Image_Free(sheet->root_image);
+            CP_Image_Free((CP_Image) sheet->root_image);
             sheet->root_image = NULL;
             free(map->value);
         }
@@ -172,7 +172,7 @@ static AssetMap* get_node(const char* key) {
     AssetMap* ptr;
     for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
-            return (CP_Image*)ptr;
+            return (AssetMap*)ptr;
         }
     }
     return NULL;
@@ -273,7 +273,7 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 
     AssetMap* node = get_node(filepath);
     if (node != NULL && node->type == SPRITE) {
-        return (AssetMap*)node->value;
+        return (SpriteSheet*)node->value;
     }
 
     if (node != NULL && node->type == IMAGE) {

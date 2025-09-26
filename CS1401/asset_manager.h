@@ -20,8 +20,15 @@
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
 #define VICTORY_ASSET "Assets/Audio/victory.wav"
 #define GAME_BACKGROUND_ASSET "Assets/Images/game_background.png"
+#define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
 #define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
 #define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
+#define BUTTON_YELLOW_ASSET "Assets/Images/button_yellow.png"
+#define BUTTON_BLUE_ASSET "Assets/Images/button_blue.png"
+#define BUTTON_GREY_ASSET "Assets/Images/button_grey.png"
+#define LEVEL_BUTTON_ASSET "Assets/Images/level button.png"
+#define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
+#define SPLASH_SCREEN_ASSET "Assets/Images/DigiPen_Singapore_WEB_RED.png"
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

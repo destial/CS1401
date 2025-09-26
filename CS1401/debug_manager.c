@@ -105,9 +105,6 @@ void update_debug_utils(void) {
 	if (current_editing == NULL)
 		return;
 
-	CP_Vector world_limits = get_world_limits();
-	CP_Vector world_ratios = get_world_ratios();
-
 	if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) {
 		if (current_type == WALL && check_on_quad((Wall*)current_editing)) {
 			current_dragging = current_editing;
@@ -201,7 +198,6 @@ void render_debug_utils(void) {
 	if (current_type == WALL) {
 		Wall* wall = (Wall*)current_editing;
 		CP_Vector screen_pos = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		CP_Vector scale_rotated = CP_Vector_Rotate(wall->scale, -wall->angle_radians);
 		CP_Vector normal = world_to_screen(wall->pos.x + wall->normal.x, wall->pos.y + wall->normal.y, world_limits.x, world_limits.y);
 		CP_Vector right = world_to_screen(wall->pos.x + wall->right.x, wall->pos.y + wall->right.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(get_color(RED));
@@ -218,7 +214,7 @@ void render_debug_utils(void) {
 
 		CP_Settings_Fill(get_color(RED));
 		CP_Settings_Stroke(get_color(RED));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * hole->diameter * 0.5);
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * hole->diameter * 0.5f);
 	}
 	else if (current_type == GOLF_BALL) {
 		GolfBall* ball = (GolfBall*)current_editing;
@@ -226,6 +222,6 @@ void render_debug_utils(void) {
 
 		CP_Settings_Fill(get_color(RED));
 		CP_Settings_Stroke(get_color(RED));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * ball->diameter * 0.5);
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * ball->diameter * 0.5f);
 	}
 }

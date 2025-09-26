@@ -13,7 +13,7 @@ void draw_hole(CP_Vector hole, float diameter, float world_width, float world_he
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Vector coords = world_to_screen(hole.x, hole.y, world_width, world_height);
 	CP_Graphics_DrawCircle(
-		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth(), animation),
+		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth() * 1.f, animation),
 		coords.y, 
 		diameter * CP_System_GetWindowWidth() / world_width);
 }

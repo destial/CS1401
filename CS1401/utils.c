@@ -29,8 +29,8 @@ CP_Vector CP_Vector_Project(CP_Vector a, CP_Vector b) {
 
 CP_Vector CP_Vector_Rotate(CP_Vector vect, float radians) {
 	CP_Vector rotated = {
-		vect.x * cos(radians) - vect.y * sin(radians),
-		vect.x * sin(radians) + vect.y * cos(radians)
+		vect.x * cosf(radians) - vect.y * sinf(radians),
+		vect.x * sinf(radians) + vect.y * cosf(radians)
 	};
 	return rotated;
 }

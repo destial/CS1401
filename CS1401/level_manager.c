@@ -63,8 +63,8 @@ Level* get_level(int level) {
 
         // create the level to load and set all the values *** all must have values!!!
         Level* lvl = malloc(sizeof(Level));
-        lvl->world_width = atof(get_value(root, "width"));
-        lvl->world_height = atof(get_value(root, "height"));
+        lvl->world_width = (float) atof(get_value(root, "width"));
+        lvl->world_height = (float) atof(get_value(root, "height"));
 
         lvl->walls_size = atoi(get_value(root, "walls_amount"));
         lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
@@ -122,7 +122,7 @@ Level* get_level(int level) {
             sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
             char* line_angle = get_value(root, wall_angle);
             if (line_angle) {
-                float angle = atof(line_angle);
+                float angle = (float) atof(line_angle);
                 lvl->walls[i + 4] = angle;
             }
             else {
@@ -134,7 +134,7 @@ Level* get_level(int level) {
             sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
             char* line_rot = get_value(root, wall_rot);
             if (line_rot) {
-                float rot = atof(line_rot);
+                float rot = (float) atof(line_rot);
                 lvl->walls[i + 5] = rot;
             }
             else {
@@ -189,11 +189,11 @@ CP_Vector get_vector(char* line) {
 
     // get the x value (left side)
     char* xstr = strtok_s(line, innerdel, &innerptr);
-    float x = atof(xstr);
+    float x = (float) atof(xstr);
 
     // get the y value (right side)
     char* ystr = strtok_s(NULL, innerdel, &innerptr);
-    float y = atof(ystr);
+    float y = (float) atof(ystr);
     CP_Vector vector = CP_Vector_Set(x, y);
 
     // clean up

@@ -7,3 +7,4 @@ void main_menu_exit(void);
 void play_button(void);
 void change_resolution(num);
 void setting_button(void);
+void exit_main_menu(void);
