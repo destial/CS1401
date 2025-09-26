@@ -50,11 +50,11 @@ char debug_enabled = 0;
 char current_level = 1;
 
 // reset on level loading
-short playable = 0;
+char playable = 0;
 float translate = 1.f;
-short win = 0;
-short has_won = 0;
-short all_balls_stopped;
+char win = 0;
+char has_won = 0;
+char all_balls_stopped;
 float a = 0.f;
 
 // load based on level
@@ -65,9 +65,9 @@ int world_width = 48, world_height = 27; // 16x9 aspect ratio cuz its a requirem
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
-	font = get_font("Assets/Fonts/esl.ttf");
-	golf_ball_image = get_image("Assets/Images/golf_ball.png");
-	background_image = get_image("Assets/Images/game_background.png");
+	font = get_font(ESL_FONT_ASSET);
+	golf_ball_image = get_image(GOLF_BALL_ASSET);
+	background_image = get_image(GAME_BACKGROUND_ASSET);
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -93,7 +93,7 @@ void game_init(void)
 
 	// reset on level loading
 	translate = 1.f;
-	playable = 0.f;
+	playable = 0;
 	win = 0;
 	has_won = 0;
 	all_balls_stopped = 1;
@@ -115,7 +115,7 @@ void game_update(void)
 
 	mouse.x = CP_Input_GetMouseX();
 	mouse.y = CP_Input_GetMouseY();
-	mouse_world = screen_to_world(mouse.x, mouse.y, world_width, world_height);
+	mouse_world = screen_to_world(mouse.x, mouse.y, (float) world_width, (float) world_height);
 
 	// Quit the engine if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
@@ -144,6 +144,13 @@ void game_update(void)
 			}
 		}
 
+		update_debug_walls(walls, walls_amount);
+		update_debug_holes(holes, 2);
+		update_debug_golfs(golf_balls, 2);
+
+		update_debug_utils();
+	}
+	else {
 		if (CP_Input_MouseWheel() > 0.f) {
 			power += 0.1f;
 		}
@@ -153,12 +160,6 @@ void game_update(void)
 				power = 0.1f;
 			}
 		}
-
-		update_debug_walls(walls, walls_amount);
-		update_debug_holes(holes, 2);
-		update_debug_golfs(golf_balls, 2);
-
-		update_debug_utils();
 	}
 
 	win = 1;
@@ -237,28 +238,28 @@ void game_update(void)
 			if (golf->pos.x > world_width - golf->diameter * 0.5f) {
 				golf->pos.x = world_width - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the left border
 			if (golf->pos.x < golf->diameter * 0.5f) {
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the top border
 			if (golf->pos.y > world_height - golf->diameter * 0.5f) {
 				golf->pos.y = world_height - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the bottom border
 			if (golf->pos.y < golf->diameter * 0.5f) {
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -298,7 +299,7 @@ void game_update(void)
 
 		for (int j = 0; j < 2; j++) {
 			GolfBall* ball = golf_balls + j;
-			if (ball == NULL || ball->scored)
+			if (ball->scored)
 				continue;
 
 			// check collision detection
@@ -311,7 +312,7 @@ void game_update(void)
 
 	for (int j = 0; j < 2; j++) {
 		GolfBall* ball = golf_balls + j;
-		if (ball == NULL || ball->scored)
+		if (ball->scored)
 			continue;
 
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
@@ -319,7 +320,7 @@ void game_update(void)
 
 	if (win && !has_won) {
 		has_won = 1;
-		CP_Sound_Play(get_audio("Assets/Audio/victory.wav"));
+		CP_Sound_Play(get_audio(VICTORY_ASSET));
 	}
 
 	game_render();
@@ -342,20 +343,22 @@ void game_render(void)
 	sprintf_s(b, 50, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
+	CP_Vector world_ratios = get_world_ratios();
+
+	// render walls
 	for (int i = 0; i < walls_amount; i++) {
 		Wall* wall = walls + i;
 		if (wall == NULL)
 			continue;
 
-		// draw wall
 		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
 		if (wall->image == NULL) {
 			CP_Settings_Fill(wall->color);
 			CP_Settings_Stroke(colors[CLEAR]);
 			CP_Graphics_DrawRectAdvanced(
 				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
-				wall->scale.x * ((float) CP_System_GetWindowWidth() / world_width),
-				wall->scale.y * ((float) CP_System_GetWindowHeight() / world_height),
+				wall->scale.x * world_ratios.x,
+				wall->scale.y * world_ratios.y,
 				wall->angle,
 				0.f
 			);
@@ -367,8 +370,8 @@ void game_render(void)
 			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 			CP_Image_DrawAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, CP_System_GetWindowWidth(), translate), c.y,
-				wall->scale.x * ((float) CP_System_GetWindowWidth() / world_width),
-				wall->scale.y * ((float) CP_System_GetWindowHeight() / world_height),
+				wall->scale.x * world_ratios.x,
+				wall->scale.y * world_ratios.y,
 				255,
 				wall->angle
 			);
@@ -386,16 +389,27 @@ void game_render(void)
 			sprintf_s(b, 50, "Wall Pos: (%f, %f)", wall->pos.x, wall->pos.y);
 			CP_Font_DrawText(b, c.x, c.y + 60);
 
-			char d[50];
-			sprintf_s(d, 50, "Wall Normal: (%f, %f)", wall->normal.x, wall->normal.y);
-			CP_Font_DrawText(d, c.x, c.y + 80);
+			char s[50];
+			sprintf_s(s, 50, "Wall Scale: (%f, %f)", wall->scale.x, wall->scale.y);
+			CP_Font_DrawText(s, c.x, c.y + 80);
+
+			char n[100];
+			sprintf_s(n, 100, "Wall Normal: (%f, %f) (Degrees: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
+			CP_Font_DrawText(n, c.x, c.y + 100);
+
+			char r[100];
+			sprintf_s(r, 100, "Wall Right: (%f, %f) (Radians: %.2f)", wall->right.x, wall->right.y, wall->angle_radians);
+			CP_Font_DrawText(r, c.x, c.y + 120);
 		}
 	}
 
-	// draw hole && golf balls
+	// render holes
 	for (int i = 0; i < 2; i++) {
 		draw_hole(holes[i].pos, holes[i].diameter, world_width, world_height, translate);
+	}
 
+	// render golf balls
+	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
 		if (golf->scored) // ignore if golf ball is already scored
 			continue;
@@ -408,8 +422,8 @@ void game_render(void)
 		CP_Image_DrawAdvanced(golf_ball_image,
 			CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth(), translate),
 			coords.y,
-			golf->diameter * (float) CP_System_GetWindowWidth() / world_width,
-			golf->diameter * (float) CP_System_GetWindowWidth() / world_width,
+			golf->diameter * world_ratios.x,
+			golf->diameter * world_ratios.x,
 			255,
 			golf->angle);
 
@@ -430,7 +444,7 @@ void game_render(void)
 			// render the current power of the ball
 			CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_width, world_height);
 			CP_Vector b = world_to_screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_width, world_height);
-			int red = CP_Math_ClampInt(CP_Vector_LengthSquared(golf->vel) * (world_width / world_height), 0, 255);
+			int red = CP_Math_ClampInt(CP_Vector_LengthSquared(golf->vel) * ((float) world_width / world_height), 0, 255);
 			int green = 255 - red;
 			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
 			CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
@@ -496,8 +510,8 @@ void update_wall(Wall* wall) {
 	wall->normal.x = cos(-wall->angle_radians);
 	wall->normal.y = sin(-wall->angle_radians);
 
-	wall->right.x = -wall->normal.y;
-	wall->right.y = wall->normal.x;
+	wall->right.x = wall->normal.y;
+	wall->right.y = -wall->normal.x;
 }
 
 // collision detection between golf_ball and walls
@@ -584,7 +598,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 	ball->vel.x = reflection.x / resistance;
 	ball->vel.y = reflection.y / resistance;
 
-	CP_Sound_Play(get_audio("Assets/Audio/golf_hit_wall.wav"));
+	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
@@ -612,7 +626,7 @@ void debug_draw(void) {
 	CP_Font_DrawText(r, 0, 80);
 
 	char p[50];
-	sprintf_s(p, 50, "Power: %f", power);
+	sprintf_s(p, 50, "Mouse Wheel: %f", CP_Input_MouseWheel());
 	CP_Font_DrawText(p, 0, 100);
 }
 	
@@ -716,10 +730,10 @@ void load(void) {
 			wall->color = get_color(WHITE);
 
 			if (wall->pos.x <= world_width * 0.5f) {
-				wall->image = get_image("Assets/Images/wall_left.png");
+				wall->image = get_image(WALL_LEFT_ASSET);
 			}
 			else {
-				wall->image = get_image("Assets/Images/wall_right.png");
+				wall->image = get_image(WALL_RIGHT_ASSET);
 			}
 			wall->destroyed = FALSE;
 			wall_index++;
@@ -771,7 +785,7 @@ void load(void) {
 			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
 			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 
-			wall->image = get_image("Assets/Images/wall_left.png");
+			wall->image = get_image(WALL_LEFT_ASSET);
 			wall->rotation_rate = 0;
 			wall->destroyed = FALSE;
 		}
@@ -791,7 +805,7 @@ void load(void) {
 			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
 			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
 
-			wall->image = get_image("Assets/Images/wall_right.png");
+			wall->image = get_image(WALL_RIGHT_ASSET);
 			wall->rotation_rate = 0;
 			wall->destroyed = FALSE;
 		}
@@ -825,10 +839,10 @@ Wall* add_wall(CP_Vector pos) {
 			w->scale.y = 1.f;
 			w->color = get_color(WHITE);
 			if (w->pos.x <= world_width * 0.5f) {
-				w->image = get_image("Assets/Images/wall_left.png");
+				w->image = get_image(WALL_LEFT_ASSET);
 			}
 			else {
-				w->image = get_image("Assets/Images/wall_right.png");
+				w->image = get_image(WALL_RIGHT_ASSET);
 			}
 			w->angle = 0;
 			w->rotation_rate = 0;
@@ -846,10 +860,10 @@ Wall* add_wall(CP_Vector pos) {
 	new_wall->scale.y = 1.f;
 	new_wall->color = get_color(WHITE);
 	if (new_wall->pos.x <= world_width * 0.5f) {
-		new_wall->image = get_image("Assets/Images/wall_left.png");
+		new_wall->image = get_image(WALL_LEFT_ASSET);
 	}
 	else {
-		new_wall->image = get_image("Assets/Images/wall_right.png");
+		new_wall->image = get_image(WALL_RIGHT_ASSET);
 	}
 	new_wall->angle = 0;
 	new_wall->rotation_rate = 0;

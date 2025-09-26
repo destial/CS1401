@@ -7,12 +7,7 @@
 
 #include "debug_manager.h"
 #include "utils.h"
-
-typedef enum EditMode {
-	TRANSLATE = 0,
-	ROTATE,
-	SCALE
-} EditMode;
+#include "asset_manager.h"
 
 typedef enum EditingType {
 	WALL = 1,
@@ -23,7 +18,6 @@ typedef enum EditingType {
 void* current_editing = NULL;
 void* current_dragging = NULL;
 CP_Vector current_editing_offset;
-EditMode current_mode = TRANSLATE;
 EditingType current_type = 0;
 
 CP_BOOL check_on_quad(Wall* wall) {
@@ -71,6 +65,10 @@ void update_debug_walls(Wall* walls, int size) {
 			current_editing = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
 			current_type = WALL;
+		}
+
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == wall) {
+			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
 		}
 	}
 }
@@ -121,30 +119,71 @@ void update_debug_utils(void) {
 			current_dragging = current_editing;
 		}
 	}
+	else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) {
+		if (current_type == WALL) {
+			current_dragging = current_editing;
+		}
+		else if (current_type == HOLE) {
+			current_dragging = current_editing;
+		}
+		else if (current_type == GOLF_BALL) {
+			current_dragging = current_editing;
+		}
+	}
 	else {
 		current_dragging = NULL;
 	}
 
-	if (CP_Input_MouseDragged(MOUSE_BUTTON_1) && current_dragging != NULL) {
-		if (current_type == WALL) {
-			Wall* wall = (Wall*)current_dragging;
-			if (current_mode == TRANSLATE) {
+	if (current_dragging != NULL) {
+		if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) { // translate
+			if (current_type == WALL) {
+				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+
+				if (wall->pos.x <= get_world_limits().x * 0.5f) {
+					wall->image = get_image(WALL_LEFT_ASSET);
+				}
+				else {
+					wall->image = get_image(WALL_RIGHT_ASSET);
+				}
 			}
-		}
-		else if (current_type == HOLE) {
-			Hole* hole = (Hole*)current_dragging;
-			if (current_mode == TRANSLATE) {
+			else if (current_type == HOLE) {
+				Hole* hole = (Hole*)current_dragging;
 				hole->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+				
 			}
-		}
-		else if (current_type == GOLF_BALL) {
-			GolfBall* ball = (GolfBall*)current_dragging;
-			if (current_mode == TRANSLATE) {
+			else if (current_type == GOLF_BALL) {
+				GolfBall* ball = (GolfBall*)current_dragging;
 				ball->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
 			}
 		}
+		else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) { // rotate
+			if (current_type == WALL) {
+				Wall* wall = (Wall*)current_dragging;
+				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, get_mouse_world()), current_editing_offset);
+				wall->angle = angle;
+
+				if (CP_Input_MouseWheel() != 0.f) {
+					wall->scale.y = wall->scale.y + CP_Input_MouseWheel();
+				}
+			}
+		}
 	}
+
+	if (CP_Input_MouseWheel() != 0.f) {
+		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			Wall* wall = (Wall*)current_editing;
+			wall->scale.x += CP_Input_MouseWheel();
+			wall->scale.x = max(0.1f, wall->scale.x);
+		}
+
+		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+			Wall* wall = (Wall*)current_editing;
+			wall->scale.y += CP_Input_MouseWheel();
+			wall->scale.y = max(0.1f, wall->scale.y);
+		}
+	}
+	
 }
 
 void render_debug_utils(void) {
@@ -162,13 +201,16 @@ void render_debug_utils(void) {
 	if (current_type == WALL) {
 		Wall* wall = (Wall*)current_editing;
 		CP_Vector screen_pos = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
+		CP_Vector scale_rotated = CP_Vector_Rotate(wall->scale, -wall->angle_radians);
+		CP_Vector normal = world_to_screen(wall->pos.x + wall->normal.x, wall->pos.y + wall->normal.y, world_limits.x, world_limits.y);
+		CP_Vector right = world_to_screen(wall->pos.x + wall->right.x, wall->pos.y + wall->right.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(get_color(RED));
 		CP_Settings_Stroke(get_color(RED));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->normal.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->normal.y * world_ratios.y * wall->scale.y * 0.5f));
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, normal.x, normal.y);
 
 		CP_Settings_Fill(get_color(BLUE));
 		CP_Settings_Stroke(get_color(BLUE));
-		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x + (wall->right.x * world_ratios.x * wall->scale.x * 0.5f), screen_pos.y + (wall->right.y * world_ratios.y * wall->scale.y * 0.5f));
+		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, right.x, right.y);
 	}
 	else if (current_type == HOLE) {
 		Hole* hole = (Hole*)current_editing;

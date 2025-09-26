@@ -12,6 +12,18 @@
 #include "sprite_manager.h"
 
 /*!
+@brief Define asset file paths here
+*/
+#define WALL_LEFT_ASSET "Assets/Images/wall_left.png"
+#define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
+#define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
+#define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
+#define VICTORY_ASSET "Assets/Audio/victory.wav"
+#define GAME_BACKGROUND_ASSET "Assets/Images/game_background.png"
+#define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
+#define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
+
+/*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the image at this file path
 @param
