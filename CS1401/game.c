@@ -18,6 +18,7 @@
 #include "end_state.h"
 
 // static
+char colors_init = 0;
 CP_Color colors[LAST];
 
 // initialize global variables here
@@ -71,22 +72,6 @@ void game_init(void)
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set((CP_Font) font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-
-	// world_width = CP_System_GetWindowWidth() / 33.3f;
-	// world_height = CP_System_GetWindowHeight() / 33.3f;
-
-	colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
-	colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
-	colors[RED] = CP_Color_Create(255, 0, 0, 255);
-	colors[GREEN] = CP_Color_Create(0, 255, 0, 255);
-	colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
-	colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
-	colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);
-	colors[CYAN] = CP_Color_Create(0, 255, 255, 255);
-	colors[ORANGE] = CP_Color_Create(255, 128, 0, 255);
-	colors[YELLOW] = CP_Color_Create(255, 255, 0, 255);
-	colors[PINK] = CP_Color_Create(255, 0, 200, 255);
-	colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
 
 	// load the current level file set from current_level variable
 	load();
@@ -630,7 +615,7 @@ void debug_draw(void) {
 	
 void save_level(void) {
 	char level_path[100];
-	sprintf_s(level_path, 100, "Assets/Levels/level_%d.lvl", current_level + 1);
+	sprintf_s(level_path, 100, LEVEL_FILEPATH, current_level + 1);
 	FILE* fptr = fopen(level_path, "w");
 	char level_file[4000];
 	sprintf_s(level_file, 4000,
@@ -810,14 +795,12 @@ void load(void) {
 
 		// middle wall is always the first
 		Wall* middle_wall = walls;
-		if (middle_wall == NULL)
-			return;
 
 		middle_wall->pos.x = world_width * 0.5f;
 		middle_wall->pos.y = world_height * 0.5f;
 		middle_wall->scale.x = 0.5f;
 		middle_wall->scale.y = world_height * 1.1f;
-		middle_wall->color = colors[BLACK];
+		middle_wall->color = get_color(BLACK);
 		middle_wall->image = NULL;
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
@@ -908,5 +891,20 @@ CP_Vector get_world_ratios(void) {
 }
 
 CP_Color get_color(ColorCode code) {
+	if (!colors_init) {
+		colors_init = 1;
+		colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
+		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
+		colors[RED] = CP_Color_Create(255, 0, 0, 255);
+		colors[GREEN] = CP_Color_Create(0, 255, 0, 255);
+		colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
+		colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
+		colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);
+		colors[CYAN] = CP_Color_Create(0, 255, 255, 255);
+		colors[ORANGE] = CP_Color_Create(255, 128, 0, 255);
+		colors[YELLOW] = CP_Color_Create(255, 255, 0, 255);
+		colors[PINK] = CP_Color_Create(255, 0, 200, 255);
+		colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
+	}
 	return colors[code];
 }

@@ -1,16 +1,16 @@
 #include "splash_screen.h"
 #include "cprocessing.h"
-#include "game.h"
 #include "main_menu.h"
+#include "game.h"
 #include "asset_manager.h"
 
-CP_Image logo;
+CP_Image* logo;
 float splashScreenAlpha = 0.f;
 float duration = 2.f;
-int revert = 0;
+char revert = 0;
 void splash_screen_init(void)
 {
-	logo = (CP_Image) get_image(SPLASH_SCREEN_ASSET);
+	logo = get_image(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_Settings_AntiAlias(TRUE);
@@ -20,9 +20,7 @@ void splash_screen_init(void)
 
 void splash_screen_update(void)
 {
-	CP_Graphics_ClearBackground(CP_Color_Create(255, 255, 255, 255));
-	int width = CP_Image_GetWidth(logo);
-	int height = CP_Image_GetHeight(logo);
+	CP_Graphics_ClearBackground(get_color(BLACK));
 	if (revert == 0) {
 		splashScreenAlpha += CP_System_GetDt() / duration;
 		if (splashScreenAlpha >= 1.f) {
@@ -32,10 +30,11 @@ void splash_screen_update(void)
 	else {
 		splashScreenAlpha -= CP_System_GetDt() / duration;
 	}
-	splashScreenAlpha = CP_Math_ClampFloat(splashScreenAlpha, 0, 1.f);
+	splashScreenAlpha = CP_Math_ClampFloat(splashScreenAlpha, 0.f, 1.f);
 	int alpha = CP_Math_LerpInt(0, 255, splashScreenAlpha);
 
-	CP_Image_Draw(logo, (CP_System_GetWindowWidth() - width) / 2.f, (CP_System_GetWindowHeight() - height) / 2.f, width * 1.f, height * 1.f, alpha);
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
+	CP_Image_Draw((CP_Image) logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, alpha);
 
 	if (revert && splashScreenAlpha == 0.f) {
 		CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
