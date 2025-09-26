@@ -124,6 +124,12 @@ void main_menu_init(void)
 	buttons[11].start_pos.x = buttons[11].pos.x;
 	buttons[11].text = "1920 X 1080";
 
+	buttons[12].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[12].pos.x = world_width1 * 0.25f;
+	buttons[12].pos.y = world_height1 * 0.7f;
+	buttons[12].start_pos.x = buttons[12].pos.x;
+	buttons[12].text = "X";
+
 	background = get_image(GAME_BACKGROUND_ASSET);
 	setting_background = get_image(SETTING_BACKGROUND_ASSET);
 
@@ -143,6 +149,17 @@ void main_menu_update(void)
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
+	if (!is_clicked) {
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		DrawSprite(get_sprite(TITLE_SPRITE_ASSET, 12, 5, 2.f),
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() * 0.3f,
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() * 0.5f,
+			255);
+	}
+
 	//MAIN MENU SCREEN BUTTON
 	for (int i = 0; i < 3; i++) {
 		//defining the position of the button
@@ -157,7 +174,7 @@ void main_menu_update(void)
 
 		//Drawing Text
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[i].text_size);
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
@@ -166,7 +183,7 @@ void main_menu_update(void)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 9.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 70.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.0f, CP_System_GetDt() * 5);
 
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) 
 			{
@@ -178,7 +195,7 @@ void main_menu_update(void)
 		else {
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 50.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 		}
 
 		if (is_clicked == 1) {
@@ -203,7 +220,7 @@ void main_menu_update(void)
 		CP_Image_DrawAdvanced((CP_Image) buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[i].text_size);
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
@@ -219,7 +236,7 @@ void main_menu_update(void)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 7.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 90.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 4.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				set_game_level(i - 3);
@@ -229,7 +246,7 @@ void main_menu_update(void)
 		else {
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 5.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 70.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 		}
 		
 	}
@@ -238,7 +255,7 @@ void main_menu_update(void)
 		CP_Image_Draw((CP_Image)setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
 	}
 	else {
-		CP_Image_Draw((CP_Image) setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, 0.f, 0.f, 255);
+		CP_Image_Draw((CP_Image) setting_background, CP_System_GetWindowWidth()* 0.5f, CP_System_GetWindowHeight() * 0.5f, 0.f, 0.f, 255);
 	}
 
 	//SETTING BUTTONS
@@ -256,7 +273,7 @@ void main_menu_update(void)
 		CP_Image_DrawAdvanced((CP_Image) buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[i].text_size);
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
@@ -265,7 +282,7 @@ void main_menu_update(void)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 45.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				change_resolution(i - 9);
@@ -275,7 +292,7 @@ void main_menu_update(void)
 			if (is_setting_clicked) {
 				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
 				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
-				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 35.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
 			}
 			else {
 				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 0.0f, CP_System_GetDt() * 5);
@@ -288,21 +305,21 @@ void main_menu_update(void)
 		
 	}
 
-	//BACK BUTTON
-	CP_Vector coords = world_to_screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
-	CP_Vector local_scale = {
+	//BACK BUTTON FOR LEVEL SELECT
+	CP_Vector coords_back_level = world_to_screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
+	CP_Vector local_scale_level = {
 		buttons[8].scale.x * CP_System_GetWindowWidth() / world_width1,
 		buttons[8].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced((CP_Image) buttons[8].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+	CP_Image_DrawAdvanced((CP_Image) buttons[8].button_image, coords_back_level.x, coords_back_level.y, local_scale_level.x, local_scale_level.y, 255, 0.f);
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[8].text_size);
+	CP_Settings_TextSize(buttons[8].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[8].text, coords.x, coords.y);
+	CP_Font_DrawText(buttons[8].text, coords_back_level.x, coords_back_level.y);
 
 	if (is_clicked == 1) {
 		buttons[8].pos.x = CP_Math_LerpFloat(buttons[8].pos.x, buttons[8].ending_pos.x, CP_System_GetDt() * 4);
@@ -312,11 +329,11 @@ void main_menu_update(void)
 	}
 
 	//telling what the button should do
-	if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
+	if (mouse_x >= coords_back_level.x - local_scale_level.x * .5f && mouse_y >= coords_back_level.y - local_scale_level.y * .5f && mouse_x <= coords_back_level.x + local_scale_level.x * .5 && mouse_y <= coords_back_level.y + local_scale_level.y * .5)
 	{
 		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 3.0f, CP_System_GetDt() * 5);
 		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 3.0f, CP_System_GetDt() * 5);
-		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 70.0f, CP_System_GetDt() * 5);
+		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 3.f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 		{
 			buttons[8].func();
@@ -325,18 +342,47 @@ void main_menu_update(void)
 	else {
 		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 2.0f, CP_System_GetDt() * 5);
 		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 2.0f, CP_System_GetDt() * 5);
-		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 60.0f, CP_System_GetDt() * 5);
+		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 2.0f, CP_System_GetDt() * 5);
 	}
 
-	if (!is_clicked) {
-		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
-		CP_Settings_ImageMode(CP_POSITION_CENTER);
-		DrawSprite(get_sprite(TITLE_SPRITE_ASSET, 12, 5, 2.f),
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() * 0.3f,
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() * 0.5f,
-			255);
+	//BACK BUTTON FOR SETTINGS PAGE
+	CP_Vector coords_back_setting = world_to_screen(buttons[12].pos.x, buttons[12].pos.y, world_width1, world_height1);
+	CP_Vector local_scale_setting = {
+		buttons[12].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[12].scale.y * CP_System_GetWindowHeight() / world_height1
+	};
+
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	//Drawing the button
+	CP_Image_DrawAdvanced((CP_Image)buttons[12].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
+
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(buttons[12].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText(buttons[12].text, coords_back_setting.x, coords_back_setting.y);
+
+	//telling what the button should do
+	if (mouse_x >= coords_back_setting.x - local_scale_setting.x * .5f && mouse_y >= coords_back_setting.y - local_scale_setting.y * .5f && mouse_x <= coords_back_setting.x + local_scale_setting.x * .5 && mouse_y <= coords_back_setting.y + local_scale_setting.y * .5)
+	{
+		if (is_setting_clicked == 1) {
+			buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 3.0f, CP_System_GetDt() * 5);
+			buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 2.0f, CP_System_GetDt() * 5);
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+			{
+				setting_button();
+			}
+		}
+	}
+	if (is_setting_clicked) {
+		buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 2.0f, CP_System_GetDt() * 5);
+		buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 2.0f, CP_System_GetDt() * 5);
+		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 1.3f, CP_System_GetDt() * 5);
+	}
+	else {
+		buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 0.0f, CP_System_GetDt() * 5);
+		buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 0.0f, CP_System_GetDt() * 5);
+		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 0.0f, CP_System_GetDt() * 5);
 	}
 }
 
