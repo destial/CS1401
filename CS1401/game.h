@@ -50,6 +50,11 @@ void game_init(void);
 void game_update(void);
 
 /*!
+@brief Game physics processing
+*/
+void game_physics_update(float dt);
+
+/*!
 @brief Game scene rendering
 */
 void game_render(void);
@@ -62,7 +67,7 @@ void game_exit(void);
 /*!
 @brief Update wall normals and rotation
 */
-void update_wall(Wall* wall);
+void update_wall(Wall* wall, float dt);
 
 /*!
 @brief Check the collision between a wall and a golf ball

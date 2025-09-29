@@ -60,6 +60,7 @@ float a = 0.f;
 Wall* walls;
 int walls_amount;
 float world_width = 48.f, world_height = 27.f; // 16x9 aspect ratio cuz its a requirement
+float current_time;
 
 // Initialize the font, golf positions and wall positions
 void game_init(void)
@@ -80,25 +81,16 @@ void game_init(void)
 	win = 0;
 	has_won = 0;
 	all_balls_stopped = 1;
+
+	// fix timestep
+	current_time = CP_System_GetSeconds();
 }
 
 void game_update(void)
 {
-	// entry animation
-	if (translate != 0) {
-		translate -= CP_System_GetDt();
-	}
-	else {
-		playable = 1;
-	}
-
-	if (translate < 0) {
-		translate = 0;
-	}
-
 	mouse.x = CP_Input_GetMouseX();
 	mouse.y = CP_Input_GetMouseY();
-	mouse_world = screen_to_world(mouse.x, mouse.y, (float) world_width, (float) world_height);
+	mouse_world = screen_to_world(mouse.x, mouse.y, (float)world_width, (float)world_height);
 
 	// Quit the engine if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
@@ -152,6 +144,36 @@ void game_update(void)
 		}
 	}
 
+	float new_time = CP_System_GetSeconds();
+	float frame_time = new_time - current_time;
+	current_time = new_time;
+
+	// semi-fixed timestep for physics time
+	// incase the game gets too laggy for slow pc
+	while (frame_time > 0) {
+		float dt = min(frame_time, 1 / 60.f);
+		game_physics_update(dt);
+		frame_time -= dt;
+	}
+
+	// rendering does not need to be in physics time
+	game_render();
+}
+
+void game_physics_update(float dt)
+{
+	// entry animation
+	if (translate != 0) {
+		translate -= dt;
+	}
+	else {
+		playable = 1;
+	}
+
+	if (translate < 0) {
+		translate = 0;
+	}
+
 	win = 1;
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
@@ -184,7 +206,7 @@ void game_update(void)
 				if (all_balls_stopped) {
 					current = golf;
 				}
-			} 
+			}
 
 			// manipulate the velocity based on the mouse coordinates
 			if (golf->dragging && golf == current) {
@@ -216,7 +238,7 @@ void game_update(void)
 
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
-				CP_Vector vel = CP_Vector_Scale(golf->vel, CP_System_GetDt());
+				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
 				float friction = resistance - 1;
 				if (friction != 0) {
 					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (resistance * resistance) - 1));
@@ -281,7 +303,7 @@ void game_update(void)
 			continue;
 
 		// update wall's normal
-		update_wall(wall);
+		update_wall(wall, dt);
 
 		if (debug_enabled)
 			continue;
@@ -309,10 +331,9 @@ void game_update(void)
 
 	if (win && !has_won) {
 		has_won = 1;
-		CP_Sound_Play((CP_Sound) get_audio(VICTORY_ASSET));
+		CP_Sound_Play((CP_Sound)get_audio(VICTORY_ASSET));
 	}
 
-	game_render();
 }
 
 void game_render(void)
@@ -485,9 +506,9 @@ void game_exit(void)
 }
 
 // Update the wall's normal based on its angle of rotation
-void update_wall(Wall* wall) {
+void update_wall(Wall* wall, float dt) {
 	if (!debug_enabled) {
-		wall->angle += wall->rotation_rate * CP_System_GetDt();
+		wall->angle += wall->rotation_rate * dt;
 	}
 
 	if (wall->angle > 360.f) {

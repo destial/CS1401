@@ -42,10 +42,11 @@ static CP_BOOL load_image(AssetMap* node, const char* filepath) {
         return 0;
     }
 
+    int l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(strlen(filepath) + 1);
+    node->key = malloc(l);
     if (node->key) {
-        strcpy_s(node->key, strlen(filepath) + 1, filepath);
+        strcpy_s(node->key, l, filepath);
     }
     else {
         node->key = filepath;
@@ -74,10 +75,11 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
         return 0;
     }
 
+    int l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(strlen(filepath) + 1);
+    node->key = malloc(l);
     if (node->key) {
-        strcpy_s(node->key, strlen(filepath) + 1, filepath);
+        strcpy_s(node->key, l, filepath);
     }
     else {
         node->key = filepath;
@@ -105,10 +107,11 @@ static CP_BOOL load_audio(AssetMap* node, const char* filepath) {
         return 0;
     }
 
+    int l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(strlen(filepath) + 1);
+    node->key = malloc(l);
     if (node->key) {
-        strcpy_s(node->key, strlen(filepath) + 1, filepath);
+        strcpy_s(node->key, l, filepath);
     }
     else {
         node->key = filepath;
@@ -146,13 +149,13 @@ static void free_assetmap(AssetMap* map) {
         else if (map->type == AUDIO) {
             CP_Sound_Free(map->value);
         }
-        else if (map->type == SPRITE) { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
+        else if (map->type == SPRITE) {
             SpriteSheet* sheet = (SpriteSheet*)map->value;
             CP_Image_Free((CP_Image) sheet->root_image);
             sheet->root_image = NULL;
             free(map->value);
         }
-        else {
+        else { // some random use case if we have other assets to load (technically we can have any key/value pair now lol)
             free(map->value);
         }
         map->value = NULL;
