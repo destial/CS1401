@@ -117,15 +117,7 @@ void update_debug_utils(void) {
 		}
 	}
 	else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) {
-		if (current_type == WALL) {
-			current_dragging = current_editing;
-		}
-		else if (current_type == HOLE) {
-			current_dragging = current_editing;
-		}
-		else if (current_type == GOLF_BALL) {
-			current_dragging = current_editing;
-		}
+		current_dragging = current_editing;
 	}
 	else {
 		current_dragging = NULL;
@@ -160,8 +152,8 @@ void update_debug_utils(void) {
 				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, get_mouse_world()), current_editing_offset);
 				wall->angle = angle;
 
-				if (CP_Input_MouseWheel() != 0.f) {
-					wall->scale.y = wall->scale.y + CP_Input_MouseWheel();
+				if (CP_Input_MouseWheel() != 0.f) { // scale
+					wall->scale.y += CP_Input_MouseWheel();
 				}
 			}
 		}

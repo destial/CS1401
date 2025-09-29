@@ -39,22 +39,6 @@ typedef struct Hole {
 	float diameter;
 } Hole;
 
-typedef enum ColorCode {
-	BLACK = 0,
-	RED,
-	GREEN,
-	BLUE,
-	PURPLE,
-	VIOLET,
-	ORANGE,
-	YELLOW,
-	CYAN,
-	PINK,
-	WHITE,
-	CLEAR,
-	LAST
-} ColorCode;
-
 /*!
 @brief Game scene init
 */
@@ -135,11 +119,6 @@ CP_Vector get_world_limits(void);
 @brief Get the world width and height ratios according to the display width and height (e.g. displayWidth / worldWidth)
 */
 CP_Vector get_world_ratios(void);
-
-/*!
-@brief Get a defined color
-*/
-CP_Color get_color(ColorCode code);
 
 Wall* add_wall(CP_Vector pos);
 

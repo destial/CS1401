@@ -1,7 +1,7 @@
 #include "splash_screen.h"
 #include "cprocessing.h"
 #include "main_menu.h"
-#include "game.h"
+#include "utils.h"
 #include "asset_manager.h"
 
 CP_Image* logo;

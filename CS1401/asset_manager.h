@@ -18,6 +18,7 @@
 #define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
 #define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
+#define GOLF_HIT_STROKE_ASSET "Assets/Audio/Golf_hit.wav"
 #define VICTORY_ASSET "Assets/Audio/victory.wav"
 #define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
 #define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"

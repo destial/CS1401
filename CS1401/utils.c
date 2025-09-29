@@ -8,6 +8,10 @@
 #include "utils.h"
 #include "math.h"
 
+// static
+char colors_init = 0;
+CP_Color colors[LAST];
+
 CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {
 	CP_Vector a = { x * (CP_System_GetWindowWidth() / world_width), CP_System_GetWindowHeight() - (y * (CP_System_GetWindowHeight() / world_height)) };
 	return a;
@@ -49,4 +53,23 @@ char CP_Vector_IsZero(CP_Vector vect) {
 
 float CP_Vector_LengthSquared(CP_Vector vect) {
 	return CP_Math_Square(vect.x) + CP_Math_Square(vect.y);
+}
+
+CP_Color get_color(ColorCode code) {
+	if (!colors_init) {
+		colors_init = 1;
+		colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
+		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
+		colors[RED] = CP_Color_Create(255, 0, 0, 255);
+		colors[GREEN] = CP_Color_Create(0, 255, 0, 255);
+		colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
+		colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
+		colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);
+		colors[CYAN] = CP_Color_Create(0, 255, 255, 255);
+		colors[ORANGE] = CP_Color_Create(255, 128, 0, 255);
+		colors[YELLOW] = CP_Color_Create(255, 255, 0, 255);
+		colors[PINK] = CP_Color_Create(255, 0, 200, 255);
+		colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
+	}
+	return colors[code];
 }

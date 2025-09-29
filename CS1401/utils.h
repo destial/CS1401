@@ -2,13 +2,30 @@
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @date 11 September 2025
 @course CSD1401
-@brief Header file for implementing basic vector math that is not included in CProcessing, but useful for conversion into game coordinates
+@brief Header file for implementing utility functions like world to screen coordinates
+	   and extra vector functions and other memory optimizations
 */
 
 #pragma once
 #ifndef UTILS_H
 #define UTILS_H
 #include "cprocessing.h"
+
+typedef enum ColorCode {
+	BLACK = 0,
+	RED,
+	GREEN,
+	BLUE,
+	PURPLE,
+	VIOLET,
+	ORANGE,
+	YELLOW,
+	CYAN,
+	PINK,
+	WHITE,
+	CLEAR,
+	LAST
+} ColorCode;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -79,5 +96,10 @@ The vector to get the length square of
 float length squared
 */
 float CP_Vector_LengthSquared(CP_Vector vect);
+
+/*!
+@brief Get a defined color
+*/
+CP_Color get_color(ColorCode code);
 
 #endif

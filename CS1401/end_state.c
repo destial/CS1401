@@ -7,7 +7,7 @@
 
 #include "end_state.h"
 #include "asset_manager.h"
-#include "game.h"
+#include "utils.h"
 
 CP_Image* logo;
 float end_alpha = 0.f;
