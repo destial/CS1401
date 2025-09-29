@@ -22,6 +22,10 @@ void add_stroke(void) {
 	stroke = stroke + 1;
 }
 
+void reset_strokes(void) {
+	stroke = 0;
+}
+
 int get_strokes(void) {
 	return stroke;
 }

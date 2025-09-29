@@ -16,6 +16,7 @@ void splash_screen_init(void)
 	CP_Settings_AntiAlias(TRUE);
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
+	CP_System_SetWindowTitle("Golf Game");
 }
 
 void splash_screen_update(void)
@@ -43,5 +44,5 @@ void splash_screen_update(void)
 
 void splash_screen_exit(void)
 {
-	// dont need to clean up logo image since its handled by asset manager already :D
+	free_assets();
 }

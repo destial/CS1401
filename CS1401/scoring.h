@@ -10,6 +10,8 @@ void draw_hole(CP_Vector hole, float diameter, float world_width, float world_he
 
 void add_stroke(void);
 
+void reset_strokes(void);
+
 int get_strokes(void);
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height);

@@ -22,7 +22,7 @@ typedef struct AssetMap {
     struct AssetMap* next;
 } AssetMap;
 
-AssetMap* root_assets;
+AssetMap* root_assets = NULL;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -171,6 +171,9 @@ static void free_assetmap(AssetMap* map) {
 static AssetMap* get_node(const char* key) {
     AssetMap* ptr;
     for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (ptr->key == NULL)
+            continue;
+
         if (strcmp(ptr->key, key) == 0) {
             return (AssetMap*)ptr;
         }
@@ -180,9 +183,13 @@ static AssetMap* get_node(const char* key) {
 
 CP_Image* get_image(const char* filepath) {
     // if the root is empty, we initialize it
-    if (!root_assets) {
+    if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
-        load_image(root_assets, filepath);
+        if (!load_image(root_assets, filepath)) {
+            free(root_assets);
+            root_assets = NULL;
+            return NULL;
+        }
     }
     
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
@@ -210,8 +217,13 @@ CP_Image* get_image(const char* filepath) {
 
 CP_Font* get_font(const char* filepath) {
     // if the root is empty, we initialize it
-    if (!root_assets) {
+    if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
+        if (!load_font(root_assets, filepath)) {
+            free(root_assets);
+            root_assets = NULL;
+            return NULL;
+        }
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
@@ -239,8 +251,13 @@ CP_Font* get_font(const char* filepath) {
 
 CP_Sound* get_audio(const char* filepath) {
     // if the root is empty, we initialize it
-    if (!root_assets) {
+    if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
+        if (!load_audio(root_assets, filepath)) {
+            free(root_assets);
+            root_assets = NULL;
+            return NULL;
+        }
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
@@ -267,8 +284,11 @@ CP_Sound* get_audio(const char* filepath) {
 }
 
 SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration) {
-    if (!root_assets) {
+    if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
+        root_assets->key = NULL;
+        root_assets->value = NULL;
+        root_assets->next = NULL;
     }
 
     AssetMap* node = get_node(filepath);
@@ -299,7 +319,7 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 }
 
 void free_assets(void) {
-    if (root_assets) {
+    if (root_assets != NULL) {
         free_assetmap(root_assets);
         root_assets = NULL;
     }

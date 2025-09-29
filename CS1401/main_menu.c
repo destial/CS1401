@@ -415,4 +415,5 @@ void change_resolution(num) {
 //frees the image when exiting the application
 void main_menu_exit(void) 
 {
+	free_assets();
 }

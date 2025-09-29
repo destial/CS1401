@@ -16,6 +16,7 @@
 #include "asset_manager.h"
 #include "debug_manager.h"
 #include "end_state.h"
+#include "main_menu.h"
 
 // initialize global variables here
 CP_Font* font;
@@ -102,7 +103,7 @@ void game_update(void)
 	// Quit the engine if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
 		//save_level();
-		CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
+		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
 		return;
 	}
 
@@ -111,8 +112,15 @@ void game_update(void)
 		debug_enabled = !debug_enabled;
 	}
 
-	if (CP_Input_KeyTriggered(KEY_S)) {
+	if (CP_Input_KeyTriggered(KEY_S) && debug_enabled) {
 		save_level();
+	}
+
+	if (CP_Input_KeyTriggered(KEY_R)) { // does not reset strokes
+		game_exit();
+		game_init();
+		translate = 0;
+		return;
 	}
 
 	if (debug_enabled) {
@@ -471,6 +479,8 @@ void game_exit(void)
 {
 	// free level allocations
 	free(walls);
+	free_assets();
+	reset_strokes();
 	walls = NULL;
 }
 
