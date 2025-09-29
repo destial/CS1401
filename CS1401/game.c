@@ -359,7 +359,7 @@ void game_render(void)
 	// render walls
 	for (int i = 0; i < walls_amount; i++) {
 		Wall* wall = walls + i;
-		if (wall == NULL)
+		if (wall == NULL || wall->destroyed)
 			continue;
 
 		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_width, world_height);
