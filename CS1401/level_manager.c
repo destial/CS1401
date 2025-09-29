@@ -87,6 +87,14 @@ Level* get_level(int level) {
                 lvl->par = 3;
             }
 
+            char* line_m_angle = get_value(root, "middle_wall_angle");
+            if (line_m_angle) {
+                lvl->middle_wall_angle = (float)atof(line_m_angle);
+            }
+            else {
+                lvl->middle_wall_angle = 0.f;
+            }
+
             // set the walls position, scaling, angle and rotation rates
             // check if any of them exists first, if not use default values
             int wall_index = 0;

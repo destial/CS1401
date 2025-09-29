@@ -23,6 +23,7 @@ typedef struct Level {
     int par;
     int walls_size;
     float* walls; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = rotation rate]
+    float middle_wall_angle;
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)

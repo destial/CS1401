@@ -1,0 +1,14 @@
+width=48
+height=27
+golf_1=12,2
+golf_2=36,25
+hole_1=12,20.25
+hole_2=36,5.75
+walls_amount=2
+wall_0_pos=12,13.5
+wall_0_scale=2,2
+wall_0_angle=45
+wall_1_pos=36,13.5
+wall_1_scale=2,2
+wall_1_angle=45
+middle_wall_angle=30

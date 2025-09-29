@@ -42,7 +42,7 @@ static CP_BOOL load_image(AssetMap* node, const char* filepath) {
         return 0;
     }
 
-    int l = strlen(filepath) + 1; // +1 for '\0' ending char
+    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
     node->key = malloc(l);
     if (node->key) {
@@ -75,7 +75,7 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
         return 0;
     }
 
-    int l = strlen(filepath) + 1; // +1 for '\0' ending char
+    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
     node->key = malloc(l);
     if (node->key) {
@@ -107,7 +107,7 @@ static CP_BOOL load_audio(AssetMap* node, const char* filepath) {
         return 0;
     }
 
-    int l = strlen(filepath) + 1; // +1 for '\0' ending char
+    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
     node->key = malloc(l);
     if (node->key) {

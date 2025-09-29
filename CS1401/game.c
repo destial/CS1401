@@ -150,8 +150,9 @@ void game_update(void)
 
 	// semi-fixed timestep for physics time
 	// incase the game gets too laggy for slow pc
+	float dt;
 	while (frame_time > 0) {
-		float dt = min(frame_time, 1 / 60.f);
+		dt = min(frame_time, 1 / 60.f);
 		game_physics_update(dt);
 		frame_time -= dt;
 	}
@@ -646,12 +647,13 @@ void save_level(void) {
 	FILE* fptr = fopen(level_path, "w");
 	char level_file[4000];
 	sprintf_s(level_file, 4000,
-		"width=%f\nheight=%f\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f", 
+		"width=%f\nheight=%f\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nmiddle_wall_angle=%f", 
 		world_width, world_height, 
 		golf_balls[0].pos.x, golf_balls[0].pos.y, 
 		golf_balls[1].pos.x, golf_balls[1].pos.y,
 		holes[0].pos.x, holes[0].pos.y,
-		holes[1].pos.x, holes[1].pos.y
+		holes[1].pos.x, holes[1].pos.y,
+		walls->angle
 		);
 
 	int wall_index = 0;
@@ -754,10 +756,10 @@ void load(void) {
 			Wall* middle_wall = walls;
 			middle_wall->pos.x = world_width * 0.5f;
 			middle_wall->pos.y = world_height * 0.5f;
-			middle_wall->scale.x = 0.5f;
-			middle_wall->scale.y = world_height * 1.1f;
-			middle_wall->angle = 0;
-			middle_wall->rotation_rate = 0;
+			middle_wall->scale.x = world_width * 0.01f;
+			middle_wall->scale.y = world_height * 2.5f;
+			middle_wall->angle = loaded_level->middle_wall_angle;
+			middle_wall->rotation_rate = 0.f;
 			middle_wall->color = get_color(BLACK);
 			middle_wall->image = NULL;
 			middle_wall->destroyed = FALSE;
@@ -830,7 +832,7 @@ void load(void) {
 
 		middle_wall->pos.x = world_width * 0.5f;
 		middle_wall->pos.y = world_height * 0.5f;
-		middle_wall->scale.x = 0.5f;
+		middle_wall->scale.x = world_width * 0.01f;
 		middle_wall->scale.y = world_height * 1.1f;
 		middle_wall->color = get_color(BLACK);
 		middle_wall->image = NULL;
