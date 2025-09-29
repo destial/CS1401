@@ -9,11 +9,14 @@
 #include "math.h"
 
 // static
-char colors_init = 0;
+CP_BOOL colors_init = FALSE;
 CP_Color colors[LAST];
 
 CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {
-	CP_Vector a = { x * (CP_System_GetWindowWidth() / world_width), CP_System_GetWindowHeight() - (y * (CP_System_GetWindowHeight() / world_height)) };
+	CP_Vector a = { 
+		x * (CP_System_GetWindowWidth() / world_width),
+		CP_System_GetWindowHeight() - (y * (CP_System_GetWindowHeight() / world_height))
+	};
 	return a;
 }
 
@@ -47,7 +50,7 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length) {
 	return CP_Vector_Scale(vect, length / current);
 }
 
-char CP_Vector_IsZero(CP_Vector vect) {
+CP_BOOL CP_Vector_IsZero(CP_Vector vect) {
 	return CP_Vector_Length(vect) <= 0.000001f;
 }
 
@@ -57,7 +60,7 @@ float CP_Vector_LengthSquared(CP_Vector vect) {
 
 CP_Color get_color(ColorCode code) {
 	if (!colors_init) {
-		colors_init = 1;
+		colors_init = TRUE;
 		colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
 		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
 		colors[RED] = CP_Color_Create(255, 0, 0, 255);

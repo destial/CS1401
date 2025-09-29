@@ -10,7 +10,8 @@
 #include "asset_manager.h"
 
 typedef enum EditingType {
-	WALL = 1,
+	NONE = 0,
+	WALL,
 	HOLE,
 	GOLF_BALL
 } EditingType;
@@ -18,7 +19,7 @@ typedef enum EditingType {
 void* current_editing = NULL;
 void* current_dragging = NULL;
 CP_Vector current_editing_offset;
-EditingType current_type = 0;
+EditingType current_type = NONE;
 
 CP_BOOL check_on_quad(Wall* wall) {
 	CP_Vector wall_min = { -wall->scale.x * 0.5f, -wall->scale.y * 0.5f };
@@ -151,10 +152,6 @@ void update_debug_utils(void) {
 				Wall* wall = (Wall*)current_dragging;
 				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, get_mouse_world()), current_editing_offset);
 				wall->angle = angle;
-
-				if (CP_Input_MouseWheel() != 0.f) { // scale
-					wall->scale.y += CP_Input_MouseWheel();
-				}
 			}
 		}
 	}
@@ -162,13 +159,13 @@ void update_debug_utils(void) {
 	if (CP_Input_MouseWheel() != 0.f) {
 		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_1)) {
 			Wall* wall = (Wall*)current_editing;
-			wall->scale.x += CP_Input_MouseWheel();
+			wall->scale.x += CP_Input_MouseWheel() * 0.1f;
 			wall->scale.x = max(0.1f, wall->scale.x);
 		}
 
 		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_2)) {
 			Wall* wall = (Wall*)current_editing;
-			wall->scale.y += CP_Input_MouseWheel();
+			wall->scale.y += CP_Input_MouseWheel() * 0.1f;
 			wall->scale.y = max(0.1f, wall->scale.y);
 		}
 	}
@@ -179,7 +176,7 @@ void render_debug_utils(void) {
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
-	CP_Font_DrawText("Game Paused! Press G to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 0);
+	CP_Font_DrawText("Game Paused! Press G to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 50.f);
 
 	if (current_editing == NULL)
 		return;

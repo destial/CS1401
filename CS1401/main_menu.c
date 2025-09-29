@@ -239,7 +239,7 @@ void main_menu_update(void)
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 4.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				set_game_level(i - 3);
+				set_game_level(i - 3 + 1);
 				buttons[i].func();
 			}
 		}

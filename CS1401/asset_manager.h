@@ -11,25 +11,39 @@
 #include "cprocessing.h"
 #include "sprite_manager.h"
 
-/*!
-@brief Define asset file paths here
-*/
+// Define asset file paths here (e.g.)
+// #define IMAGE_ASSET "Assets/Images/image.png" (png only)
+// #define AUDIO_ASSET "Assets/Audio/audio.wav" (wav only)
+// #define FONT_ASSET "Assets/Fonts/font.ttf" (ttf only)
+// #define SPRITE_ASSET "Assets/Images/sprite.png" (same as image)
+
+// Images / Sprites
+
 #define WALL_LEFT_ASSET "Assets/Images/wall_left.png"
 #define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
 #define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
-#define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
-#define GOLF_HIT_STROKE_ASSET "Assets/Audio/Golf_hit.wav"
-#define VICTORY_ASSET "Assets/Audio/victory.wav"
 #define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
 #define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
-#define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
-#define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
 #define BUTTON_YELLOW_ASSET "Assets/Images/button_yellow.png"
 #define BUTTON_BLUE_ASSET "Assets/Images/button_blue.png"
 #define BUTTON_GREY_ASSET "Assets/Images/button_grey.png"
 #define LEVEL_BUTTON_ASSET "Assets/Images/level button.png"
-#define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
 #define SPLASH_SCREEN_ASSET "Assets/Images/splash_screen.png"
+#define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
+
+// Sounds / Music / Audio
+
+#define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
+#define GOLF_HIT_STROKE_ASSET "Assets/Audio/Golf_hit.wav"
+#define VICTORY_ASSET "Assets/Audio/victory.wav"
+
+// Fonts
+
+#define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
+#define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
+
+// Save file
+
 #define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
 /*!

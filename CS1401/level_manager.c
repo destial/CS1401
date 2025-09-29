@@ -36,16 +36,19 @@ Level* get_level(int level) {
         char* k, * v;
         char* line = strtok_s(level_file, outerdel, &outerptr);
         while (line) {
-            // +1 because last character is '\0' to terminate the string
             // set the key (left side)
             k = strtok_s(line, innerdel, &innerptr);
-            next->key = malloc(strlen(k) + 1);
-            strcpy_s(next->key, strlen(k) + 1, k);
+
+            // +1 because last character is '\0' to terminate the string
+            size_t key_len = strlen(k) + 1;
+            next->key = malloc(key_len);
+            strcpy_s(next->key, key_len, k);
 
             // set the value (right side)
             v = strtok_s(NULL, innerdel, &innerptr);
-            next->value = malloc(strlen(v) + 1);
-            strcpy_s(next->value, strlen(v) + 1, v);
+            size_t val_len = strlen(v) + 1;
+            next->value = malloc(val_len);
+            strcpy_s(next->value, val_len, v);
 
             // end of check, go to next line or quit if already at the end
             line = strtok_s(NULL, outerdel, &outerptr);
@@ -241,15 +244,4 @@ void free_level(Level* level) {
     free(level->walls);
     free(level);
     level = NULL;
-}
-
-// sourced from: https://www.delftstack.com/howto/c/trim-string-in-c
-void trim_string(char* str) {
-    while (isspace((unsigned char)str[0])) {
-        memmove(str, str + 1, strlen(str));
-    }
-
-    while (isspace((unsigned char)str[strlen(str) - 1])) {
-        str[strlen(str) - 1] = '\0';
-    }
 }
