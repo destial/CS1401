@@ -691,44 +691,49 @@ void load(void) {
 		// @todo: set par here into scoring
 		// set_lvl_par(loaded_level->par);
 
-		int wall_index = 1;
-		for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
-			Wall* wall = walls + wall_index;
-			if (wall == NULL)
-				continue;
-			// loading walls according to index in array
-			wall->pos.x = loaded_level->walls[i];
-			wall->pos.y = loaded_level->walls[i + 1];
+		if (walls) {
+			int wall_index = 1;
+			for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
+				Wall* wall = walls + wall_index;
+				if (wall == NULL)
+					continue;
+				// loading walls according to index in array
+				wall->pos.x = loaded_level->walls[i];
+				wall->pos.y = loaded_level->walls[i + 1];
 
-			wall->scale.x = loaded_level->walls[i + 2];
-			wall->scale.y = loaded_level->walls[i + 3];
+				wall->scale.x = loaded_level->walls[i + 2];
+				wall->scale.y = loaded_level->walls[i + 3];
 
-			wall->angle = loaded_level->walls[i + 4];
-			wall->rotation_rate = loaded_level->walls[i + 5];
+				wall->angle = loaded_level->walls[i + 4];
+				wall->rotation_rate = loaded_level->walls[i + 5];
 
-			wall->color = get_color(WHITE);
+				wall->color = get_color(WHITE);
 
-			if (wall->pos.x <= world_width * 0.5f) {
-				wall->image = get_image(WALL_LEFT_ASSET);
+				if (wall->pos.x <= world_width * 0.5f) {
+					wall->image = get_image(WALL_LEFT_ASSET);
+				}
+				else {
+					wall->image = get_image(WALL_RIGHT_ASSET);
+				}
+				wall->destroyed = FALSE;
+				wall_index++;
 			}
-			else {
-				wall->image = get_image(WALL_RIGHT_ASSET);
-			}
-			wall->destroyed = FALSE;
-			wall_index++;
+
+			// middle wall is always the first (never in the level file)
+			Wall* middle_wall = walls;
+			middle_wall->pos.x = world_width * 0.5f;
+			middle_wall->pos.y = world_height * 0.5f;
+			middle_wall->scale.x = 0.5f;
+			middle_wall->scale.y = world_height * 1.1f;
+			middle_wall->angle = 0;
+			middle_wall->rotation_rate = 0;
+			middle_wall->color = get_color(BLACK);
+			middle_wall->image = NULL;
+			middle_wall->destroyed = FALSE;
 		}
-
-		// middle wall is always the first (never in the level file)
-		Wall* middle_wall = walls;
-		middle_wall->pos.x = world_width * 0.5f;
-		middle_wall->pos.y = world_height * 0.5f;
-		middle_wall->scale.x = 0.5f;
-		middle_wall->scale.y = world_height * 1.1f;
-		middle_wall->angle = 0;
-		middle_wall->rotation_rate = 0;
-		middle_wall->color = get_color(BLACK);
-		middle_wall->image = NULL;
-		middle_wall->destroyed = FALSE;
+		else {
+			CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
+		}
 
 		free_level(loaded_level);
 		loaded_level = NULL;
@@ -801,6 +806,8 @@ void load(void) {
 		middle_wall->angle = 0;
 		middle_wall->rotation_rate = 0;
 		middle_wall->destroyed = FALSE;
+	} else {
+		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 	}
 }
 

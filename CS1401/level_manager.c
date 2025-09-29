@@ -7,6 +7,7 @@
 
 #include "level_manager.h"
 #include "asset_manager.h"
+#include "end_state.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
@@ -64,89 +65,93 @@ Level* get_level(int level) {
 
         // create the level to load and set all the values *** all must have values!!!
         Level* lvl = malloc(sizeof(Level));
-        lvl->world_width = (float) atof(get_value(root, "width"));
-        lvl->world_height = (float) atof(get_value(root, "height"));
+        if (lvl) {
+            lvl->world_width = (float)atof(get_value(root, "width"));
+            lvl->world_height = (float)atof(get_value(root, "height"));
 
-        lvl->walls_size = atoi(get_value(root, "walls_amount"));
-        lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
+            lvl->walls_size = atoi(get_value(root, "walls_amount"));
+            lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
 
-        lvl->golf_pos_1 = get_vector(get_value(root, "golf_1"));
-        lvl->golf_pos_2 = get_vector(get_value(root, "golf_2"));
+            lvl->golf_pos_1 = get_vector(get_value(root, "golf_1"));
+            lvl->golf_pos_2 = get_vector(get_value(root, "golf_2"));
 
-        lvl->hole_1 = get_vector(get_value(root, "hole_1"));
-        lvl->hole_2 = get_vector(get_value(root, "hole_2"));
+            lvl->hole_1 = get_vector(get_value(root, "hole_1"));
+            lvl->hole_2 = get_vector(get_value(root, "hole_2"));
 
-        // some versions of the level file dont include the par, so make sure to check
-        char* line_par = get_value(root, "par");
-        if (line_par) {
-            lvl->par = atoi(line_par);
+            // some versions of the level file dont include the par, so make sure to check
+            char* line_par = get_value(root, "par");
+            if (line_par) {
+                lvl->par = atoi(line_par);
+            }
+            else {
+                lvl->par = 3;
+            }
+
+            // set the walls position, scaling, angle and rotation rates
+            // check if any of them exists first, if not use default values
+            int wall_index = 0;
+            for (int i = 0; i < lvl->walls_size * WALLS_OFFSET; i += WALLS_OFFSET, wall_index++) {
+
+                // set wall position if exists
+                char wall_pos[32];
+                sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
+                char* line_pos = get_value(root, wall_pos);
+                if (line_pos) {
+                    CP_Vector pos = get_vector(line_pos);
+                    lvl->walls[i + 0] = pos.x;
+                    lvl->walls[i + 1] = pos.y;
+                }
+                else {
+                    lvl->walls[i + 0] = 0.f;
+                    lvl->walls[i + 1] = 0.f;
+                }
+
+                // set wall scale if exists
+                char wall_scale[32];
+                sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
+                char* line_scale = get_value(root, wall_scale);
+                if (line_scale) {
+                    CP_Vector scale = get_vector(line_scale);
+                    lvl->walls[i + 2] = scale.x;
+                    lvl->walls[i + 3] = scale.y;
+                }
+                else {
+                    lvl->walls[i + 2] = 0.f;
+                    lvl->walls[i + 3] = 0.f;
+                }
+
+                // set wall angle if exists
+                char wall_angle[32];
+                sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
+                char* line_angle = get_value(root, wall_angle);
+                if (line_angle) {
+                    float angle = (float)atof(line_angle);
+                    lvl->walls[i + 4] = angle;
+                }
+                else {
+                    lvl->walls[i + 4] = 0.f;
+                }
+
+                // set wall rotation rate if exists
+                char wall_rot[32];
+                sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
+                char* line_rot = get_value(root, wall_rot);
+                if (line_rot) {
+                    float rot = (float)atof(line_rot);
+                    lvl->walls[i + 5] = rot;
+                }
+                else {
+                    lvl->walls[i + 5] = 0.f;
+                }
+            }
+
+            // we are done loading the level, we can now free up the map
+            free_map(root);
+            root = NULL;
+            return lvl;
+        } else {
+            CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
         }
-        else {
-            lvl->par = 3;
-        }
-
-        // set the walls position, scaling, angle and rotation rates
-        // check if any of them exists first, if not use default values
-        int wall_index = 0;
-        for (int i = 0; i < lvl->walls_size * WALLS_OFFSET; i += WALLS_OFFSET, wall_index++) {
-
-            // set wall position if exists
-            char wall_pos[32];
-            sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
-            char* line_pos = get_value(root, wall_pos);
-            if (line_pos) {
-                CP_Vector pos = get_vector(line_pos);
-                lvl->walls[i + 0] = pos.x;
-                lvl->walls[i + 1] = pos.y;
-            }
-            else {
-                lvl->walls[i + 0] = 0.f;
-                lvl->walls[i + 1] = 0.f;
-            }
-
-            // set wall scale if exists
-            char wall_scale[32];
-            sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
-            char* line_scale = get_value(root, wall_scale);
-            if (line_scale) {
-                CP_Vector scale = get_vector(line_scale);
-                lvl->walls[i + 2] = scale.x;
-                lvl->walls[i + 3] = scale.y;
-            }
-            else {
-                lvl->walls[i + 2] = 0.f;
-                lvl->walls[i + 3] = 0.f;
-            }
-
-            // set wall angle if exists
-            char wall_angle[32];
-            sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
-            char* line_angle = get_value(root, wall_angle);
-            if (line_angle) {
-                float angle = (float) atof(line_angle);
-                lvl->walls[i + 4] = angle;
-            }
-            else {
-                lvl->walls[i + 4] = 0.f;
-            }
-            
-            // set wall rotation rate if exists
-            char wall_rot[32];
-            sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
-            char* line_rot = get_value(root, wall_rot);
-            if (line_rot) {
-                float rot = (float) atof(line_rot);
-                lvl->walls[i + 5] = rot;
-            }
-            else {
-                lvl->walls[i + 5] = 0.f;
-            }
-        }
-
-        // we are done loading the level, we can now free up the map
-        free_map(root);
-        root = NULL;
-        return lvl;
     }
     
     // no level file detected, so no level will be loaded
