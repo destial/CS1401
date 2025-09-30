@@ -22,13 +22,9 @@ void DrawSpriteAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, 
 	int sub_h = img_h / sheet->rows;
 	int sub_w = img_w / sheet->columns;
 
-	// the current frame of this sprite being rendered
-	int current_r = sheet->current_row;
-	int current_c = sheet->current_column;
-
 	// texture coordinates starting point
-	int u0 = current_c * sub_w;
-	int v0 = current_r * sub_h;
+	int u0 = sheet->current_column * sub_w;
+	int v0 = sheet->current_row * sub_h;
 
 	// draw the sub image of this sprite
 	CP_Image_DrawSubImageAdvanced((CP_Image) sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sub_w), (float) (v0 + sub_h), alpha, degrees);
