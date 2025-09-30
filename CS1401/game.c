@@ -685,11 +685,6 @@ void save_level(void) {
 @brief Load the current level from text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void load(void) {
-
-	// initialize standard default values
-	sBoard.x = world_limits.x * 0.5f;
-	sBoard.y = world_limits.y * 0.5f;
-
 	// initialize golf balls default values
 	for (int j = 0; j < 2; j++) {
 		golf_balls[j].scored = 0;
@@ -709,6 +704,10 @@ void load(void) {
 	if (loaded_level != NULL) {
 		world_limits.x = loaded_level->world_width;
 		world_limits.y = loaded_level->world_height;
+
+		// initialize standard default values
+		sBoard.x = world_limits.x * 0.5f;
+		sBoard.y = world_limits.y * 0.5f;
 
 		golf_balls[0].pos = loaded_level->golf_pos_1;
 		golf_balls[1].pos = loaded_level->golf_pos_2;
@@ -774,6 +773,10 @@ void load(void) {
 	// load a default randomized level if no level file exists
 	world_limits.x = 48.f;
 	world_limits.y = 27.f;
+
+	// initialize standard default values
+	sBoard.x = world_limits.x * 0.5f;
+	sBoard.y = world_limits.y * 0.5f;
 
 	golf_balls[0].pos.x = world_limits.x * 0.25f;
 	golf_balls[0].pos.y = 2.f;
