@@ -6,6 +6,13 @@
 #include "sprite_manager.h"
 #include "end_state.h"
 
+/*!
+@author Nathan Ng (n.ng@digipen.edu)
+@date 8 September 2025
+@course CSD1401
+@brief this file contains functions and code that handles the UI
+*/
+
 //setting button
 typedef struct Button {
 	CP_Vector pos;
