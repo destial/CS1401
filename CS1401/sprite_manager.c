@@ -27,7 +27,7 @@ void DrawSpriteAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, 
 	int v0 = sheet->current_row * sub_h;
 
 	// draw the sub image of this sprite
-	CP_Image_DrawSubImageAdvanced((CP_Image) sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sub_w), (float) (v0 + sub_h), alpha, degrees);
+	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sub_w), (float) (v0 + sub_h), alpha, degrees);
 
 	// increment the animation frame based on the time elapsed
 	int frameCount = sheet->rows * sheet->columns;

@@ -9,5 +9,6 @@ int main(void)
 	show_console = TRUE;
 #endif
 	CP_Engine_Run(show_console);
+
 	return 0;
 }

@@ -19,9 +19,9 @@
 #include "main_menu.h"
 
 // initialize global variables here
-CP_Font* font;
-CP_Image* golf_ball_image;
-CP_Image* background_image;
+CP_Font font;
+CP_Image golf_ball_image;
+CP_Image background_image;
 
 // mouse positions in screen and world space
 CP_Vector mouse = { 0, 0 };
@@ -68,7 +68,7 @@ void game_init(void)
 	golf_ball_image = get_image(GOLF_BALL_ASSET);
 	background_image = get_image(GAME_BACKGROUND_ASSET);
 	CP_Settings_TextSize(20.f);
-	CP_Font_Set((CP_Font) font);
+	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	// load the current level file set from current_level variable
@@ -339,7 +339,7 @@ void game_render(void)
 	// reset the color and stroke settings
 	CP_Settings_Stroke(get_color(BLACK));
 	CP_Settings_Fill(get_color(BLACK));
-	CP_Image_Draw((CP_Image) background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
+	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
 
 	CP_Vector world_ratios = get_world_ratios();
 
@@ -367,7 +367,7 @@ void game_render(void)
 			CP_Settings_Stroke(get_color(WHITE));
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-			CP_Image_DrawAdvanced((CP_Image)wall->image,
+			CP_Image_DrawAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
 				c.y,
 				wall->scale.x * world_ratios.x,
@@ -419,7 +419,7 @@ void game_render(void)
 		CP_Settings_Stroke(get_color(WHITE));
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-		CP_Image_DrawAdvanced((CP_Image)golf_ball_image,
+		CP_Image_DrawAdvanced(golf_ball_image,
 			CP_Math_LerpFloat(coords.x, (float) CP_System_GetWindowWidth(), translate),
 			coords.y,
 			golf->diameter * world_ratios.x,

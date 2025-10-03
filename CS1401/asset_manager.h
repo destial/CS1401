@@ -51,21 +51,21 @@
 @brief Get the image at this file path
 @param filepath - The image filepath
 */
-CP_Image* get_image(const char* filepath);
+CP_Image get_image(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the font at this file path
 @param filepath - The font filepath
 */
-CP_Font* get_font(const char* filepath);
+CP_Font get_font(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu
 @brief Get the audio from this file path
 @param filepath - The audio filepath
 */
-CP_Sound* get_audio(const char* filepath);
+CP_Sound get_audio(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu

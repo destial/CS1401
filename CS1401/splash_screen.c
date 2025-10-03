@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "asset_manager.h"
 
-CP_Image* logo;
+CP_Image logo;
 float splash_alpha = 0.f;
 float splash_duration = 2.f;
 char splash_revert = 0;
@@ -42,7 +42,7 @@ void splash_screen_update(void)
 	splash_alpha = CP_Math_ClampFloat(splash_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Image_Draw((CP_Image) logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(splash_alpha * 255.f));
+	CP_Image_Draw(logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(splash_alpha * 255.f));
 
 	if (splash_revert && splash_alpha == 0.f) {
 		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
@@ -51,5 +51,5 @@ void splash_screen_update(void)
 
 void splash_screen_exit(void)
 {
-	free_assets();
+	//free_assets();
 }

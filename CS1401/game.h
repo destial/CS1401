@@ -16,7 +16,7 @@ typedef struct Wall {
 	CP_Vector normal; // wall normal vector (calculated based on angle, always updated before collision testing)
 	CP_Vector right; // wall right vector (calculated based on normal)
 	CP_Color color; // wall color if no base image
-	CP_Image* image; // wall image
+	CP_Image image; // wall image
 	float angle; // wall rotation angle in degrees
 	float angle_radians; // wall angle in radians (touching this is useless)
 	float rotation_rate; // wall rotation rate in degrees per second
