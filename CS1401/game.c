@@ -103,11 +103,13 @@ void game_update(void)
 		debug_enabled = !debug_enabled;
 	}
 
+	// save level if debug enabled
 	if (CP_Input_KeyTriggered(KEY_S) && debug_enabled) {
 		save_level();
 	}
 
-	if (CP_Input_KeyTriggered(KEY_R)) { // does not reset strokes
+	// reset level
+	if (CP_Input_KeyTriggered(KEY_R)) { 
 		game_exit();
 		game_init();
 		translate = 0.f;
@@ -115,12 +117,12 @@ void game_update(void)
 	}
 
 	if (debug_enabled) {
-		if (CP_Input_KeyTriggered(KEY_E)) {
+		if (CP_Input_KeyTriggered(KEY_E)) { // increase golf ball resistance
 			resistance += 0.1f;
 		}
-		if (CP_Input_KeyTriggered(KEY_Q)) {
+		if (CP_Input_KeyTriggered(KEY_Q)) { // decrease golf ball resistance
 			resistance -= 0.1f;
-			resistance = max(1.f, resistance);
+			resistance = max(1.f, resistance); // limit to minimum of 1.f
 		}
 
 		update_debug_walls(walls, walls_amount);
@@ -130,22 +132,23 @@ void game_update(void)
 		update_debug_utils();
 	}
 	else {
-		if (CP_Input_MouseWheel() > 0.f) {
+		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
 			power += 0.1f;
 		}
-		if (CP_Input_MouseWheel() < 0.f) {
+		if (CP_Input_MouseWheel() < 0.f) { // decrease power of putt
 			power -= 0.1f;
-			power = max(0.1f, power);
+			power = max(0.1f, power); // limit to minimum of 0.1f
 		}
 	}
 
+	// semi-fixed timestep for physics time
+	// incase the game gets too laggy for slow pc
 	float new_time = CP_System_GetSeconds();
 	float frame_time = new_time - current_time;
 	current_time = new_time;
 
-	// semi-fixed timestep for physics time
-	// incase the game gets too laggy for slow pc
 	float dt;
+	// run timestep for every lost frame if < 60fps
 	while (frame_time > 0.f) {
 		dt = min(frame_time, 1 / 60.f);
 		game_physics_update(dt);
@@ -167,6 +170,7 @@ void game_physics_update(float dt)
 		playable = TRUE;
 	}
 
+	// update golf balls
 	win = TRUE;
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
@@ -177,6 +181,17 @@ void game_physics_update(float dt)
 		if (debug_enabled)
 			continue;
 
+		// golf ball scoring animation
+		if (golf->scoring) {
+			golf->diameter -= dt;
+			golf->diameter = max(golf->diameter, 0.f);
+			if (golf->diameter == 0.f) {
+				golf->scored = TRUE;
+			}
+			continue;
+		}
+
+		// golf ball player input logic (ensure all golf balls are stopped before player can putt)
 		all_balls_stopped = TRUE;
 		for (int j = 0; j < 2; j++) {
 			GolfBall* other_golf = golf_balls + j;
@@ -206,20 +221,24 @@ void game_physics_update(float dt)
 				golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
 				golf->vel = CP_Vector_Scale(golf->vel, power);
 
+				// set the other balls velocity
 				for (int j = 0; j < 2; j++) {
 					GolfBall* other_golf = golf_balls + j;
 					if (other_golf->scored || i == j)
 						continue;
 
 					other_golf->vel = CP_Vector_Set(golf->vel.x, golf->vel.y);
+
+					// make sure they dont move when setting this velocity
 					other_golf->halt = TRUE;
 				}
 			}
 		}
 		else {
+			// if the previous frame was player input, that means the golf ball has been released and been putted
 			if (golf->dragging) {
 				add_stroke();
-				CP_Sound_Play((CP_Sound)get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 			golf->dragging = FALSE;
 			golf->halt = FALSE;
@@ -239,6 +258,8 @@ void game_physics_update(float dt)
 				golf->pos = CP_Vector_Add(golf->pos, vel);
 			}
 			else {
+
+				// hard stop the ball if too slow
 				golf->vel.x = 0;
 				golf->vel.y = 0;
 			}
@@ -247,28 +268,28 @@ void game_physics_update(float dt)
 			if (golf->pos.x > world_limits.x - golf->diameter * 0.5f) {
 				golf->pos.x = world_limits.x - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound_Play((CP_Sound)get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the left border
 			if (golf->pos.x < golf->diameter * 0.5f) {
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
-				CP_Sound_Play((CP_Sound)get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the top border
 			if (golf->pos.y > world_limits.y - golf->diameter * 0.5f) {
 				golf->pos.y = world_limits.y - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound_Play((CP_Sound)get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// bound the ball at the bottom border
 			if (golf->pos.y < golf->diameter * 0.5f) {
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
-				CP_Sound_Play((CP_Sound)get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -281,11 +302,11 @@ void game_physics_update(float dt)
 			}
 
 			// calculate if golf ball is inside the hole
-			if (CP_Vector_Distance(golf->pos, holes[0].pos) < (holes[0].diameter * 0.5f) - (golf->diameter * 0.5f)) {
-				golf->scored = TRUE;
+			if (CP_Vector_Distance(golf->pos, holes[0].pos) < (holes[0].diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
+				golf->scoring = TRUE;
 			}
-			if (CP_Vector_Distance(golf->pos, holes[1].pos) < (holes[1].diameter * 0.5f) - (golf->diameter * 0.5f)) {
-				golf->scored = TRUE;
+			if (CP_Vector_Distance(golf->pos, holes[1].pos) < (holes[1].diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 2
+				golf->scoring = TRUE;
 			}
 		}
 	}
@@ -350,7 +371,7 @@ void game_render(void)
 			continue;
 
 		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		if (wall->image == NULL) {
+		if (wall->image == NULL) { // theres image for this wall, use that
 			CP_Settings_Fill(wall->color);
 			CP_Settings_Stroke(get_color(CLEAR));
 			CP_Graphics_DrawRectAdvanced(
@@ -362,7 +383,7 @@ void game_render(void)
 				0.f
 			);
 		}
-		else {
+		else { // theres no image for this wall (most likely the middle wall)
 			CP_Settings_Fill(get_color(WHITE));
 			CP_Settings_Stroke(get_color(WHITE));
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -414,6 +435,7 @@ void game_render(void)
 		if (golf->scored) // ignore if golf ball is already scored
 			continue;
 
+		// render golf ball
 		CP_Vector coords = world_to_screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(get_color(WHITE));
 		CP_Settings_Stroke(get_color(WHITE));
@@ -429,17 +451,6 @@ void game_render(void)
 
 		// render current stroke
 		if (golf->dragging && golf == current) {
-			golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
-			golf->vel = CP_Vector_Scale(golf->vel, power);
-
-			for (int j = 0; j < 2; j++) {
-				GolfBall* other_golf = golf_balls + j;
-				if (other_golf->scored || i == j)
-					continue;
-
-				other_golf->vel = CP_Vector_Set(golf->vel.x, golf->vel.y);
-				other_golf->halt = TRUE;
-			}
 
 			// render the current power of the ball
 			CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
@@ -479,7 +490,7 @@ void game_render(void)
 	if (win || CP_Input_KeyDown(KEY_TAB)) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
-		@todo: win condition response (all balls have scored)
+		@todo: add button to cycle to next level or replay the same level
 		*/
 	} else if (playable && all_balls_stopped && !debug_enabled) {
 		CP_Settings_Fill(get_color(ORANGE));
@@ -518,6 +529,7 @@ void update_wall(Wall* wall, float dt) {
 		wall->angle += 360.f;
 	}
 
+	// update wall normal based on wall angle rotation
 	wall->angle_radians = CP_Math_Radians(wall->angle);
 	wall->normal.x = cosf(-wall->angle_radians);
 	wall->normal.y = sinf(-wall->angle_radians);
@@ -561,6 +573,7 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 	// this is also the normal for collision response
 	CP_Vector ball_to_wall = CP_Vector_Subtract(local_golf_pos, closest_point);
 
+	// now the actual collision checking, the distance between ball center and closest point to wall is less than ball radius
 	CP_BOOL collision = FALSE;
 	if (CP_Vector_LengthSquared(ball_to_wall) <= pow(ball->diameter * 0.5f, 2)) {
 		collision = TRUE;
@@ -568,7 +581,7 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 
 	if (collision) {
 		// make sure it doesnt clip through lmao
-		ball->pos = CP_Vector_Set(ball->prev_pos.x, ball->prev_pos.y);
+		ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
 		collision_response(wall, ball, CP_Vector_Rotate(CP_Vector_Normalize(ball_to_wall), -wall->angle_radians));
@@ -604,13 +617,14 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
 	* 
 	*/
 	
+	// reflect the ball velocity from the normal
 	float dot = 2 * CP_Vector_DotProduct(ball->vel, normal);
 	CP_Vector rhs = { dot * normal.x, dot * normal.y };
 	CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
 	ball->vel.x = reflection.x / resistance;
 	ball->vel.y = reflection.y / resistance;
 
-	CP_Sound_Play((CP_Sound) get_audio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
@@ -646,6 +660,7 @@ void save_level(void) {
 	sprintf_s(level_path, 100, LEVEL_FILEPATH, current_level);
 	FILE* fptr = fopen(level_path, "w");
 	
+	// save the world limits, golf balls, holes and middle wall first
 	char level_file[FILE_SIZE];
 	sprintf_s(level_file, FILE_SIZE,
 		"width=%f\nheight=%f\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nmiddle_wall_angle=%f", 
@@ -657,6 +672,7 @@ void save_level(void) {
 		walls->angle
 		);
 
+	// save the walls now
 	int wall_index = 0;
 	for (int i = 1; i < walls_amount; i++) {
 		Wall* wall = walls + i;
@@ -678,6 +694,7 @@ void save_level(void) {
 		wall_index++;
 	}
 
+	// lastly, save the amount of walls saved
 	char last[50];
 	sprintf_s(last, 50, "\nwalls_amount=%d", wall_index);
 	strcat_s(level_file, FILE_SIZE, last);
@@ -693,13 +710,15 @@ void save_level(void) {
 void load(void) {
 	// initialize golf balls default values
 	for (int j = 0; j < 2; j++) {
-		golf_balls[j].scored = 0;
-		golf_balls[j].halt = 0;
-		golf_balls[j].dragging = 0;
-		golf_balls[j].angle = 0;
+		golf_balls[j].vel = CP_Vector_Set(0.f, 0.f);
+		golf_balls[j].angle = 0.f;
 		golf_balls[j].diameter = 1.f;
-		golf_balls[j].vel.x = 0.f;
-		golf_balls[j].vel.y = 0.f;
+		golf_balls[j].halt = FALSE;
+		golf_balls[j].dragging = FALSE;
+		golf_balls[j].scored = FALSE;
+		golf_balls[j].scoring = FALSE;
+
+		// make sure hole diameter is larger than golf ball so it can actually fit
 		holes[j].diameter = 1.5f;
 	}
 
@@ -711,9 +730,7 @@ void load(void) {
 		world_limits.x = loaded_level->world_width;
 		world_limits.y = loaded_level->world_height;
 
-		// initialize standard default values
-		sBoard.x = world_limits.x * 0.5f;
-		sBoard.y = world_limits.y * 0.5f;
+		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
 		golf_balls[0].pos = loaded_level->golf_pos_1;
 		golf_balls[1].pos = loaded_level->golf_pos_2;
@@ -767,6 +784,8 @@ void load(void) {
 			middle_wall->destroyed = FALSE;
 		}
 		else {
+
+			// level loading failed, quit the game because heap allocation went wrong!!
 			CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 		}
 
@@ -776,18 +795,13 @@ void load(void) {
 	}
 
 	// load a default randomized level if no level file exists
-	world_limits.x = 48.f;
-	world_limits.y = 27.f;
+	world_limits = CP_Vector_Set(48.f, 27.f);
 
 	// initialize standard default values
-	sBoard.x = world_limits.x * 0.5f;
-	sBoard.y = world_limits.y * 0.5f;
+	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
-	golf_balls[0].pos.x = world_limits.x * 0.25f;
-	golf_balls[0].pos.y = 2.f;
-
-	golf_balls[1].pos.x = world_limits.x * 0.75f;
-	golf_balls[1].pos.y = 2.f;
+	golf_balls[0].pos = CP_Vector_Set(world_limits.x * 0.25f, 2.f);
+	golf_balls[1].pos = CP_Vector_Set(world_limits.x * 0.75f, 2.f);
 
 	holes[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.75f);
 	holes[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
@@ -849,6 +863,8 @@ void load(void) {
 		middle_wall->rotation_rate = 0.f;
 		middle_wall->destroyed = FALSE;
 	} else {
+
+		// level loading failed, quit the game because heap allocation went wrong!!
 		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 	}
 }

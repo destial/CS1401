@@ -32,6 +32,7 @@ typedef struct GolfBall {
 	CP_BOOL dragging; // player currently striking
 	CP_BOOL halt; // if one ball is currently striking, halt the other ball from moving
 	CP_BOOL scored; // if this ball has scored
+	CP_BOOL scoring; // if this ball is falling in the hole (for animation purposes)
 } GolfBall;
 
 typedef struct Hole {
