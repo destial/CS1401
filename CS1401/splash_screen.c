@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 11 September 2025
+@course CSD1401
+@brief Definition file for the splash screen when the game starts up
+*/
+
 #include "splash_screen.h"
 #include "cprocessing.h"
 #include "main_menu.h"
@@ -5,9 +12,10 @@
 #include "asset_manager.h"
 
 CP_Image* logo;
-float splashScreenAlpha = 0.f;
-float duration = 2.f;
-char revert = 0;
+float splash_alpha = 0.f;
+float splash_duration = 2.f;
+char splash_revert = 0;
+
 void splash_screen_init(void)
 {
 	logo = get_image(SPLASH_SCREEN_ASSET);
@@ -22,23 +30,22 @@ void splash_screen_init(void)
 void splash_screen_update(void)
 {
 	CP_Graphics_ClearBackground(get_color(BLACK));
-	if (revert == 0) {
-		splashScreenAlpha += CP_System_GetDt() / duration;
-		if (splashScreenAlpha >= 1.f) {
-			revert = 1;
+	if (splash_revert == 0) {
+		splash_alpha += CP_System_GetDt() / splash_duration;
+		if (splash_alpha >= 1.f) {
+			splash_revert = 1;
 		}
 	}
 	else {
-		splashScreenAlpha -= CP_System_GetDt() / duration;
+		splash_alpha -= CP_System_GetDt() / splash_duration;
 	}
-	splashScreenAlpha = CP_Math_ClampFloat(splashScreenAlpha, 0.f, 1.f);
-	int alpha = CP_Math_LerpInt(0, 255, splashScreenAlpha);
+	splash_alpha = CP_Math_ClampFloat(splash_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Image_Draw((CP_Image) logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, alpha);
+	CP_Image_Draw((CP_Image) logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(splash_alpha * 255.f));
 
-	if (revert && splashScreenAlpha == 0.f) {
-		CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
+	if (splash_revert && splash_alpha == 0.f) {
+		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
 	}
 }
 

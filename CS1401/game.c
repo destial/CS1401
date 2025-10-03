@@ -341,12 +341,6 @@ void game_render(void)
 	CP_Settings_Fill(get_color(BLACK));
 	CP_Image_Draw((CP_Image) background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
 
-	CP_Settings_TextSize(40.f);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-	char b[50];
-	sprintf_s(b, 50, "Strokes: %d", get_strokes());
-	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
-
 	CP_Vector world_ratios = get_world_ratios();
 
 	// render walls
@@ -440,9 +434,9 @@ void game_render(void)
 
 			for (int j = 0; j < 2; j++) {
 				GolfBall* other_golf = golf_balls + j;
-				if (other_golf->scored)
+				if (other_golf->scored || i == j)
 					continue;
-				if (i == j) continue;
+
 				other_golf->vel = CP_Vector_Set(golf->vel.x, golf->vel.y);
 				other_golf->halt = TRUE;
 			}
@@ -472,6 +466,15 @@ void game_render(void)
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
 	}
+
+	// draw current strokes
+	CP_Settings_TextSize(40.f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_Stroke(get_color(BLACK));
+	char b[50];
+	sprintf_s(b, 50, "Strokes: %d", get_strokes());
+	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
 	if (win || CP_Input_KeyDown(KEY_TAB)) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
@@ -659,6 +662,9 @@ void save_level(void) {
 		Wall* wall = walls + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
+		
+		if (wall->scale.x == 0.f || wall->scale.y == 0.f)
+			continue;
 
 		char wall_data[1000];
 		sprintf_s(wall_data, 1000,
@@ -718,8 +724,7 @@ void load(void) {
 		walls_amount = loaded_level->walls_size + 1;
 		walls = malloc(sizeof(Wall) * walls_amount);
 
-		// @todo: set par here into scoring
-		// set_lvl_par(loaded_level->par);
+		set_lvl_par(loaded_level->par);
 
 		if (walls) {
 			int wall_index = 1;

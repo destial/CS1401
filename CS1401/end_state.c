@@ -6,6 +6,7 @@
 */
 
 #include "end_state.h"
+#include "cprocessing.h"
 #include "asset_manager.h"
 #include "utils.h"
 
@@ -32,11 +33,10 @@ void end_state_update(void) {
 	else {
 		end_alpha -= CP_System_GetDt() / end_duration;
 	}
-	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);
-	int alpha = CP_Math_LerpInt(0, 255, end_alpha);
+	end_alpha = clamp(end_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Image_Draw((CP_Image)logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, alpha);
+	CP_Image_Draw((CP_Image)logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int) (end_alpha * 255.f));
 
 	if (end_revert && end_alpha == 0.f) {
 		CP_Engine_Terminate();

@@ -91,6 +91,10 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Font_DrawText(b, coords.x, coords.y);
 }
 
+void set_lvl_par(int par) {
+	lvl_par = par;
+}
+
 //char is_win(void) {
 //	if golf
 //}

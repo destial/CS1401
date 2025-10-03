@@ -16,6 +16,7 @@ int get_strokes(void);
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height);
 
+void set_lvl_par(int par);
 
 //
 //void add_stroke();

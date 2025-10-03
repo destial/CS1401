@@ -26,8 +26,8 @@ CP_BOOL check_on_quad(Wall* wall) {
 	CP_Vector wall_max = { wall->scale.x * 0.5f, wall->scale.y * 0.5f };
 
 	// mouse location in respect to wall
-	CP_Vector mouse = get_mouse_world();
-	CP_Vector r = CP_Vector_Subtract(mouse, wall->pos);
+	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector r = CP_Vector_Subtract(mouse_world, wall->pos);
 
 	// rotate local position back to axis
 	CP_Vector local_mouse_pos = CP_Vector_Rotate(r, wall->angle_radians);
@@ -37,17 +37,19 @@ CP_BOOL check_on_quad(Wall* wall) {
 }
 
 CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
-	CP_Vector mouse = get_mouse_world();
-	return CP_Vector_Distance(pos, mouse) <= diameter;
+	CP_Vector mouse_world = get_mouse_world();
+	return CP_Vector_Distance(pos, mouse_world) <= diameter;
 }
 
 void update_debug_walls(Wall* walls, int size) {
+	CP_Vector mouse_world = get_mouse_world();
+
 	if (CP_Input_KeyTriggered(KEY_P)) {
-		Wall* wall = add_wall(get_mouse_world());
+		Wall* wall = add_wall(mouse_world);
 		if (wall) {
 			size++;
 			current_editing = wall;
-			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
+			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 			current_type = WALL;
 		}
 	}
@@ -64,17 +66,18 @@ void update_debug_walls(Wall* walls, int size) {
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_quad(wall)) {
 			current_editing = wall;
-			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
+			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 			current_type = WALL;
 		}
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == wall) {
-			current_editing_offset = CP_Vector_Subtract(wall->pos, get_mouse_world());
+			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 		}
 	}
 }
 
 void update_debug_holes(Hole* holes, int size) {
+	CP_Vector mouse_world = get_mouse_world();
 	for (int i = 0; i < size; i++) {
 		Hole* hole = holes + i;
 		if (hole == NULL )
@@ -82,13 +85,14 @@ void update_debug_holes(Hole* holes, int size) {
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(hole->pos, hole->diameter)) {
 			current_editing = hole;
-			current_editing_offset = CP_Vector_Subtract(hole->pos, get_mouse_world());
+			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
 		}
 	}
 }
 
 void update_debug_golfs(GolfBall* balls, int size) {
+	CP_Vector mouse_world = get_mouse_world();
 	for (int i = 0; i < size; i++) {
 		GolfBall* golf = balls + i;
 		if (golf == NULL)
@@ -96,7 +100,7 @@ void update_debug_golfs(GolfBall* balls, int size) {
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(golf->pos, golf->diameter)) {
 			current_editing = golf;
-			current_editing_offset = CP_Vector_Subtract(golf->pos, get_mouse_world());
+			current_editing_offset = CP_Vector_Subtract(golf->pos, mouse_world);
 			current_type = GOLF_BALL;
 		}
 	}
@@ -124,11 +128,12 @@ void update_debug_utils(void) {
 		current_dragging = NULL;
 	}
 
+	CP_Vector mouse_world = get_mouse_world();
 	if (current_dragging != NULL) {
 		if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) { // translate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
-				wall->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 
 				if (wall->pos.x <= get_world_limits().x * 0.5f) {
 					wall->image = get_image(WALL_LEFT_ASSET);
@@ -139,18 +144,18 @@ void update_debug_utils(void) {
 			}
 			else if (current_type == HOLE) {
 				Hole* hole = (Hole*)current_dragging;
-				hole->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+				hole->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 				
 			}
 			else if (current_type == GOLF_BALL) {
 				GolfBall* ball = (GolfBall*)current_dragging;
-				ball->pos = CP_Vector_Add(get_mouse_world(), current_editing_offset);
+				ball->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 			}
 		}
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) { // rotate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
-				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, get_mouse_world()), current_editing_offset);
+				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
 				wall->angle = angle;
 			}
 		}

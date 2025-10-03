@@ -92,6 +92,7 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 
 /*!
 @brief Get a defined color
+@param code - The color code
 */
 CP_Color get_color(ColorCode code);
 
