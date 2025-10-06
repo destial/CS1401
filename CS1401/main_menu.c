@@ -25,6 +25,7 @@ typedef struct Button {
 } Button;
 
 float world_width1 = 48, world_height1 = 27;
+int window_size_H, window_size_W;
 int resolution_number = 0;
 
 Button buttons[20];
@@ -40,6 +41,8 @@ void exit_main_menu(void) {
 void main_menu_init(void) 
 {
 	button_font = get_font(ARIAL_FONT_ASSET);
+	window_size_H = CP_System_GetWindowHeight();
+	window_size_W = CP_System_GetWindowWidth();
 
 	CP_Font_Set(button_font);
 
@@ -143,7 +146,7 @@ void main_menu_init(void)
 	//setting the button anchor to the center of the world
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
-	CP_System_SetWindowSize(1600, 900);
+	CP_System_SetWindowSize(window_size_W, window_size_H);
 }
 
 void main_menu_update(void) 
@@ -408,14 +411,16 @@ void change_screen(void) {
 }
 
 void change_resolution(num) {
-	if (num == 0) {
-		CP_System_SetWindowSize(1280, 720);
-	}
-	else if (num == 1) {
-		CP_System_SetWindowSize(1600, 900);
-	}
-	else if (num == 2) {
-		CP_System_SetWindowSize(1920, 1080);
+	switch (num) {
+		case 0:
+			CP_System_SetWindowSize(1280, 720);
+			break;
+		case 1:
+			CP_System_SetWindowSize(1600, 900);
+			break;
+		case 2:
+			CP_System_SetWindowSize(1920, 1080);
+			break;
 	}
 }
 
