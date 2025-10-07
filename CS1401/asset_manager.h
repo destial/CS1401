@@ -30,6 +30,9 @@
 #define LEVEL_BUTTON_ASSET "Assets/Images/level button.png"
 #define SPLASH_SCREEN_ASSET "Assets/Images/splash_screen.png"
 #define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
+#define BOOST_ITEM_ASSET "Assets/Images/boost_item.png"
+#define BIG_ITEM_ASSET "Assets/Images/big_item.png"
+#define SMALL_ITEM_ASSET "Assets/Images/small_item.png"
 
 // Sounds / Music / Audio
 

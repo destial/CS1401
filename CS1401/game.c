@@ -17,6 +17,7 @@
 #include "debug_manager.h"
 #include "end_state.h"
 #include "main_menu.h"
+#include "cprocessing.h"
 
 // initialize global variables here
 CP_Font font;
@@ -47,6 +48,7 @@ CP_BOOL debug_enabled = FALSE;
 float resistance = 1.25f;
 float power = 1.f;
 char current_level = 1;
+float current_time;
 
 // reset on level loading
 float translate = 1.f;
@@ -59,7 +61,8 @@ CP_BOOL all_balls_stopped = TRUE;
 Wall* walls;
 int walls_amount;
 CP_Vector world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
-float current_time;
+Item* items;
+int items_amount;
 
 // Initialize the font, golf positions and wall positions
 void game_init(void)
@@ -248,6 +251,28 @@ void game_physics_update(float dt)
 		// apply velocity to the golf ball if not being dragged
 		if (!golf->dragging && !golf->halt) {
 
+			// item ability checking here !!!!!
+			for (int j = 0; j < items_amount; j++) {
+				Item* item = items + j;
+				if (item == NULL || item->collected) continue;
+
+				if (check_item(item, golf)) {
+					switch (item->type) {
+					case BOOST:
+						golf->vel = CP_Vector_Scale(golf->vel, 5.f);
+						break;
+					case BIG:
+						golf->diameter *= 2.f;
+						break;
+					case SMALL:
+						golf->diameter *= 0.5f;
+						break;
+					default: break;
+					}
+					item->collected = TRUE;
+				}
+			}
+
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
@@ -255,6 +280,7 @@ void game_physics_update(float dt)
 				if (friction != 0) {
 					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (resistance * resistance) - 1));
 				}
+
 				golf->pos = CP_Vector_Add(golf->pos, vel);
 			}
 			else {
@@ -336,8 +362,8 @@ void game_physics_update(float dt)
 	}
 
 	// after all updates, set the previous position to here
-	for (int j = 0; j < 2; j++) {
-		GolfBall* ball = golf_balls + j;
+	for (int i = 0; i < 2; i++) {
+		GolfBall* ball = golf_balls + i;
 		if (ball->scored)
 			continue;
 
@@ -429,6 +455,40 @@ void game_render(void)
 		draw_hole(holes[i].pos, holes[i].diameter, world_limits.x, world_limits.y, translate);
 	}
 
+	for (int i = 0; i < items_amount; i++) {
+		Item* item = items + i;
+		if (item == NULL || item->collected) continue;
+
+		CP_Vector coords = world_to_screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(get_color(WHITE));
+		CP_Settings_Stroke(get_color(WHITE));
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+		CP_Image image;
+		switch (item->type) {
+		case BOOST:
+			image = get_image(BOOST_ITEM_ASSET);
+			break;
+		case BIG:
+			image = get_image(BIG_ITEM_ASSET);
+			break;
+		case SMALL:
+			image = get_image(SMALL_ITEM_ASSET);
+			break;
+		default: 
+			image = NULL;
+			break;
+		}
+
+		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) + 10.f) * 0.1f;
+		CP_Image_Draw(image,
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.y,
+			item->diameter * world_ratios.x * anim_mul,
+			item->diameter * world_ratios.x * anim_mul,
+			255);
+	}
+
 	// render golf balls
 	for (int i = 0; i < 2; i++) {
 		GolfBall* golf = golf_balls + i;
@@ -511,6 +571,7 @@ void game_exit(void)
 {
 	// free level allocations
 	free(walls);
+	free(items);
 	free_assets();
 	reset_strokes();
 	walls = NULL;
@@ -575,7 +636,7 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 
 	// now the actual collision checking, the distance between ball center and closest point to wall is less than ball radius
 	CP_BOOL collision = FALSE;
-	if (CP_Vector_LengthSquared(ball_to_wall) <= pow(ball->diameter * 0.5f, 2)) {
+	if (CP_Vector_LengthSquared(ball_to_wall) <= powf(ball->diameter * 0.5f, 2)) {
 		collision = TRUE;
 	}
 
@@ -606,6 +667,10 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 		}
 	}
 	return collision;
+}
+
+CP_BOOL check_item(Item* item, GolfBall* ball) {
+	return CP_Vector_LengthSquared(CP_Vector_Subtract(item->pos, ball->pos)) <= powf(item->diameter * 0.5f, 2.f);
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
@@ -731,6 +796,26 @@ void load(void) {
 		world_limits.y = loaded_level->world_height;
 
 		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
+
+		items_amount = 3;
+		items = malloc(sizeof(Item) * items_amount);
+		items[0].type = BOOST;
+		items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
+		items[0].diameter = 1.f;
+		items[0].anim_diameter = 1.f;
+		items[0].collected = FALSE;
+
+		items[1].type = BIG;
+		items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
+		items[1].diameter = 1.f;
+		items[1].anim_diameter = 1.f;
+		items[1].collected = FALSE;
+
+		items[2].type = SMALL;
+		items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
+		items[2].diameter = 1.f;
+		items[2].anim_diameter = 1.f;
+		items[2].collected = FALSE;
 
 		golf_balls[0].pos = loaded_level->golf_pos_1;
 		golf_balls[1].pos = loaded_level->golf_pos_2;

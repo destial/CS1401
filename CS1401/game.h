@@ -10,7 +10,13 @@
 #define GAME_H
 #include "cprocessing.h"
 
-typedef struct Wall {
+typedef enum ItemTypeEnum {
+	BOOST,
+	BIG,
+	SMALL
+} ItemType;
+
+typedef struct WallStruct {
 	CP_Vector pos; // wall position (world space)
 	CP_Vector scale; // wall scale (world space)
 	CP_Vector normal; // wall normal vector (calculated based on angle, always updated before collision testing)
@@ -23,7 +29,7 @@ typedef struct Wall {
 	CP_BOOL destroyed; // if this wall is disabled
 } Wall;
 
-typedef struct GolfBall {
+typedef struct GolfBallStruct {
 	CP_Vector pos; // golfball position (world space)
 	CP_Vector prev_pos; // golfball position in previous physics update
 	CP_Vector vel; // golfball velocity (world space)
@@ -35,7 +41,15 @@ typedef struct GolfBall {
 	CP_BOOL scoring; // if this ball is falling in the hole (for animation purposes)
 } GolfBall;
 
-typedef struct Hole {
+typedef struct ItemStruct {
+	CP_Vector pos;
+	float diameter;
+	float anim_diameter;
+	ItemType type;
+	CP_BOOL collected;
+} Item;
+
+typedef struct HoleStruct {
 	CP_Vector pos; // hole position (world space)
 	float diameter; // hole diameter (world space)
 } Hole;
@@ -77,6 +91,14 @@ void update_wall(Wall* wall, float dt);
 @return TRUE if collided, FALSE if not
 */
 CP_BOOL check_collision(Wall* wall, GolfBall* ball);
+
+/*!
+@brief Check if golfball rolled over item
+@param item - The item to check
+@param ball - The golf ball to check
+@return TRUE if over item, FALSE if not
+*/
+CP_BOOL check_item(Item* item, GolfBall* ball);
 
 /*!
 @brief Respond to the collision between a wall and a ball according to the wall's normal
