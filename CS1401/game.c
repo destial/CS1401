@@ -680,13 +680,14 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 
 	// now the actual collision checking, the distance between ball center and closest point to wall is less than ball radius
 	CP_BOOL collision = FALSE;
-	if (CP_Vector_LengthSquared(wall_to_ball) <= powf(ball->diameter * 0.5f, 2)) {
+	if (CP_Vector_LengthSquared(wall_to_ball) <= CP_Math_Square(ball->diameter * 0.5f)) {
 		collision = TRUE;
 	}
 
 	if (collision) {
 		// make sure it doesnt clip through lmao
-		ball->pos = ball->prev_pos;
+		if (CP_Vector_DotProduct(ball->vel, wall_to_ball) <= 0) // in case the wall is rotating and is faster than the ball
+			ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
 		collision_response(wall, ball, point_to_check, CP_Vector_Rotate(CP_Vector_Normalize(wall_to_ball), -wall->angle_radians));
@@ -714,7 +715,7 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 }
 
 CP_BOOL check_item(Item* item, GolfBall* ball) {
-	return CP_Vector_Length(CP_Vector_Subtract(item->pos, ball->pos)) <= sqrtf(powf(item->diameter * 0.5f, 2.f) + powf(ball->diameter * 0.5f, 2.f));
+	return CP_Vector_LengthSquared(CP_Vector_Subtract(item->pos, ball->pos)) <= CP_Math_Square(item->diameter * 0.5f) + CP_Math_Square(ball->diameter * 0.5f);
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
@@ -722,27 +723,30 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 	/*
 	r = d - 2(d . n)n
 	sourced from https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
-	@todo: add rolling support (it gets stuck if too slow)
-	@todo: add impulse
 	*/
+
+	/*
+	* /@todo: what to do when colliding against a spinning wall (???)
+	*/
+	if (wall->rotation_rate) {
+		float dist = CP_Vector_Distance(wall->pos, point);
+		CP_Vector force = CP_Vector_Scale(normal, dist / (wall->rotation_rate * 2.f));
+		if (CP_Vector_DotProduct(normal, wall->right) > 0 || CP_Vector_DotProduct(normal, CP_Vector_Negate(wall->right)) > 0) {
+			force = CP_Vector_Negate(force);
+		}
+		ball->vel = CP_Vector_Add(ball->vel, force);
+	}
 	
-	float multiplier = 5.f;
 	if (!CP_Vector_IsZero(ball->vel)) {
 		// reflect the ball velocity from the normal
-		float dot = 2 * CP_Vector_DotProduct(ball->vel, normal);
-		CP_Vector rhs = { dot * normal.x, dot * normal.y };
+		float dot = 2 * CP_Vector_DotProduct(ball->vel, normal); // 2 * (d . n)
+		CP_Vector rhs = { dot * normal.x, dot * normal.y }; // * n
 		CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
 		ball->vel.x = reflection.x / resistance;
 		ball->vel.y = reflection.y / resistance;
-		multiplier = 0.f;
-		CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
-	}
-	if (wall->rotation_rate) {
-		float dist = CP_Vector_Distance(wall->pos, point);
-		float a = wall->rotation_rate * wall->rotation_rate * wall->scale.y;
-		float x = sqrtf(CP_Math_Square(dist) - (ball->diameter * 0.5f) - (ball->diameter * 0.5f));
-		ball->vel = CP_Vector_Scale(ball->vel, a / x);
-	}
+	} 
+
+	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
@@ -774,8 +778,8 @@ void debug_draw(void) {
 
 #define FILE_SIZE 8192
 void save_level(void) {
-	char level_path[100];
-	sprintf_s(level_path, 100, LEVEL_FILEPATH, current_level);
+	char level_path[128];
+	sprintf_s(level_path, 128, LEVEL_FILEPATH, current_level);
 	FILE* fptr = fopen(level_path, "w");
 	
 	// save the world limits, golf balls, holes and middle wall first
