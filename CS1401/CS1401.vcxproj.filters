@@ -42,7 +42,7 @@
     <ClCompile Include="end_state.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="debug_manager.c">
+    <ClCompile Include="editor_manager.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="sprite_manager.c">
@@ -74,7 +74,7 @@
     <ClInclude Include="end_state.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="debug_manager.h">
+    <ClInclude Include="editor_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="sprite_manager.h">

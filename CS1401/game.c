@@ -14,7 +14,7 @@
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
-#include "debug_manager.h"
+#include "editor_manager.h"
 #include "end_state.h"
 #include "main_menu.h"
 #include "cprocessing.h"
@@ -128,15 +128,17 @@ void game_update(void)
 			resistance = max(1.f, resistance); // limit to minimum of 1.f
 		}
 
-		update_debug_walls(walls, walls_amount);
-		update_debug_holes(holes, 2);
-		update_debug_golfs(golf_balls, 2);
+		update_editor_walls(walls, walls_amount);
+		update_editor_holes(holes, 2);
+		update_editor_golfs(golf_balls, 2);
+		update_editor_items(items, items_amount);
 
-		update_debug_utils();
+		update_editor_utils();
 	}
 	else {
 		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
 			power += 0.1f;
+			power = min(3.f, power); // limit to maximum of 10f
 		}
 		if (CP_Input_MouseWheel() < 0.f) { // decrease power of putt
 			power -= 0.1f;
@@ -250,31 +252,33 @@ void game_physics_update(float dt)
 
 		// apply velocity to the golf ball if not being dragged
 		if (!golf->dragging && !golf->halt) {
-
-			// item ability checking here !!!!!
-			for (int j = 0; j < items_amount; j++) {
-				Item* item = items + j;
-				if (item == NULL || item->collected) continue;
-
-				if (check_item(item, golf)) {
-					switch (item->type) {
-					case BOOST:
-						golf->vel = CP_Vector_Scale(golf->vel, 5.f);
-						break;
-					case BIG:
-						golf->diameter *= 2.f;
-						break;
-					case SMALL:
-						golf->diameter *= 0.5f;
-						break;
-					default: break;
-					}
-					item->collected = TRUE;
-				}
-			}
-
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
+				// item ability checking here !!!!!
+				for (int j = 0; j < items_amount; j++) {
+					Item* item = items + j;
+					if (item == NULL || item->collected) continue;
+
+					if (check_item(item, golf)) {
+						switch (item->type) {
+						case BOOST:
+							golf->vel = CP_Vector_Scale(golf->vel, 5.f);
+							break;
+						case BIG:
+							golf->diameter *= 2.f;
+							break;
+						case SMALL:
+							golf->diameter *= 0.5f;
+							break;
+						case REVERSE:
+							golf->vel = CP_Vector_Negate(golf->vel);
+							break;
+						default: break;
+						}
+						item->collected = TRUE;
+					}
+				}
+
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
 				float friction = resistance - 1;
 				if (friction != 0) {
@@ -294,6 +298,7 @@ void game_physics_update(float dt)
 			if (golf->pos.x > world_limits.x - golf->diameter * 0.5f) {
 				golf->pos.x = world_limits.x - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
+				golf->vel.y = golf->vel.y / resistance;
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
@@ -301,6 +306,7 @@ void game_physics_update(float dt)
 			if (golf->pos.x < golf->diameter * 0.5f) {
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
+				golf->vel.y = golf->vel.y / resistance;
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
@@ -308,6 +314,7 @@ void game_physics_update(float dt)
 			if (golf->pos.y > world_limits.y - golf->diameter * 0.5f) {
 				golf->pos.y = world_limits.y - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
+				golf->vel.x = golf->vel.x / resistance;
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
@@ -315,6 +322,7 @@ void game_physics_update(float dt)
 			if (golf->pos.y < golf->diameter * 0.5f) {
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
+				golf->vel.x = golf->vel.x / resistance;
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
 
@@ -447,6 +455,10 @@ void game_render(void)
 			char r[100];
 			sprintf_s(r, 100, "Wall Right: (%f, %f) (Radians: %.2f)", wall->right.x, wall->right.y, wall->angle_radians);
 			CP_Font_DrawText(r, c.x, c.y + 120);
+
+			char rr[100];
+			sprintf_s(rr, 100, "Wall Rot Rate: %f", wall->rotation_rate);
+			CP_Font_DrawText(rr, c.x, c.y + 140);
 		}
 	}
 
@@ -457,7 +469,8 @@ void game_render(void)
 
 	for (int i = 0; i < items_amount; i++) {
 		Item* item = items + i;
-		if (item == NULL || item->collected) continue;
+		if (item == NULL || item->collected || item->destroyed) 
+			continue;
 
 		CP_Vector coords = world_to_screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(get_color(WHITE));
@@ -475,18 +488,45 @@ void game_render(void)
 		case SMALL:
 			image = get_image(SMALL_ITEM_ASSET);
 			break;
+		case REVERSE:
+			image = get_image(REVERSE_ITEM_ASSET);
+			break;
 		default: 
 			image = NULL;
 			break;
 		}
 
-		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) + 10.f) * 0.1f;
-		CP_Image_Draw(image,
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
-			coords.y,
-			item->diameter * world_ratios.x * anim_mul,
-			item->diameter * world_ratios.x * anim_mul,
-			255);
+		if (image != NULL) {
+			if (item->rotation_rate) {
+				item->angle += item->rotation_rate * CP_System_GetDt();
+				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
+			}
+			float anim_mul = (sinf(5.f * CP_System_GetSeconds()) + 10.f) * 0.1f;
+			CP_Image_DrawAdvanced(image,
+				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.y,
+				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul,
+				255,
+				item->angle);
+		}
+
+		if (debug_enabled) {
+			CP_Settings_Fill(get_color(GREEN));
+			CP_Settings_TextSize(20.f);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
+			char in[64];
+			sprintf_s(in, 64, "Item Index: %d", i);
+			CP_Font_DrawText(in, coords.x, coords.y + 40);
+
+			char p[64];
+			sprintf_s(p, 64, "Item Pos: (%f, %f)", item->pos.x, item->pos.y);
+			CP_Font_DrawText(p, coords.x, coords.y + 60);
+
+			char rr[64];
+			sprintf_s(rr, 64, "Item Rot Rate: %f", item->rotation_rate);
+			CP_Font_DrawText(rr, coords.x, coords.y + 80);
+		}
 	}
 
 	// render golf balls
@@ -563,7 +603,7 @@ void game_render(void)
 	// render debug text on top of everything
 	if (debug_enabled) {
 		debug_draw();
-		render_debug_utils();
+		render_editor_utils();
 	}
 }
 
@@ -632,11 +672,11 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 	};
 	// get back the distance between the golf pos and the closest point
 	// this is also the normal for collision response
-	CP_Vector ball_to_wall = CP_Vector_Subtract(local_golf_pos, closest_point);
+	CP_Vector wall_to_ball = CP_Vector_Subtract(local_golf_pos, closest_point);
 
 	// now the actual collision checking, the distance between ball center and closest point to wall is less than ball radius
 	CP_BOOL collision = FALSE;
-	if (CP_Vector_LengthSquared(ball_to_wall) <= powf(ball->diameter * 0.5f, 2)) {
+	if (CP_Vector_LengthSquared(wall_to_ball) <= powf(ball->diameter * 0.5f, 2)) {
 		collision = TRUE;
 	}
 
@@ -645,7 +685,7 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 		ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
-		collision_response(wall, ball, CP_Vector_Rotate(CP_Vector_Normalize(ball_to_wall), -wall->angle_radians));
+		collision_response(wall, ball, point_to_check, CP_Vector_Rotate(CP_Vector_Normalize(wall_to_ball), -wall->angle_radians));
 	}
 
 	if (debug_enabled) {
@@ -670,26 +710,35 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 }
 
 CP_BOOL check_item(Item* item, GolfBall* ball) {
-	return CP_Vector_LengthSquared(CP_Vector_Subtract(item->pos, ball->pos)) <= powf(item->diameter * 0.5f, 2.f);
+	return CP_Vector_Length(CP_Vector_Subtract(item->pos, ball->pos)) <= sqrtf(powf(item->diameter * 0.5f, 2.f) + powf(ball->diameter * 0.5f, 2.f));
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
-void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal) {
+void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal) {
 	/*
 	r = d - 2(d . n)n
 	sourced from https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 	@todo: add rolling support (it gets stuck if too slow)
-	* 
+	@todo: add impulse
 	*/
 	
-	// reflect the ball velocity from the normal
-	float dot = 2 * CP_Vector_DotProduct(ball->vel, normal);
-	CP_Vector rhs = { dot * normal.x, dot * normal.y };
-	CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
-	ball->vel.x = reflection.x / resistance;
-	ball->vel.y = reflection.y / resistance;
-
-	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+	float multiplier = 5.f;
+	if (!CP_Vector_IsZero(ball->vel)) {
+		// reflect the ball velocity from the normal
+		float dot = 2 * CP_Vector_DotProduct(ball->vel, normal);
+		CP_Vector rhs = { dot * normal.x, dot * normal.y };
+		CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
+		ball->vel.x = reflection.x / resistance;
+		ball->vel.y = reflection.y / resistance;
+		multiplier = 0.f;
+		CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+	}
+	if (wall->rotation_rate) {
+		float dist = CP_Vector_Distance(wall->pos, point);
+		float a = wall->rotation_rate * wall->rotation_rate * wall->scale.y;
+		float x = sqrtf(CP_Math_Square(dist) - (ball->diameter * 0.5f) - (ball->diameter * 0.5f));
+		ball->vel = CP_Vector_Scale(ball->vel, a / x);
+	}
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
@@ -719,7 +768,7 @@ void debug_draw(void) {
 	CP_Font_DrawText(p, 0, 100);
 }
 
-#define FILE_SIZE 6000
+#define FILE_SIZE 8192
 void save_level(void) {
 	char level_path[100];
 	sprintf_s(level_path, 100, LEVEL_FILEPATH, current_level);
@@ -747,8 +796,8 @@ void save_level(void) {
 		if (wall->scale.x == 0.f || wall->scale.y == 0.f)
 			continue;
 
-		char wall_data[1000];
-		sprintf_s(wall_data, 1000,
+		char wall_data[1024];
+		sprintf_s(wall_data, 1024,
 			"\nwall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f", 
 			wall_index, wall->pos.x, wall->pos.y,
 			wall_index, wall->scale.x, wall->scale.y,
@@ -759,10 +808,36 @@ void save_level(void) {
 		wall_index++;
 	}
 
-	// lastly, save the amount of walls saved
-	char last[50];
-	sprintf_s(last, 50, "\nwalls_amount=%d", wall_index);
+	// save the amount of walls saved
+	char last[64];
+	sprintf_s(last, 64, "\nwalls_amount=%d", wall_index);
 	strcat_s(level_file, FILE_SIZE, last);
+
+	int item_index = 0;
+	for (int i = 0; i < items_amount; i++) {
+		Item* item = items + i;
+		if (item == NULL)
+			continue;
+
+		if (item->destroyed || item->diameter <= 0.f)
+			continue;
+
+		char item_data[1024];
+		sprintf_s(item_data, 1024,
+			"\nitem_%d_pos=%f,%f\nitem_%d_diameter=%f\nitem_%d_angle=%f\nitem_%d_rot_rate=%f\nitem_%d_type=%d",
+			item_index, item->pos.x, item->pos.y,
+			item_index, item->diameter,
+			item_index, item->angle,
+			item_index, item->rotation_rate,
+			item_index, item->type
+		);
+		strcat_s(level_file, FILE_SIZE, item_data);
+		item_index++;
+	}
+
+	char ilast[64];
+	sprintf_s(ilast, 64, "\nitems_amount=%d", item_index);
+	strcat_s(level_file, FILE_SIZE, ilast);
 
 	fputs(level_file, fptr);
 	fclose(fptr);
@@ -797,26 +872,6 @@ void load(void) {
 
 		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
-		items_amount = 3;
-		items = malloc(sizeof(Item) * items_amount);
-		items[0].type = BOOST;
-		items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
-		items[0].diameter = 1.f;
-		items[0].anim_diameter = 1.f;
-		items[0].collected = FALSE;
-
-		items[1].type = BIG;
-		items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
-		items[1].diameter = 1.f;
-		items[1].anim_diameter = 1.f;
-		items[1].collected = FALSE;
-
-		items[2].type = SMALL;
-		items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
-		items[2].diameter = 1.f;
-		items[2].anim_diameter = 1.f;
-		items[2].collected = FALSE;
-
 		golf_balls[0].pos = loaded_level->golf_pos_1;
 		golf_balls[1].pos = loaded_level->golf_pos_2;
 
@@ -827,6 +882,28 @@ void load(void) {
 		walls = malloc(sizeof(Wall) * walls_amount);
 
 		set_lvl_par(loaded_level->par);
+
+		items_amount = loaded_level->items_size;
+		if (items_amount) {
+			items = malloc(sizeof(Item) * items_amount);
+			int item_index = 0;
+			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, item_index++) {
+				Item* item = items + item_index;
+				if (item == NULL)
+					continue;
+
+				item->pos.x = loaded_level->items[i];
+				item->pos.y = loaded_level->items[i + 1];
+
+				item->diameter = loaded_level->items[i + 2];
+				item->angle = loaded_level->items[i + 3];
+				item->rotation_rate = loaded_level->items[i + 4];
+				item->type = (int) loaded_level->items[i + 5];
+
+				item->collected = FALSE;
+				item->destroyed = FALSE;
+			}
+		}
 
 		if (walls) {
 			int wall_index = 1;
@@ -952,6 +1029,40 @@ void load(void) {
 		// level loading failed, quit the game because heap allocation went wrong!!
 		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 	}
+
+	items_amount = 4;
+	items = malloc(sizeof(Item) * items_amount);
+	items[0].type = BOOST;
+	items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
+	items[0].diameter = 1.f;
+	items[0].angle = 0.f;
+	items[0].rotation_rate = 0.f;
+	items[0].collected = FALSE;
+	items[0].destroyed = FALSE;
+
+	items[1].type = BIG;
+	items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
+	items[1].diameter = 1.f;
+	items[1].angle = 0.f;
+	items[1].rotation_rate = 0.f;
+	items[1].collected = FALSE;
+	items[1].destroyed = FALSE;
+
+	items[2].type = SMALL;
+	items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
+	items[2].diameter = 1.f;
+	items[2].angle = 0.f;
+	items[2].rotation_rate = 0.f;
+	items[2].collected = FALSE;
+	items[2].destroyed = FALSE;
+
+	items[3].type = REVERSE;
+	items[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
+	items[3].diameter = 1.f;
+	items[3].angle = 0.f;
+	items[3].rotation_rate = 45.f;
+	items[3].collected = FALSE;
+	items[3].destroyed = FALSE;
 }
 
 Wall* add_wall(CP_Vector pos) {
@@ -1012,6 +1123,58 @@ void remove_wall(Wall* wall) {
 			w->rotation_rate = 0.f;
 			w->angle = 0.f;
 			w->destroyed = TRUE;
+		}
+	}
+}
+
+Item* add_item(CP_Vector pos, ItemType type) {
+	for (int item_index = 0; item_index < items_amount; item_index++) {
+		Item* i = items + item_index;
+		if (i == NULL)
+			continue;
+
+		if (i->destroyed) {
+			i->pos = pos;
+			i->diameter = 1.f;
+			i->angle = 0.f;
+			i->rotation_rate = type == REVERSE ? 45.f : 0.f;
+			i->destroyed = FALSE;
+			i->collected = FALSE;
+			i->type = type;
+			return i;
+		}
+	}
+
+	items_amount++;
+	items = realloc(items, sizeof(Item) * items_amount);
+	if (items) {
+		Item* new_item = items + (items_amount - 1);
+		new_item->pos = pos;
+		new_item->diameter = 1.f;
+		new_item->angle = 0.f;
+		new_item->rotation_rate = type == REVERSE ? 45.f : 0.f;
+		new_item->destroyed = FALSE;
+		new_item->collected = FALSE;
+		new_item->type = type;
+		return new_item;
+	}
+	return NULL;
+}
+
+void remove_item(Item* item) {
+	for (int item_index = 0; item_index < items_amount; item_index++) {
+		Item* i = items + item_index;
+		if (i == NULL)
+			continue;
+
+		if (i == item) {
+			i->pos.x = -10.f;
+			i->pos.y = -10.f;
+			i->diameter = -1.f;
+			i->rotation_rate = 0.f;
+			i->angle = 0.f;
+			i->destroyed = TRUE;
+			i->collected = FALSE;
 		}
 	}
 }

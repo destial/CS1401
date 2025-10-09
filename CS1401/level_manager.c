@@ -13,8 +13,8 @@
 #include "string.h"
 
 Level* get_level(int level) {
-    char level_path[100];
-    sprintf_s(level_path, 100, LEVEL_FILEPATH, level);
+    char level_path[128];
+    sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
 
     // read the level text file
     char* level_file = read_content(level_path);
@@ -73,7 +73,12 @@ Level* get_level(int level) {
             lvl->world_height = (float)atof(get_value(root, "height"));
 
             lvl->walls_size = atoi(get_value(root, "walls_amount"));
-            lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
+            if (lvl->walls_size) {
+                lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
+            }
+            else {
+                lvl->walls = NULL;
+            }
 
             lvl->golf_pos_1 = get_vector(get_value(root, "golf_1"));
             lvl->golf_pos_2 = get_vector(get_value(root, "golf_2"));
@@ -154,6 +159,76 @@ Level* get_level(int level) {
                 else {
                     lvl->walls[i + 5] = 0.f;
                 }
+            }
+
+            char* item_size_line = get_value(root, "items_amount");
+            if (item_size_line) {
+                lvl->items_size = atoi(item_size_line);
+                lvl->items = malloc(sizeof(float) * lvl->items_size * ITEMS_OFFSET);
+
+                int item_index = 0;
+                for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, item_index++) {
+                    char item_pos[32];
+                    sprintf_s(item_pos, 32, "item_%d_pos", item_index);
+                    char* line_pos = get_value(root, item_pos);
+                    if (line_pos) {
+                        CP_Vector pos = get_vector(line_pos);
+                        lvl->items[i + 0] = pos.x;
+                        lvl->items[i + 1] = pos.y;
+                    }
+                    else {
+                        lvl->items[i + 0] = 0.f;
+                        lvl->items[i + 1] = 0.f;
+                    }
+
+                    char item_diameter[32];
+                    sprintf_s(item_diameter, 32, "item_%d_diameter", item_index);
+                    char* line_diameter = get_value(root, item_diameter);
+                    if (line_diameter) {
+                        float diameter = (float)atof(line_diameter);
+                        lvl->items[i + 2] = diameter;
+                    }
+                    else {
+                        lvl->items[i + 2] = 0.f;
+                    }
+
+                    char item_angle[32];
+                    sprintf_s(item_angle, 32, "item_%d_angle", item_index);
+                    char* line_angle = get_value(root, item_angle);
+                    if (line_angle) {
+                        float angle = (float)atof(line_angle);
+                        lvl->items[i + 3] = angle;
+                    }
+                    else {
+                        lvl->items[i + 3] = 0.f;
+                    }
+
+                    char item_rot_rate[32];
+                    sprintf_s(item_rot_rate, 32, "item_%d_rot_rate", item_index);
+                    char* line_rot_rate = get_value(root, item_rot_rate);
+                    if (line_rot_rate) {
+                        float rot_rate = (float)atof(line_rot_rate);
+                        lvl->items[i + 4] = rot_rate;
+                    }
+                    else {
+                        lvl->items[i + 4] = 0.f;
+                    }
+
+                    char item_type[32];
+                    sprintf_s(item_type, 32, "item_%d_type", item_index);
+                    char* line_type = get_value(root, item_type);
+                    if (line_type) {
+                        int type = atoi(line_type);
+                        lvl->items[i + 5] = (float) type;
+                    }
+                    else {
+                        lvl->items[i + 5] = 0;
+                    }
+                }
+            }
+            else {
+                lvl->items_size = 0;
+                lvl->items = NULL;
             }
 
             // we are done loading the level, we can now free up the map
@@ -241,7 +316,12 @@ void free_map(Map* map) {
 }
 
 void free_level(Level* level) {
-    free(level->walls);
+    if (level->walls) {
+        free(level->walls);
+    }
+    if (level->items) {
+        free(level->items);
+    }
     free(level);
     level = NULL;
 }

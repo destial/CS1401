@@ -33,6 +33,7 @@
 #define BOOST_ITEM_ASSET "Assets/Images/boost_item.png"
 #define BIG_ITEM_ASSET "Assets/Images/big_item.png"
 #define SMALL_ITEM_ASSET "Assets/Images/small_item.png"
+#define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
 
 // Sounds / Music / Audio
 

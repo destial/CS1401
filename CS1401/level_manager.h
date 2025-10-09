@@ -24,10 +24,14 @@ typedef struct Level {
     int walls_size;
     float* walls; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = rotation rate]
     float middle_wall_angle;
+
+    int items_size;
+    float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = rotation rate, 5 = type]
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)
 static const int WALLS_OFFSET = 6;
+static const int ITEMS_OFFSET = 5;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

@@ -11,9 +11,11 @@
 #include "cprocessing.h"
 
 typedef enum ItemTypeEnum {
+	NO_ITEM_TYPE = 0,
 	BOOST,
 	BIG,
-	SMALL
+	SMALL,
+	REVERSE
 } ItemType;
 
 typedef struct WallStruct {
@@ -42,11 +44,13 @@ typedef struct GolfBallStruct {
 } GolfBall;
 
 typedef struct ItemStruct {
-	CP_Vector pos;
-	float diameter;
-	float anim_diameter;
-	ItemType type;
-	CP_BOOL collected;
+	CP_Vector pos; // item position (world space)
+	float diameter; // item diameter (world space)
+	ItemType type; // item type
+	CP_BOOL collected; // if item has collected
+	CP_BOOL destroyed; // if item is destroyed
+	float rotation_rate; // item rotation rate in degrees per second
+	float angle; // item rotation angle
 } Item;
 
 typedef struct HoleStruct {
@@ -104,9 +108,10 @@ CP_BOOL check_item(Item* item, GolfBall* ball);
 @brief Respond to the collision between a wall and a ball according to the wall's normal
 @param wall - The wall it hit
 @param ball - The golf ball that hit
+@param point - The point at which the golf ball hit the wall
 @param normal - The normal of the wall to the ball
 */
-void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal);
+void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal);
 
 /*!
 @brief Save the current level data to the text file under "Assets/Levels/level_{current_level}.lvl"
@@ -155,8 +160,18 @@ CP_Vector get_world_ratios(void);
 Wall* add_wall(CP_Vector pos);
 
 /*!
+@brief Add an item to the level
+*/
+Item* add_item(CP_Vector pos, ItemType type);
+
+/*!
 @brief Remove a wall from the level
 */
 void remove_wall(Wall* wall);
+
+/*!
+@brief Remove item from the level
+*/
+void remove_item(Item* item);
 
 #endif
