@@ -31,7 +31,7 @@ typedef struct Level {
 
 // Offsets the float array by its respective values ^^ (see above)
 static const int WALLS_OFFSET = 6;
-static const int ITEMS_OFFSET = 5;
+static const int ITEMS_OFFSET = 6;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

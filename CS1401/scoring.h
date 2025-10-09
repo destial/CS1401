@@ -18,6 +18,8 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height);
 
 void set_lvl_par(int par);
 
+int get_lvl_par(void);
+
 //
 //void add_stroke();
 //

@@ -501,7 +501,7 @@ void game_render(void)
 				item->angle += item->rotation_rate * CP_System_GetDt();
 				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 			}
-			float anim_mul = (sinf(5.f * CP_System_GetSeconds()) + 10.f) * 0.1f;
+			float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 			CP_Image_DrawAdvanced(image,
 				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 				coords.y,
@@ -583,9 +583,13 @@ void game_render(void)
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	CP_Settings_Fill(get_color(BLACK));
 	CP_Settings_Stroke(get_color(BLACK));
-	char b[50];
-	sprintf_s(b, 50, "Strokes: %d", get_strokes());
+	char b[32];
+	sprintf_s(b, 32, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
+
+	char p[32];
+	sprintf_s(p, 32, "Par: %d", get_lvl_par());
+	CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
 
 	if (win || CP_Input_KeyDown(KEY_TAB)) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
@@ -878,16 +882,13 @@ void load(void) {
 		holes[0].pos = loaded_level->hole_1;
 		holes[1].pos = loaded_level->hole_2;
 
-		walls_amount = loaded_level->walls_size + 1;
-		walls = malloc(sizeof(Wall) * walls_amount);
-
 		set_lvl_par(loaded_level->par);
-
 		items_amount = loaded_level->items_size;
+
 		if (items_amount) {
 			items = malloc(sizeof(Item) * items_amount);
 			int item_index = 0;
-			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, item_index++) {
+			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET) {
 				Item* item = items + item_index;
 				if (item == NULL)
 					continue;
@@ -902,8 +903,15 @@ void load(void) {
 
 				item->collected = FALSE;
 				item->destroyed = FALSE;
+				item_index++;
 			}
 		}
+		else {
+			items = NULL;
+		}
+
+		walls_amount = loaded_level->walls_size + 1;
+		walls = malloc(sizeof(Wall) * walls_amount);
 
 		if (walls) {
 			int wall_index = 1;
@@ -946,7 +954,6 @@ void load(void) {
 			middle_wall->destroyed = FALSE;
 		}
 		else {
-
 			// level loading failed, quit the game because heap allocation went wrong!!
 			CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 		}
@@ -1090,7 +1097,12 @@ Wall* add_wall(CP_Vector pos) {
 	}
 
 	walls_amount++;
-	walls = realloc(walls, sizeof(Wall) * walls_amount);
+	if (walls) {
+		walls = realloc(walls, sizeof(Wall) * walls_amount);
+	}
+	else {
+		walls = malloc(sizeof(Wall) * walls_amount);
+	}
 
 	Wall* new_wall = walls + (walls_amount - 1);
 	new_wall->pos = pos;
@@ -1146,7 +1158,12 @@ Item* add_item(CP_Vector pos, ItemType type) {
 	}
 
 	items_amount++;
-	items = realloc(items, sizeof(Item) * items_amount);
+	if (items) {
+		items = realloc(items, sizeof(Item) * items_amount);
+	}
+	else {
+		items = malloc(sizeof(Item) * items_amount);
+	}
 	if (items) {
 		Item* new_item = items + (items_amount - 1);
 		new_item->pos = pos;
