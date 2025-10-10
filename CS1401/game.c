@@ -526,6 +526,10 @@ void game_render(void)
 			char rr[64];
 			sprintf_s(rr, 64, "Item Rot Rate: %f", item->rotation_rate);
 			CP_Font_DrawText(rr, coords.x, coords.y + 80);
+
+			CP_Settings_NoFill();
+			CP_Settings_Stroke(get_color(GREEN));
+			CP_Graphics_DrawCircle(coords.x, coords.y, item->diameter * world_ratios.x);
 		}
 	}
 
@@ -556,7 +560,7 @@ void game_render(void)
 			CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 			CP_Vector b = world_to_screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_limits.x, world_limits.y);
 			int x = (int) (CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
-			int red = clamp(x, 0, 255);
+			int red = CP_Math_ClampInt(x, 0, 255);
 			int green = 255 - red;
 			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
 			CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));

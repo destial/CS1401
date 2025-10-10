@@ -57,6 +57,9 @@ void update_editor_walls(Wall* walls, int size) {
 
 	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
 		remove_wall((Wall*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
 		size--;
 	}
 
@@ -146,6 +149,9 @@ void update_editor_items(Item* items, int size) {
 
 	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == ITEM) {
 		remove_item((Item*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
 		size--;
 	}
 
@@ -223,29 +229,26 @@ void update_editor_utils(void) {
 			}
 		}
 	}
-
-	if (CP_Input_MouseWheel() != 0.f) {
-		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_1)) {
-			Wall* wall = (Wall*)current_editing;
-			wall->scale.x += CP_Input_MouseWheel() * 0.1f;
-			wall->scale.x = max(0.1f, wall->scale.x);
-		}
-
-		if (current_type == WALL && CP_Input_MouseDown(MOUSE_BUTTON_2)) {
-			Wall* wall = (Wall*)current_editing;
-			wall->scale.y += CP_Input_MouseWheel() * 0.1f;
-			wall->scale.y = max(0.1f, wall->scale.y);
-		}
-	}
 	
 	if (current_type == WALL) {
+		Wall* wall = (Wall*)current_editing;
 		if (CP_Input_KeyTriggered(KEY_UP)) {
-			Wall* wall = (Wall*)current_editing;
-			wall->rotation_rate += 10.f;
+			wall->rotation_rate += 1.f;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DOWN)) {
-			Wall* wall = (Wall*)current_editing;
-			wall->rotation_rate -= 10.f;
+			wall->rotation_rate -= 1.f;
+		}
+
+		if (CP_Input_MouseWheel() != 0.f) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+				wall->scale.x += CP_Input_MouseWheel() * 0.1f;
+				wall->scale.x = max(0.1f, wall->scale.x);
+			}
+
+			if (CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+				wall->scale.y += CP_Input_MouseWheel() * 0.1f;
+				wall->scale.y = max(0.1f, wall->scale.y);
+			}
 		}
 	}
 }

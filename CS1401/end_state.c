@@ -33,7 +33,7 @@ void end_state_update(void) {
 	else {
 		end_alpha -= CP_System_GetDt() / end_duration;
 	}
-	end_alpha = clamp(end_alpha, 0.f, 1.f);
+	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Image_Draw(logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int) (end_alpha * 255.f));

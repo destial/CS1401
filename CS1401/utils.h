@@ -11,26 +11,6 @@
 #define UTILS_H
 #include "cprocessing.h"
 
-#ifndef FALSE
-#define FALSE 0
-#endif
-
-#ifndef TRUE
-#define TRUE 1
-#endif
-
-#ifndef max(a, b)
-#define max(a, b) (((a) > (b)) ? (a) : (b))
-#endif
-
-#ifndef min(a, b)
-#define min(a, b) (((a) < (b)) ? (a) : (b))
-#endif
-
-#ifndef clamp(x, minimum, maximum)
-#define clamp(x, minimum, maximum) max(minimum, min(x, maximum))
-#endif
-
 typedef enum ColorCodeEnum {
 	BLACK = 0,
 	RED,
