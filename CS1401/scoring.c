@@ -86,13 +86,20 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		20.0f * CP_System_GetWindowWidth() / world_width,
 		7.f * CP_System_GetWindowHeight() / world_height);
 
-
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_Fill(get_color(BLACK));
 	char b[50];
 	sprintf_s(b, 50, "Strokes: %d", stroke);
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);
+}
+
+void set_lvl_par(int par) {
+	lvl_par = par;
+}
+
+int get_lvl_par(void) {
+	return lvl_par;
 }
 
 //char is_win(void) {

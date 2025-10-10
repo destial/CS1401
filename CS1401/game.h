@@ -10,20 +10,28 @@
 #define GAME_H
 #include "cprocessing.h"
 
-typedef struct Wall {
+typedef enum ItemTypeEnum {
+	NO_ITEM_TYPE = 0,
+	BOOST,
+	BIG,
+	SMALL,
+	REVERSE
+} ItemType;
+
+typedef struct WallStruct {
 	CP_Vector pos; // wall position (world space)
 	CP_Vector scale; // wall scale (world space)
 	CP_Vector normal; // wall normal vector (calculated based on angle, always updated before collision testing)
 	CP_Vector right; // wall right vector (calculated based on normal)
 	CP_Color color; // wall color if no base image
-	CP_Image* image; // wall image
+	CP_Image image; // wall image
 	float angle; // wall rotation angle in degrees
 	float angle_radians; // wall angle in radians (touching this is useless)
 	float rotation_rate; // wall rotation rate in degrees per second
 	CP_BOOL destroyed; // if this wall is disabled
 } Wall;
 
-typedef struct GolfBall {
+typedef struct GolfBallStruct {
 	CP_Vector pos; // golfball position (world space)
 	CP_Vector prev_pos; // golfball position in previous physics update
 	CP_Vector vel; // golfball velocity (world space)
@@ -32,9 +40,20 @@ typedef struct GolfBall {
 	CP_BOOL dragging; // player currently striking
 	CP_BOOL halt; // if one ball is currently striking, halt the other ball from moving
 	CP_BOOL scored; // if this ball has scored
+	CP_BOOL scoring; // if this ball is falling in the hole (for animation purposes)
 } GolfBall;
 
-typedef struct Hole {
+typedef struct ItemStruct {
+	CP_Vector pos; // item position (world space)
+	float diameter; // item diameter (world space)
+	ItemType type; // item type
+	CP_BOOL collected; // if item has collected
+	CP_BOOL destroyed; // if item is destroyed
+	float rotation_rate; // item rotation rate in degrees per second
+	float angle; // item rotation angle
+} Item;
+
+typedef struct HoleStruct {
 	CP_Vector pos; // hole position (world space)
 	float diameter; // hole diameter (world space)
 } Hole;
@@ -78,17 +97,26 @@ void update_wall(Wall* wall, float dt);
 CP_BOOL check_collision(Wall* wall, GolfBall* ball);
 
 /*!
+@brief Check if golfball rolled over item
+@param item - The item to check
+@param ball - The golf ball to check
+@return TRUE if over item, FALSE if not
+*/
+CP_BOOL check_item(Item* item, GolfBall* ball);
+
+/*!
 @brief Respond to the collision between a wall and a ball according to the wall's normal
 @param wall - The wall it hit
 @param ball - The golf ball that hit
+@param point - The point at which the golf ball hit the wall
 @param normal - The normal of the wall to the ball
 */
-void collision_response(Wall* wall, GolfBall* ball, CP_Vector normal);
+void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal);
 
 /*!
 @brief Save the current level data to the text file under "Assets/Levels/level_{current_level}.lvl"
 */
-void save_level(void);
+void save(void);
 
 /*!
 @brief Load the current level from text file under "Assets/Levels/level_{current_level}.lvl"
@@ -132,8 +160,18 @@ CP_Vector get_world_ratios(void);
 Wall* add_wall(CP_Vector pos);
 
 /*!
+@brief Add an item to the level
+*/
+Item* add_item(CP_Vector pos, ItemType type);
+
+/*!
 @brief Remove a wall from the level
 */
 void remove_wall(Wall* wall);
+
+/*!
+@brief Remove item from the level
+*/
+void remove_item(Item* item);
 
 #endif

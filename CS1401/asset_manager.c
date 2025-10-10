@@ -27,11 +27,10 @@ AssetMap* root_assets = NULL;
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Load an image into the asset map
-@param
-node - The map node to load the image into
-filepath - The filepath of the image file
+@param node - The map node to load the image into
+@param filepath - The filepath of the image file
 */
-static CP_BOOL load_image(AssetMap* node, const char* filepath) {
+static CP_Image load_image(AssetMap* node, const char* filepath) {
 
     // load the image into memory and check if it exists
     node->value = CP_Image_Load(filepath);
@@ -39,7 +38,7 @@ static CP_BOOL load_image(AssetMap* node, const char* filepath) {
         node->key = NULL;
         node->next = NULL;
         node->type = 0;
-        return 0;
+        return NULL;
     }
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
@@ -54,17 +53,16 @@ static CP_BOOL load_image(AssetMap* node, const char* filepath) {
 
     node->type = IMAGE;
     node->next = NULL;
-    return 1;
+    return (CP_Image) node->value;
 }
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Load a font into the asset map
-@param
-node - The map node to load the font into
-filepath - The filepath of the font file
+@param node - The map node to load the font into
+@param filepath - The filepath of the font file
 */
-static CP_BOOL load_font(AssetMap* node, const char* filepath) {
+static CP_Font load_font(AssetMap* node, const char* filepath) {
 
     // load the font into memory and check if it exists
     node->value = CP_Font_Load(filepath);
@@ -72,7 +70,7 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
         node->key = NULL;
         node->next = NULL;
         node->type = 0;
-        return 0;
+        return NULL;
     }
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
@@ -87,24 +85,23 @@ static CP_BOOL load_font(AssetMap* node, const char* filepath) {
     
     node->type = FONT;
     node->next = NULL;
-    return 1;
+    return (CP_Font) node->value;
 }
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Load an audio into the asset map
-@param
-node - The map node to load the audio into
-filepath - The filepath of the audio file
+@param node - The map node to load the audio into
+@param filepath - The filepath of the audio file
 */
-static CP_BOOL load_audio(AssetMap* node, const char* filepath) {
+static CP_Sound load_audio(AssetMap* node, const char* filepath) {
     // load the font into memory and check if it exists
     node->value = CP_Sound_Load(filepath);
     if (node->value == NULL) {
         node->key = NULL;
         node->next = NULL;
         node->type = 0;
-        return 0;
+        return NULL;
     }
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
@@ -119,14 +116,13 @@ static CP_BOOL load_audio(AssetMap* node, const char* filepath) {
 
     node->type = AUDIO;
     node->next = NULL;
-    return 1;
+    return (CP_Sound) node->value;
 }
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer
-@param
-map - The root asset map
+@param map - The root asset map
 */
 static void free_assetmap(AssetMap* map) {
     if (map == NULL)
@@ -151,7 +147,7 @@ static void free_assetmap(AssetMap* map) {
         }
         else if (map->type == SPRITE) {
             SpriteSheet* sheet = (SpriteSheet*)map->value;
-            CP_Image_Free((CP_Image) sheet->root_image);
+            CP_Image_Free(sheet->root_image);
             sheet->root_image = NULL;
             free(map->value);
         }
@@ -177,18 +173,18 @@ static AssetMap* get_node(const char* key) {
         if (ptr->key == NULL)
             continue;
 
-        if (strcmp(ptr->key, key) == 0) {
+        if (strcmp(ptr->key, key) == 0) 
             return (AssetMap*)ptr;
-        }
     }
     return NULL;
 }
 
-CP_Image* get_image(const char* filepath) {
+CP_Image get_image(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
-        if (!load_image(root_assets, filepath)) {
+        CP_Image image = load_image(root_assets, filepath);
+        if (image == NULL) {
             free(root_assets);
             root_assets = NULL;
             return NULL;
@@ -199,14 +195,15 @@ CP_Image* get_image(const char* filepath) {
     AssetMap* ptr;
     for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == IMAGE) {
-            return (CP_Image*) ptr->value;
+            return (CP_Image) ptr->value;
         }
         if (ptr->next == NULL) {
             ptr->next = malloc(sizeof(AssetMap));
 
             // ensure the image exists and can actually be loaded
-            if (load_image(ptr->next, filepath)) {
-                return get_image(filepath);
+            CP_Image image = load_image(ptr->next, filepath);
+            if (image != NULL) {
+                return image;
             }
             else { // filepath is wrong!
                 free(ptr->next);
@@ -218,11 +215,12 @@ CP_Image* get_image(const char* filepath) {
     return NULL;
 }
 
-CP_Font* get_font(const char* filepath) {
+CP_Font get_font(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
-        if (!load_font(root_assets, filepath)) {
+        CP_Font font = load_font(root_assets, filepath);
+        if (font == NULL) {
             free(root_assets);
             root_assets = NULL;
             return NULL;
@@ -233,13 +231,14 @@ CP_Font* get_font(const char* filepath) {
     AssetMap* ptr;
     for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == FONT) {
-            return (CP_Font*) ptr->value;
+            return (CP_Font) ptr->value;
         }
         if (ptr->next == NULL) {
             ptr->next = malloc(sizeof(AssetMap));
 
             // ensure the font exists and can actually be loaded
-            if (load_font(ptr->next, filepath)) {
+            CP_Font font = load_font(ptr->next, filepath);
+            if (font != NULL) {
                 return get_font(filepath);
             }
             else { // filepath is wrong!
@@ -252,29 +251,33 @@ CP_Font* get_font(const char* filepath) {
     return NULL;
 }
 
-CP_Sound* get_audio(const char* filepath) {
+CP_Sound get_audio(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
-        if (!load_audio(root_assets, filepath)) {
+        CP_Sound audio = load_audio(root_assets, filepath);
+        if (audio == NULL) {
             free(root_assets);
             root_assets = NULL;
             return NULL;
         }
+
+        return audio;
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
     AssetMap* ptr;
     for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == AUDIO) {
-            return (CP_Sound*)ptr->value;
+            return (CP_Sound)ptr->value;
         }
         if (ptr->next == NULL) {
             ptr->next = malloc(sizeof(AssetMap));
 
             // ensure the audio file exists and can actually be loaded
-            if (load_audio(ptr->next, filepath)) {
-                return get_audio(filepath);
+            CP_Sound audio = load_audio(ptr->next, filepath);
+            if (audio != NULL) {
+                return audio;
             }
             else { // filepath is wrong!
                 free(ptr->next);
@@ -289,6 +292,9 @@ CP_Sound* get_audio(const char* filepath) {
 SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration) {
     if (root_assets == NULL) {
         root_assets = malloc(sizeof(AssetMap));
+        if (root_assets == NULL) 
+            return NULL;
+        
         root_assets->key = NULL;
         root_assets->value = NULL;
         root_assets->next = NULL;
@@ -301,7 +307,10 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 
     if (node != NULL && node->type == IMAGE) {
         SpriteSheet* sheet = malloc(sizeof(SpriteSheet));
-        sheet->root_image = (CP_Image*)node->value;
+        if (sheet == NULL) 
+            return NULL;
+        
+        sheet->root_image = (CP_Image)node->value;
         sheet->current_row = 0;
         sheet->current_column = 0;
         sheet->rows = rows;
@@ -314,7 +323,7 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
         return sheet;
     }
 
-    CP_Image* image = get_image(filepath);
+    CP_Image image = get_image(filepath);
     if (image == NULL)
         return NULL;
 
@@ -322,8 +331,9 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 }
 
 void free_assets(void) {
-    if (root_assets != NULL) {
-        free_assetmap(root_assets);
-        root_assets = NULL;
-    }
+    if (root_assets == NULL) 
+        return;
+
+    free_assetmap(root_assets);
+    root_assets = NULL;
 }

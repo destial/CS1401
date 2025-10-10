@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="asset_manager.c" />
-    <ClCompile Include="debug_manager.c" />
+    <ClCompile Include="editor_manager.c" />
     <ClCompile Include="end_state.c" />
     <ClCompile Include="game.c" />
     <ClCompile Include="level_manager.c" />
@@ -33,7 +33,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset_manager.h" />
-    <ClInclude Include="debug_manager.h" />
+    <ClInclude Include="editor_manager.h" />
     <ClInclude Include="end_state.h" />
     <ClInclude Include="game.h" />
     <ClInclude Include="level_manager.h" />

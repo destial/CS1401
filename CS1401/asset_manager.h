@@ -30,6 +30,10 @@
 #define LEVEL_BUTTON_ASSET "Assets/Images/level button.png"
 #define SPLASH_SCREEN_ASSET "Assets/Images/splash_screen.png"
 #define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
+#define BOOST_ITEM_ASSET "Assets/Images/boost_item.png"
+#define BIG_ITEM_ASSET "Assets/Images/big_item.png"
+#define SMALL_ITEM_ASSET "Assets/Images/small_item.png"
+#define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
 
 // Sounds / Music / Audio
 
@@ -42,39 +46,38 @@
 #define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
 #define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
 
-// Save file
+// Level file
 
 #define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the image at this file path
-@param
-filepath - The image filepath
+@param filepath - The image filepath
 */
-CP_Image* get_image(const char* filepath);
+CP_Image get_image(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the font at this file path
-@param
-filepath - The font filepath
+@param filepath - The font filepath
 */
-CP_Font* get_font(const char* filepath);
+CP_Font get_font(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu
 @brief Get the audio from this file path
-@param
-filepath - The audio filepath
+@param filepath - The audio filepath
 */
-CP_Sound* get_audio(const char* filepath);
+CP_Sound get_audio(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu
 @brief Get the spritesheet from this file path
-@param
-filepath - The spritesheet filepath
+@param filepath - The spritesheet filepath
+@param rows - The number of rows in the spritesheet
+@param columns - The number of columns in the spritesheet
+@param duration - The duration of the entire animation in seconds
 */
 SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration);
 

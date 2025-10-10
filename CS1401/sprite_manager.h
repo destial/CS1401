@@ -10,8 +10,8 @@
 #define SPRITE_MANAGER_H
 #include "cprocessing.h"
 
-typedef struct SpriteSheet {
-	CP_Image* root_image;
+typedef struct SpriteSheetStruct {
+	CP_Image root_image;
 	int rows, columns, current_row, current_column;
 	float duration, elapsedDuration;
 } SpriteSheet;

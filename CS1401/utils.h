@@ -11,9 +11,7 @@
 #define UTILS_H
 #include "cprocessing.h"
 
-#define clamp(x, minimum, maximum) max(minimum, min(x, maximum))
-
-typedef enum ColorCode {
+typedef enum ColorCodeEnum {
 	BLACK = 0,
 	RED,
 	GREEN,
@@ -92,6 +90,7 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 
 /*!
 @brief Get a defined color
+@param code - The color code
 */
 CP_Color get_color(ColorCode code);
 

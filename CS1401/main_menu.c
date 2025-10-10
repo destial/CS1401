@@ -6,23 +6,31 @@
 #include "sprite_manager.h"
 #include "end_state.h"
 
+/*!
+@author Nathan Ng (n.ng@digipen.edu)
+@date 8 September 2025
+@course CSD1401
+@brief this file contains functions and code that handles the UI
+*/
+
 //setting button
 typedef struct Button {
 	CP_Vector pos;
 	CP_Vector ending_pos, start_pos;
 	CP_Vector scale;
-	CP_Image* button_image;
+	CP_Image button_image;
 	char* text;
 	float text_size;
 	FunctionPtr func;
 } Button;
 
 float world_width1 = 48, world_height1 = 27;
+int window_size_H, window_size_W;
 int resolution_number = 0;
 
 Button buttons[20];
-CP_Image* background, *setting_background;
-CP_Font* button_font;
+CP_Image background, setting_background;
+CP_Font button_font;
 
 char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0;
 
@@ -33,8 +41,10 @@ void exit_main_menu(void) {
 void main_menu_init(void) 
 {
 	button_font = get_font(ARIAL_FONT_ASSET);
+	window_size_H = CP_System_GetWindowHeight();
+	window_size_W = CP_System_GetWindowWidth();
 
-	CP_Font_Set((CP_Font) button_font);
+	CP_Font_Set(button_font);
 
 	//defining the individual buttons
 	buttons[0].button_image = get_image(BUTTON_YELLOW_ASSET);
@@ -136,7 +146,7 @@ void main_menu_init(void)
 	//setting the button anchor to the center of the world
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
-	CP_System_SetWindowSize(1600, 900);
+	CP_System_SetWindowSize(window_size_W, window_size_H);
 }
 
 void main_menu_update(void) 
@@ -217,7 +227,7 @@ void main_menu_update(void)
 
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		//Drawing the button
-		CP_Image_DrawAdvanced((CP_Image) buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
@@ -252,10 +262,10 @@ void main_menu_update(void)
 	}
 
 	if (is_setting_clicked) {
-		CP_Image_Draw((CP_Image)setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
 	}
 	else {
-		CP_Image_Draw((CP_Image) setting_background, CP_System_GetWindowWidth()* 0.5f, CP_System_GetWindowHeight() * 0.5f, 0.f, 0.f, 255);
+		CP_Image_Draw(setting_background, CP_System_GetWindowWidth()* 0.5f, CP_System_GetWindowHeight() * 0.5f, 0.f, 0.f, 255);
 	}
 
 	//SETTING BUTTONS
@@ -270,7 +280,7 @@ void main_menu_update(void)
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 
 		//Drawing the button
-		CP_Image_DrawAdvanced((CP_Image) buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
@@ -314,7 +324,7 @@ void main_menu_update(void)
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced((CP_Image) buttons[8].button_image, coords_back_level.x, coords_back_level.y, local_scale_level.x, local_scale_level.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[8].button_image, coords_back_level.x, coords_back_level.y, local_scale_level.x, local_scale_level.y, 255, 0.f);
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_TextSize(buttons[8].text_size * CP_System_GetWindowHeight() / world_height1);
@@ -354,7 +364,7 @@ void main_menu_update(void)
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced((CP_Image)buttons[12].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[12].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_TextSize(buttons[12].text_size * CP_System_GetWindowHeight() / world_height1);
@@ -401,14 +411,16 @@ void change_screen(void) {
 }
 
 void change_resolution(num) {
-	if (num == 0) {
-		CP_System_SetWindowSize(1280, 720);
-	}
-	else if (num == 1) {
-		CP_System_SetWindowSize(1600, 900);
-	}
-	else if (num == 2) {
-		CP_System_SetWindowSize(1920, 1080);
+	switch (num) {
+		case 0:
+			CP_System_SetWindowSize(1280, 720);
+			break;
+		case 1:
+			CP_System_SetWindowSize(1600, 900);
+			break;
+		case 2:
+			CP_System_SetWindowSize(1920, 1080);
+			break;
 	}
 }
 
