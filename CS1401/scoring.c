@@ -3,6 +3,10 @@
 #include "utils.h"
 #include <stdio.h>
 
+//void scoring_init();
+//void scoring_update();
+//void scoring_exit();
+
 //Initialise the variables
 int stroke = 0;
 int lvl_par = 4;
