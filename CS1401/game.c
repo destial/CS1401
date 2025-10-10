@@ -106,11 +106,6 @@ void game_update(void)
 		debug_enabled = !debug_enabled;
 	}
 
-	// save level if debug enabled
-	if (CP_Input_KeyTriggered(KEY_S) && debug_enabled) {
-		save_level();
-	}
-
 	// reset level
 	if (CP_Input_KeyTriggered(KEY_R)) { 
 		game_exit();
@@ -134,6 +129,11 @@ void game_update(void)
 		update_editor_items(items, items_amount);
 
 		update_editor_utils();
+
+		// save level if debug enabled
+		if (CP_Input_KeyTriggered(KEY_S)) {
+			save();
+		}
 	}
 	else {
 		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
@@ -780,80 +780,11 @@ void debug_draw(void) {
 	CP_Font_DrawText(p, 0, 100);
 }
 
-#define FILE_SIZE 8192
-void save_level(void) {
-	char level_path[128];
-	sprintf_s(level_path, 128, LEVEL_FILEPATH, current_level);
-	FILE* fptr = fopen(level_path, "w");
-	
-	// save the world limits, golf balls, holes and middle wall first
-	char level_file[FILE_SIZE];
-	sprintf_s(level_file, FILE_SIZE,
-		"width=%f\nheight=%f\ngolf_1=%f,%f\ngolf_2=%f,%f\nhole_1=%f,%f\nhole_2=%f,%f\nmiddle_wall_angle=%f", 
-		world_limits.x, world_limits.y,
-		golf_balls[0].pos.x, golf_balls[0].pos.y, 
-		golf_balls[1].pos.x, golf_balls[1].pos.y,
-		holes[0].pos.x, holes[0].pos.y,
-		holes[1].pos.x, holes[1].pos.y,
-		walls->angle
-		);
-
-	// save the walls now
-	int wall_index = 0;
-	for (int i = 1; i < walls_amount; i++) {
-		Wall* wall = walls + i;
-		if (wall == NULL || wall->destroyed)
-			continue;
-		
-		if (wall->scale.x == 0.f || wall->scale.y == 0.f)
-			continue;
-
-		char wall_data[1024];
-		sprintf_s(wall_data, 1024,
-			"\nwall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f", 
-			wall_index, wall->pos.x, wall->pos.y,
-			wall_index, wall->scale.x, wall->scale.y,
-			wall_index, wall->angle,
-			wall_index, wall->rotation_rate
-		);
-		strcat_s(level_file, FILE_SIZE, wall_data);
-		wall_index++;
-	}
-
-	// save the amount of walls saved
-	char last[64];
-	sprintf_s(last, 64, "\nwalls_amount=%d", wall_index);
-	strcat_s(level_file, FILE_SIZE, last);
-
-	int item_index = 0;
-	for (int i = 0; i < items_amount; i++) {
-		Item* item = items + i;
-		if (item == NULL)
-			continue;
-
-		if (item->destroyed || item->diameter <= 0.f)
-			continue;
-
-		char item_data[1024];
-		sprintf_s(item_data, 1024,
-			"\nitem_%d_pos=%f,%f\nitem_%d_diameter=%f\nitem_%d_angle=%f\nitem_%d_rot_rate=%f\nitem_%d_type=%d",
-			item_index, item->pos.x, item->pos.y,
-			item_index, item->diameter,
-			item_index, item->angle,
-			item_index, item->rotation_rate,
-			item_index, item->type
-		);
-		strcat_s(level_file, FILE_SIZE, item_data);
-		item_index++;
-	}
-
-	char ilast[64];
-	sprintf_s(ilast, 64, "\nitems_amount=%d", item_index);
-	strcat_s(level_file, FILE_SIZE, ilast);
-
-	fputs(level_file, fptr);
-	fclose(fptr);
-	fptr = NULL;
+/*!
+@brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
+*/
+void save(void) {
+	save_level(current_level, walls, walls_amount, golf_balls, holes, items, items_amount, get_world_limits(), get_lvl_par());
 }
 
 /*!

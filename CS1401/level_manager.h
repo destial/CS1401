@@ -9,6 +9,7 @@
 #ifndef LEVEL_MANAGER_H
 #define LEVEL_MANAGER_H
 #include "cprocessing.h"
+#include "game.h"
 
 typedef struct Map {
     char* key;
@@ -60,12 +61,25 @@ char* get_value(Map* map, const char* key);
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Load the level based on the given level from a level text file. 
 This is what you should use to get the level. Make sure to free_level() the returned level before exiting the game.
-@param
-level - The level to load from text file (e.g. level_%d.lvl)
-@return
-The loaded level
+@param level - The level to load from text file (e.g. level_%d.lvl)
+@return The loaded level
 */
 Level* get_level(int level);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Save the level based on the given level to a level text file.
+@param level - The level to load from text file (e.g. level_%d.lvl)
+@param walls - The walls array to save
+@param walls_amount - The amount of walls in the walls array
+@param golf_balls - The golf balls array to save
+@param holes - The holes array to save
+@param items - The items array to save
+@param items_amount - The amount of items in the items array
+@param world_limits - The world width and height
+@param par - The par of the level
+*/
+void save_level(int level, Wall* walls, int walls_amount, GolfBall* golf_balls, Hole* holes, Item* items, int items_amount, CP_Vector world_limits, int par);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
