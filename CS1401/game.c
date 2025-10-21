@@ -52,6 +52,7 @@ float current_time;
 
 // reset on level loading
 float translate = 1.f;
+float saving = 0.f;
 CP_BOOL playable = FALSE;
 CP_BOOL win = FALSE;
 CP_BOOL has_won = FALSE;
@@ -133,6 +134,11 @@ void game_update(void)
 		// save level if debug enabled
 		if (CP_Input_KeyTriggered(KEY_S)) {
 			save();
+		}
+
+		if (saving) {
+			saving -= CP_System_GetDt();
+			saving = max(0.f, saving);
 		}
 	}
 	else {
@@ -613,6 +619,14 @@ void game_render(void)
 	if (debug_enabled) {
 		debug_draw();
 		render_editor_utils();
+
+		if (saving) {
+			CP_Settings_Fill(get_color(RED));
+			CP_Settings_Stroke(get_color(RED));
+			CP_Settings_TextSize(50.f);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+			CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
+		}
 	}
 }
 
@@ -788,6 +802,7 @@ void debug_draw(void) {
 */
 void save(void) {
 	save_level(current_level, walls, walls_amount, golf_balls, holes, items, items_amount, get_world_limits(), get_lvl_par());
+	saving = 1.5f;
 }
 
 /*!

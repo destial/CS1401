@@ -199,18 +199,12 @@ void update_editor_utils(void) {
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-
-				if (wall->pos.x <= get_world_limits().x * 0.5f) {
-					wall->image = get_image(WALL_LEFT_ASSET);
-				}
-				else {
-					wall->image = get_image(WALL_RIGHT_ASSET);
-				}
+				wall->image = wall->pos.x <= get_world_limits().x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
 			}
 			else if (current_type == HOLE) {
 				Hole* hole = (Hole*)current_dragging;
 				hole->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				
+
 			}
 			else if (current_type == GOLF_BALL) {
 				GolfBall* ball = (GolfBall*)current_dragging;
@@ -224,8 +218,7 @@ void update_editor_utils(void) {
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) { // rotate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
-				float angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
-				wall->angle = angle;
+				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
 			}
 		}
 	}
