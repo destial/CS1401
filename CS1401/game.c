@@ -177,7 +177,7 @@ void game_physics_update(float dt)
 
 	// update golf balls
 	win = TRUE;
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; ++i) {
 		GolfBall* golf = golf_balls + i;
 		if (golf->scored)
 			continue;
@@ -198,7 +198,7 @@ void game_physics_update(float dt)
 
 		// golf ball player input logic (ensure all golf balls are stopped before player can putt)
 		all_balls_stopped = TRUE;
-		for (int j = 0; j < 2; j++) {
+		for (int j = 0; j < 2; ++j) {
 			GolfBall* other_golf = golf_balls + j;
 			if (other_golf->dragging || other_golf->halt || other_golf->scored)
 				continue;
@@ -227,7 +227,7 @@ void game_physics_update(float dt)
 				golf->vel = CP_Vector_Scale(golf->vel, power);
 
 				// set the other balls velocity
-				for (int j = 0; j < 2; j++) {
+				for (int j = 0; j < 2; ++j) {
 					GolfBall* other_golf = golf_balls + j;
 					if (other_golf->scored || i == j)
 						continue;
@@ -255,7 +255,7 @@ void game_physics_update(float dt)
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
 				// item ability checking here !!!!!
-				for (int j = 0; j < items_amount; j++) {
+				for (int j = 0; j < items_amount; ++j) {
 					Item* item = items + j;
 					if (item == NULL || item->collected) continue;
 
@@ -345,7 +345,7 @@ void game_physics_update(float dt)
 		}
 	}
 
-	for (int i = 0; i < walls_amount; i++) {
+	for (int i = 0; i < walls_amount; ++i) {
 		Wall* wall = walls + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
@@ -356,7 +356,7 @@ void game_physics_update(float dt)
 		if (debug_enabled)
 			continue;
 
-		for (int j = 0; j < 2; j++) {
+		for (int j = 0; j < 2; ++j) {
 			GolfBall* ball = golf_balls + j;
 			if (ball->scored)
 				continue;
@@ -370,7 +370,7 @@ void game_physics_update(float dt)
 	}
 
 	// after all updates, set the previous position to here
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; ++i) {
 		GolfBall* ball = golf_balls + i;
 		if (ball->scored)
 			continue;
@@ -399,7 +399,7 @@ void game_render(void)
 	CP_Vector world_ratios = get_world_ratios();
 
 	// render walls
-	for (int i = 0; i < walls_amount; i++) {
+	for (int i = 0; i < walls_amount; ++i) {
 		Wall* wall = walls + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
@@ -433,6 +433,7 @@ void game_render(void)
 		}
 
 		if (debug_enabled) {
+			// display wall data on the screen
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
@@ -463,11 +464,11 @@ void game_render(void)
 	}
 
 	// render holes
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; ++i) {
 		draw_hole(holes[i].pos, holes[i].diameter, world_limits.x, world_limits.y, translate);
 	}
 
-	for (int i = 0; i < items_amount; i++) {
+	for (int i = 0; i < items_amount; ++i) {
 		Item* item = items + i;
 		if (item == NULL || item->collected || item->destroyed) 
 			continue;
@@ -534,7 +535,7 @@ void game_render(void)
 	}
 
 	// render golf balls
-	for (int i = 0; i < 2; i++) {
+	for (int i = 0; i < 2; ++i) {
 		GolfBall* golf = golf_balls + i;
 		if (golf->scored) // ignore if golf ball is already scored
 			continue;
@@ -620,9 +621,10 @@ void game_exit(void)
 	// free level allocations
 	free(walls);
 	free(items);
-	free_assets();
-	reset_strokes();
 	walls = NULL;
+	items = NULL;
+	reset_strokes();
+	free_assets();
 }
 
 // Update the wall's normal based on its angle of rotation
@@ -725,13 +727,9 @@ CP_BOOL check_item(Item* item, GolfBall* ball) {
 // as the name implies, it handles what to do when the ball hits a wall
 void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal) {
 	/*
-	r = d - 2(d . n)n
-	sourced from https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
-	*/
-
-	/*
 	* /@todo: what to do when colliding against a spinning wall (???)
 	*/
+#if 0
 	if (wall->rotation_rate) {
 		float dist = CP_Vector_Distance(wall->pos, point);
 		CP_Vector force = CP_Vector_Scale(normal, dist / (wall->rotation_rate * 2.f));
@@ -740,7 +738,12 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 		}
 		ball->vel = CP_Vector_Add(ball->vel, force);
 	}
+#endif
 	
+	/*
+	r = d - 2(d . n)n
+	source: https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
+	*/
 	if (!CP_Vector_IsZero(ball->vel)) {
 		// reflect the ball velocity from the normal
 		float dot = 2 * CP_Vector_DotProduct(ball->vel, normal); // 2 * (d . n)
@@ -792,7 +795,7 @@ void save(void) {
 */
 void load(void) {
 	// initialize golf balls default values
-	for (int j = 0; j < 2; j++) {
+	for (int j = 0; j < 2; ++j) {
 		golf_balls[j].vel = CP_Vector_Set(0.f, 0.f);
 		golf_balls[j].angle = 0.f;
 		golf_balls[j].diameter = 1.f;
@@ -842,7 +845,7 @@ void load(void) {
 
 				item->collected = FALSE;
 				item->destroyed = FALSE;
-				item_index++;
+				++item_index;
 			}
 		}
 		else {
@@ -870,14 +873,9 @@ void load(void) {
 
 				wall->color = get_color(WHITE);
 
-				if (wall->pos.x <= world_limits.x * 0.5f) {
-					wall->image = get_image(WALL_LEFT_ASSET);
-				}
-				else {
-					wall->image = get_image(WALL_RIGHT_ASSET);
-				}
+				wall->image = wall->pos.x <= world_limits.x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
 				wall->destroyed = FALSE;
-				wall_index++;
+				++wall_index;
 			}
 
 			// middle wall is always the first (never in the level file)
@@ -918,7 +916,7 @@ void load(void) {
 	walls = malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
 		int wall_index = 1;
-		for (; wall_index < (walls_amount * 0.5f); wall_index++) {
+		for (; wall_index < (walls_amount * 0.5f); ++wall_index) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
 				continue;
@@ -938,7 +936,7 @@ void load(void) {
 			wall->destroyed = FALSE;
 		}
 
-		for (; wall_index < walls_amount; wall_index++) {
+		for (; wall_index < walls_amount; ++wall_index) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
 				continue;
@@ -978,41 +976,43 @@ void load(void) {
 
 	items_amount = 4;
 	items = malloc(sizeof(Item) * items_amount);
-	items[0].type = BOOST;
-	items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
-	items[0].diameter = 1.f;
-	items[0].angle = 0.f;
-	items[0].rotation_rate = 0.f;
-	items[0].collected = FALSE;
-	items[0].destroyed = FALSE;
+	if (items) {
+		items[0].type = BOOST;
+		items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
+		items[0].diameter = 1.f;
+		items[0].angle = 0.f;
+		items[0].rotation_rate = 0.f;
+		items[0].collected = FALSE;
+		items[0].destroyed = FALSE;
 
-	items[1].type = BIG;
-	items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
-	items[1].diameter = 1.f;
-	items[1].angle = 0.f;
-	items[1].rotation_rate = 0.f;
-	items[1].collected = FALSE;
-	items[1].destroyed = FALSE;
+		items[1].type = BIG;
+		items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
+		items[1].diameter = 1.f;
+		items[1].angle = 0.f;
+		items[1].rotation_rate = 0.f;
+		items[1].collected = FALSE;
+		items[1].destroyed = FALSE;
 
-	items[2].type = SMALL;
-	items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
-	items[2].diameter = 1.f;
-	items[2].angle = 0.f;
-	items[2].rotation_rate = 0.f;
-	items[2].collected = FALSE;
-	items[2].destroyed = FALSE;
+		items[2].type = SMALL;
+		items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
+		items[2].diameter = 1.f;
+		items[2].angle = 0.f;
+		items[2].rotation_rate = 0.f;
+		items[2].collected = FALSE;
+		items[2].destroyed = FALSE;
 
-	items[3].type = REVERSE;
-	items[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
-	items[3].diameter = 1.f;
-	items[3].angle = 0.f;
-	items[3].rotation_rate = 45.f;
-	items[3].collected = FALSE;
-	items[3].destroyed = FALSE;
+		items[3].type = REVERSE;
+		items[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
+		items[3].diameter = 1.f;
+		items[3].angle = 0.f;
+		items[3].rotation_rate = 45.f;
+		items[3].collected = FALSE;
+		items[3].destroyed = FALSE;
+	}
 }
 
 Wall* add_wall(CP_Vector pos) {
-	for (int wall_index = 1; wall_index < walls_amount; wall_index++) {
+	for (int wall_index = 1; wall_index < walls_amount; ++wall_index) {
 		Wall* w = walls + wall_index;
 		if (w == NULL)
 			continue;
@@ -1022,12 +1022,7 @@ Wall* add_wall(CP_Vector pos) {
 			w->scale.x = 1.f;
 			w->scale.y = 1.f;
 			w->color = get_color(WHITE);
-			if (w->pos.x <= world_limits.x * 0.5f) {
-				w->image = get_image(WALL_LEFT_ASSET);
-			}
-			else {
-				w->image = get_image(WALL_RIGHT_ASSET);
-			}
+			w->image = w->pos.x <= world_limits.x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
 			w->angle = 0.f;
 			w->rotation_rate = 0.f;
 			w->destroyed = FALSE;
@@ -1035,33 +1030,25 @@ Wall* add_wall(CP_Vector pos) {
 		}
 	}
 
-	walls_amount++;
+	++walls_amount;
+	walls = walls ? realloc(walls, sizeof(Wall) * walls_amount) : malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
-		walls = realloc(walls, sizeof(Wall) * walls_amount);
+		Wall* new_wall = walls + (walls_amount - 1);
+		new_wall->pos = pos;
+		new_wall->scale.x = 1.f;
+		new_wall->scale.y = 1.f;
+		new_wall->color = get_color(WHITE);
+		new_wall->image = new_wall->pos.x <= world_limits.x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
+		new_wall->angle = 0.f;
+		new_wall->rotation_rate = 0.f;
+		new_wall->destroyed = FALSE;
+		return new_wall;
 	}
-	else {
-		walls = malloc(sizeof(Wall) * walls_amount);
-	}
-
-	Wall* new_wall = walls + (walls_amount - 1);
-	new_wall->pos = pos;
-	new_wall->scale.x = 1.f;
-	new_wall->scale.y = 1.f;
-	new_wall->color = get_color(WHITE);
-	if (new_wall->pos.x <= world_limits.x * 0.5f) {
-		new_wall->image = get_image(WALL_LEFT_ASSET);
-	}
-	else {
-		new_wall->image = get_image(WALL_RIGHT_ASSET);
-	}
-	new_wall->angle = 0.f;
-	new_wall->rotation_rate = 0.f;
-	new_wall->destroyed = FALSE;
-	return new_wall;
+	return NULL;
 }
 
 void remove_wall(Wall* wall) {
-	for (int wall_index = 1; wall_index < walls_amount; wall_index++) {
+	for (int wall_index = 1; wall_index < walls_amount; ++wall_index) {
 		Wall* w = walls + wall_index;
 		if (w == NULL)
 			continue;
@@ -1079,7 +1066,7 @@ void remove_wall(Wall* wall) {
 }
 
 Item* add_item(CP_Vector pos, ItemType type) {
-	for (int item_index = 0; item_index < items_amount; item_index++) {
+	for (int item_index = 0; item_index < items_amount; ++item_index) {
 		Item* i = items + item_index;
 		if (i == NULL)
 			continue;
@@ -1096,13 +1083,8 @@ Item* add_item(CP_Vector pos, ItemType type) {
 		}
 	}
 
-	items_amount++;
-	if (items) {
-		items = realloc(items, sizeof(Item) * items_amount);
-	}
-	else {
-		items = malloc(sizeof(Item) * items_amount);
-	}
+	++items_amount;
+	items = items ? realloc(items, sizeof(Item) * items_amount) : malloc(sizeof(Item) * items_amount);
 	if (items) {
 		Item* new_item = items + (items_amount - 1);
 		new_item->pos = pos;
@@ -1118,7 +1100,7 @@ Item* add_item(CP_Vector pos, ItemType type) {
 }
 
 void remove_item(Item* item) {
-	for (int item_index = 0; item_index < items_amount; item_index++) {
+	for (int item_index = 0; item_index < items_amount; ++item_index) {
 		Item* i = items + item_index;
 		if (i == NULL)
 			continue;

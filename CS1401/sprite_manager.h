@@ -12,6 +12,7 @@
 
 typedef struct SpriteSheetStruct {
 	CP_Image root_image;
+	int img_h, img_w, sub_h, sub_w;
 	int rows, columns, current_row, current_column;
 	float duration, elapsedDuration;
 } SpriteSheet;

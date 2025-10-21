@@ -77,12 +77,7 @@ Level* get_level(int level) {
             lvl->world_height = (float)atof(get_value(root, "height"));
 
             lvl->walls_size = atoi(get_value(root, "walls_amount"));
-            if (lvl->walls_size) {
-                lvl->walls = malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET);
-            }
-            else {
-                lvl->walls = NULL;
-            }
+            lvl->walls = lvl->walls_size ? malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET) : NULL;
 
             lvl->golf_pos_1 = get_vector(get_value(root, "golf_1"));
             lvl->golf_pos_2 = get_vector(get_value(root, "golf_2"));
@@ -92,20 +87,10 @@ Level* get_level(int level) {
 
             // some versions of the level file dont include the par, so make sure to check
             char* line_par = get_value(root, "par");
-            if (line_par) {
-                lvl->par = atoi(line_par);
-            }
-            else {
-                lvl->par = 3;
-            }
+            lvl->par = line_par ? atoi(line_par) : 3;
 
             char* line_m_angle = get_value(root, "middle_wall_angle");
-            if (line_m_angle) {
-                lvl->middle_wall_angle = (float)atof(line_m_angle);
-            }
-            else {
-                lvl->middle_wall_angle = 0.f;
-            }
+            lvl->middle_wall_angle = line_m_angle ? (float)atof(line_m_angle) : 0.f;
 
             // set the walls position, scaling, angle and rotation rates
             // check if any of them exists first, if not use default values
@@ -116,55 +101,32 @@ Level* get_level(int level) {
                 char wall_pos[32];
                 sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
                 char* line_pos = get_value(root, wall_pos);
-                if (line_pos) {
-                    CP_Vector pos = get_vector(line_pos);
-                    lvl->walls[i + 0] = pos.x;
-                    lvl->walls[i + 1] = pos.y;
-                }
-                else {
-                    lvl->walls[i + 0] = 0.f;
-                    lvl->walls[i + 1] = 0.f;
-                }
+                CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                lvl->walls[i + 0] = pos.x;
+                lvl->walls[i + 1] = pos.y;
 
                 // set wall scale if exists
                 char wall_scale[32];
                 sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
                 char* line_scale = get_value(root, wall_scale);
-                if (line_scale) {
-                    CP_Vector scale = get_vector(line_scale);
-                    lvl->walls[i + 2] = scale.x;
-                    lvl->walls[i + 3] = scale.y;
-                }
-                else {
-                    lvl->walls[i + 2] = 0.f;
-                    lvl->walls[i + 3] = 0.f;
-                }
+                CP_Vector scale = line_scale ? get_vector(line_scale) : CP_Vector_Set(0, 0);
+                lvl->walls[i + 2] = scale.x;
+                lvl->walls[i + 3] = scale.y;
 
                 // set wall angle if exists
                 char wall_angle[32];
                 sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
                 char* line_angle = get_value(root, wall_angle);
-                if (line_angle) {
-                    float angle = (float)atof(line_angle);
-                    lvl->walls[i + 4] = angle;
-                }
-                else {
-                    lvl->walls[i + 4] = 0.f;
-                }
+                lvl->walls[i + 4] = line_angle ? (float)atof(line_angle) : 0.f;
 
                 // set wall rotation rate if exists
                 char wall_rot[32];
                 sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
                 char* line_rot = get_value(root, wall_rot);
-                if (line_rot) {
-                    float rot = (float)atof(line_rot);
-                    lvl->walls[i + 5] = rot;
-                }
-                else {
-                    lvl->walls[i + 5] = 0.f;
-                }
+                lvl->walls[i + 5] = line_rot ? (float)atof(line_rot) : 0.f;
             }
 
+            // load items in level
             char* item_size_line = get_value(root, "items_amount");
             if (item_size_line) {
                 lvl->items_size = atoi(item_size_line);
@@ -175,59 +137,29 @@ Level* get_level(int level) {
                     char item_pos[32];
                     sprintf_s(item_pos, 32, "item_%d_pos", item_index);
                     char* line_pos = get_value(root, item_pos);
-                    if (line_pos) {
-                        CP_Vector pos = get_vector(line_pos);
-                        lvl->items[i + 0] = pos.x;
-                        lvl->items[i + 1] = pos.y;
-                    }
-                    else {
-                        lvl->items[i + 0] = 0.f;
-                        lvl->items[i + 1] = 0.f;
-                    }
+                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    lvl->items[i + 0] = pos.x;
+                    lvl->items[i + 1] = pos.y;
 
                     char item_diameter[32];
                     sprintf_s(item_diameter, 32, "item_%d_diameter", item_index);
                     char* line_diameter = get_value(root, item_diameter);
-                    if (line_diameter) {
-                        float diameter = (float)atof(line_diameter);
-                        lvl->items[i + 2] = diameter;
-                    }
-                    else {
-                        lvl->items[i + 2] = 0.f;
-                    }
+                    lvl->items[i + 2] = line_diameter ? (float)atof(line_diameter) : 0.f;
 
                     char item_angle[32];
                     sprintf_s(item_angle, 32, "item_%d_angle", item_index);
                     char* line_angle = get_value(root, item_angle);
-                    if (line_angle) {
-                        float angle = (float)atof(line_angle);
-                        lvl->items[i + 3] = angle;
-                    }
-                    else {
-                        lvl->items[i + 3] = 0.f;
-                    }
+                    lvl->items[i + 3] = line_angle ? (float)atof(line_angle) : 0.f;
 
                     char item_rot_rate[32];
                     sprintf_s(item_rot_rate, 32, "item_%d_rot_rate", item_index);
                     char* line_rot_rate = get_value(root, item_rot_rate);
-                    if (line_rot_rate) {
-                        float rot_rate = (float)atof(line_rot_rate);
-                        lvl->items[i + 4] = rot_rate;
-                    }
-                    else {
-                        lvl->items[i + 4] = 0.f;
-                    }
+                    lvl->items[i + 4] = line_rot_rate ? (float)atof(line_rot_rate) : 0.f;
 
                     char item_type[32];
                     sprintf_s(item_type, 32, "item_%d_type", item_index);
                     char* line_type = get_value(root, item_type);
-                    if (line_type) {
-                        int type = atoi(line_type);
-                        lvl->items[i + 5] = (float) type;
-                    }
-                    else {
-                        lvl->items[i + 5] = 0;
-                    }
+                    lvl->items[i + 5] = line_type ? (float)atoi(line_type) : 0.f;
                 }
             }
             else {
@@ -239,7 +171,8 @@ Level* get_level(int level) {
             free_map(root);
             root = NULL;
             return lvl;
-        } else {
+        }
+        else {
             CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
         }
     }
