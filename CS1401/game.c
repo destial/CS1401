@@ -85,7 +85,7 @@ void game_init(void)
 	win = FALSE;
 	has_won = FALSE;
 	all_balls_stopped = TRUE;
-	editor_mode = debug_enabled;
+	editor_mode = FALSE;
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
@@ -348,11 +348,11 @@ void game_physics_update(float dt)
 			}
 
 			// calculate if golf ball is inside the hole
-			if (CP_Vector_Distance(golf->pos, holes[0].pos) < (holes[0].diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
-				golf->scoring = TRUE;
-			}
-			if (CP_Vector_Distance(golf->pos, holes[1].pos) < (holes[1].diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 2
-				golf->scoring = TRUE;
+			for (int h = 0; h < 2; ++h) {
+				Hole* hole = holes + h;
+				if (CP_Vector_Distance(golf->pos, hole->pos) < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
+					golf->scoring = TRUE;
+				}
 			}
 		}
 	}
@@ -417,7 +417,7 @@ void game_render(void)
 			continue;
 
 		CP_Vector c = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		if (wall->image == NULL) { // theres image for this wall, use that
+		if (wall->image == NULL) { // theres no image for this wall (most likely the middle wall)
 			CP_Settings_Fill(wall->color);
 			CP_Settings_Stroke(get_color(CLEAR));
 			CP_Graphics_DrawRectAdvanced(
@@ -429,7 +429,7 @@ void game_render(void)
 				0.f
 			);
 		}
-		else { // theres no image for this wall (most likely the middle wall)
+		else { // theres image for this wall, use that
 			CP_Settings_Fill(get_color(WHITE));
 			CP_Settings_Stroke(get_color(WHITE));
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -444,56 +444,59 @@ void game_render(void)
 			);
 		}
 
-		if (debug_enabled || editor_mode) {
+		if (debug_enabled) {
 			// display wall data on the screen
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50];
-			sprintf_s(p, 50, "Wall Index: %d", i);
+			char p[50]; sprintf_s(p, 50, "Index: %d", i);
 			CP_Font_DrawText(p, c.x, c.y + 40);
 
-			char b[50];
-			sprintf_s(b, 50, "Wall Pos: (%f, %f)", wall->pos.x, wall->pos.y);
+			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", wall->pos.x, wall->pos.y);
 			CP_Font_DrawText(b, c.x, c.y + 60);
 
-			char s[50];
-			sprintf_s(s, 50, "Wall Scale: (%f, %f)", wall->scale.x, wall->scale.y);
+			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", wall->scale.x, wall->scale.y);
 			CP_Font_DrawText(s, c.x, c.y + 80);
 
-			char n[100];
-			sprintf_s(n, 100, "Wall Normal: (%f, %f) (Degrees: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
+			char n[100]; sprintf_s(n, 100, "Normal: (%.2f, %.2f) (Deg: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
 			CP_Font_DrawText(n, c.x, c.y + 100);
 
-			char r[100];
-			sprintf_s(r, 100, "Wall Right: (%f, %f) (Radians: %.2f)", wall->right.x, wall->right.y, wall->angle_radians);
+			char r[100]; sprintf_s(r, 100, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, wall->angle_radians);
 			CP_Font_DrawText(r, c.x, c.y + 120);
 
-			char rr[100];
-			sprintf_s(rr, 100, "Wall Rot Rate: %f", wall->rotation_rate);
+			char rr[100]; sprintf_s(rr, 100, "Rot Rate: %.2f", wall->rotation_rate);
 			CP_Font_DrawText(rr, c.x, c.y + 140);
 
-			// draw the closest point after rotating it back to original
-			CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -wall->angle_radians);
-			CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
-			CP_Settings_Fill(get_color(RED));
-			CP_Settings_Stroke(get_color(RED));
-			CP_Graphics_DrawPoint(c.x, c.y);
+			if (!editor_mode) {
+				// draw the closest point after rotating it back to original
+				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -wall->angle_radians);
+				CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
+				CP_Settings_Fill(get_color(RED));
+				CP_Settings_Stroke(get_color(RED));
+				CP_Graphics_DrawPoint(c.x, c.y);
 
-			// draw the collision normal
-			//if (collision) {
-			CP_Vector col_normal = CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians);
-			CP_Vector coords = world_to_screen(wall->pos.x + closest_point.x + col_normal.x, wall->pos.y + closest_point.y + col_normal.y, world_limits.x, world_limits.y);
-			CP_Settings_Fill(get_color(PURPLE));
-			CP_Settings_Stroke(get_color(PURPLE));
-			CP_Graphics_DrawLine(c.x, c.y, coords.x, coords.y);
-			//}
+				// draw the collision normal
+				CP_Vector col_normal = CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians);
+				CP_Vector coords = world_to_screen(wall->pos.x + closest_point.x + col_normal.x, wall->pos.y + closest_point.y + col_normal.y, world_limits.x, world_limits.y);
+				CP_Settings_Fill(get_color(PURPLE));
+				CP_Settings_Stroke(get_color(PURPLE));
+				CP_Graphics_DrawLine(c.x, c.y, coords.x, coords.y);
+			}
 		}
 	}
 
 	// render holes
 	for (int i = 0; i < 2; ++i) {
 		draw_hole(holes[i].pos, holes[i].diameter, world_limits.x, world_limits.y, translate);
+
+		if (debug_enabled) {
+			CP_Vector coords = world_to_screen(holes[i].pos.x, holes[i].pos.y, world_limits.x, world_limits.y);
+			CP_Settings_Fill(get_color(GREEN));
+			CP_Settings_TextSize(20.f);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
+			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", holes[i].pos.x, holes[i].pos.y);
+			CP_Font_DrawText(p, coords.x, coords.y + 50);
+		}
 	}
 
 	for (int i = 0; i < items_amount; ++i) {
@@ -540,20 +543,17 @@ void game_render(void)
 				item->angle);
 		}
 
-		if (debug_enabled || editor_mode) {
+		if (debug_enabled) {
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char in[64];
-			sprintf_s(in, 64, "Item Index: %d", i);
+			char in[64]; sprintf_s(in, 64, "Index: %d", i);
 			CP_Font_DrawText(in, coords.x, coords.y + 40);
 
-			char p[64];
-			sprintf_s(p, 64, "Item Pos: (%f, %f)", item->pos.x, item->pos.y);
+			char p[64]; sprintf_s(p, 64, "Pos: (%.2f, %.2f)", item->pos.x, item->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 60);
 
-			char rr[64];
-			sprintf_s(rr, 64, "Item Rot Rate: %f", item->rotation_rate);
+			char rr[64]; sprintf_s(rr, 64, "Rot Rate: %.2f", item->rotation_rate);
 			CP_Font_DrawText(rr, coords.x, coords.y + 80);
 
 			CP_Settings_NoFill();
@@ -597,16 +597,14 @@ void game_render(void)
 			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
 		}
 
-		if (debug_enabled || editor_mode) {
+		if (debug_enabled) {
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50];
-			sprintf_s(p, 50, "Golf Pos: (%f, %f)", golf->pos.x, golf->pos.y);
+			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", golf->pos.x, golf->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 40);
 
-			char b[50];
-			sprintf_s(b, 50, "Golf Vel: (%f, %f)", golf->vel.x, golf->vel.y);
+			char b[50]; sprintf_s(b, 50, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
 	}
@@ -616,12 +614,10 @@ void game_render(void)
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 	CP_Settings_Fill(get_color(BLACK));
 	CP_Settings_Stroke(get_color(BLACK));
-	char b[32];
-	sprintf_s(b, 32, "Strokes: %d", get_strokes());
+	char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
 	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
-	char p[32];
-	sprintf_s(p, 32, "Par: %d", get_lvl_par());
+	char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
 	CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
 
 	if (win || CP_Input_KeyDown(KEY_TAB)) {
@@ -651,7 +647,7 @@ void game_render(void)
 	}
 
 	if (debug_enabled) {
-		debug_draw();
+		debug_render_info();
 	}
 }
 
@@ -668,7 +664,7 @@ void game_exit(void)
 
 // Update the wall's normal based on its angle of rotation
 void update_wall(Wall* wall, float dt) {
-	if (!debug_enabled) {
+	if (!editor_mode) {
 		wall->angle += wall->rotation_rate * dt;
 	}
 
@@ -724,19 +720,19 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 	if (CP_Vector_LengthSquared(wall_to_ball) <= CP_Math_Square(ball->diameter * 0.5f)) {
 		collision = TRUE;
 		if (debug_enabled) {
-			printf("Collision normal: %.3f, %.3f\n", wall_to_ball.x, wall_to_ball.y);
-			printf("Ball vel: %.3f, %.3f\n", ball->vel.x, ball->vel.y);
-			printf("Local collision point: %.3f, %.3f\n", closest_point.x, closest_point.y);
+			printf("Collision normal: %.2f, %.2f\n", wall_to_ball.x, wall_to_ball.y);
+			printf("Ball vel: %.2f, %.2f\n", ball->vel.x, ball->vel.y);
+			printf("Local collision point: %.2f, %.2f\n", closest_point.x, closest_point.y);
 			printf("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\n");
 		}
 	}
 
+	// set values here to display if debug enabled
 	wall->_wall_to_ball = CP_Vector_Normalize(wall_to_ball);
 	wall->_collision_point = closest_point;
 
 	if (collision) {
 		// make sure it doesnt clip through lmao
-		//if (CP_Vector_DotProduct(ball->vel, wall_to_ball) <= 0) // in case the wall is rotating and is faster than the ball
 		ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
@@ -782,29 +778,24 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 }
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
-void debug_draw(void) {
+void debug_render_info(void) {
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextSize(20.f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-	char fps[50];
-	sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
+	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 0, 20);
 
-	char m[50];
-	sprintf_s(m, 50, "Screen Mouse: (%.f, %.f)", mouse.x, mouse.y);
+	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.2f, %.2f)", mouse.x, mouse.y);
 	CP_Font_DrawText(m, 0, 40);
 
 	CP_Vector world = screen_to_world(mouse.x, mouse.y, world_limits.x, world_limits.y);
-	char wm[50];
-	sprintf_s(wm, 50, "World Mouse: (%f, %f)", world.x, world.y);
+	char wm[50]; sprintf_s(wm, 50, "World Mouse: (%.2f, %.2f)", world.x, world.y);
 	CP_Font_DrawText(wm, 0, 60);
 
-	char r[50];
-	sprintf_s(r, 50, "Resistance: %f", resistance);
+	char r[50]; sprintf_s(r, 50, "Resistance: %.2f", resistance);
 	CP_Font_DrawText(r, 0, 80);
 
-	char p[50];
-	sprintf_s(p, 50, "Mouse Wheel: %f", CP_Input_MouseWheel());
+	char p[50]; sprintf_s(p, 50, "Mouse Wheel: %.2f", CP_Input_MouseWheel());
 	CP_Font_DrawText(p, 0, 100);
 }
 
@@ -860,7 +851,7 @@ void load(void) {
 				Item* item = items + item_index;
 				if (item == NULL)
 					continue;
-
+				// load the items according to index in array
 				item->pos.x = loaded_level->items[i];
 				item->pos.y = loaded_level->items[i + 1];
 
@@ -942,6 +933,7 @@ void load(void) {
 	walls = malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
 		int wall_index = 1;
+		// create the random left side walls
 		for (; wall_index < (walls_amount * 0.5f); ++wall_index) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
@@ -962,6 +954,7 @@ void load(void) {
 			wall->destroyed = FALSE;
 		}
 
+		// create the random right side walls
 		for (; wall_index < walls_amount; ++wall_index) {
 			Wall* wall = walls + wall_index;
 			if (wall == NULL)
@@ -1000,6 +993,7 @@ void load(void) {
 		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
 	}
 
+	// set a default layout of item powerups
 	items_amount = 4;
 	items = malloc(sizeof(Item) * items_amount);
 	if (items) {
@@ -1042,7 +1036,8 @@ Wall* add_wall(CP_Vector pos) {
 		Wall* w = walls + wall_index;
 		if (w == NULL)
 			continue;
-
+		
+		// if there's an unused wall in the array, we overwrite it
 		if (w->destroyed) {
 			w->pos = pos;
 			w->scale.x = 1.f;
@@ -1056,6 +1051,7 @@ Wall* add_wall(CP_Vector pos) {
 		}
 	}
 
+	// we create a new wall in memory by resizing it and appending it to the back
 	++walls_amount;
 	walls = walls ? realloc(walls, sizeof(Wall) * walls_amount) : malloc(sizeof(Wall) * walls_amount);
 	if (walls) {
@@ -1074,6 +1070,7 @@ Wall* add_wall(CP_Vector pos) {
 }
 
 void remove_wall(Wall* wall) {
+	// make sure the middle wall is always skipped (element 0)
 	for (int wall_index = 1; wall_index < walls_amount; ++wall_index) {
 		Wall* w = walls + wall_index;
 		if (w == NULL)
@@ -1097,6 +1094,7 @@ Item* add_item(CP_Vector pos, ItemType type) {
 		if (i == NULL)
 			continue;
 
+		// if there's an unused item in the array, we overwrite it
 		if (i->destroyed) {
 			i->pos = pos;
 			i->diameter = 1.f;
@@ -1109,6 +1107,7 @@ Item* add_item(CP_Vector pos, ItemType type) {
 		}
 	}
 
+	// resize the array to accomodate a new item in memory
 	++items_amount;
 	items = items ? realloc(items, sizeof(Item) * items_amount) : malloc(sizeof(Item) * items_amount);
 	if (items) {

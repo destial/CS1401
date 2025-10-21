@@ -141,7 +141,7 @@ char get_game_level(void);
 /*!
 @brief Render debug information such as FPS, mouse coords, ball positions & velocity and collision markers
 */
-void debug_draw(void);
+void debug_render_info(void);
 
 /*!
 @brief Get the mouse position in world space
