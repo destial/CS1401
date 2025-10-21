@@ -250,7 +250,7 @@ void render_editor_utils(void) {
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
-	CP_Font_DrawText("Game Paused! Press P to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 50.f);
+	CP_Font_DrawText("Editor Mode! Press P to toggle modes!", CP_System_GetWindowWidth() * 0.5f, 50.f);
 
 	if (current_editing == NULL)
 		return;

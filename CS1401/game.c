@@ -150,7 +150,7 @@ void game_update(void)
 	else {
 		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
 			power += 0.1f;
-			power = min(3.f, power); // limit to maximum of 10f
+			power = min(3.f, power); // limit to maximum of 3f
 		}
 		if (CP_Input_MouseWheel() < 0.f) { // decrease power of putt
 			power -= 0.1f;
@@ -274,7 +274,7 @@ void game_physics_update(float dt)
 					if (check_item(item, golf)) {
 						switch (item->type) {
 						case BOOST:
-							golf->vel = CP_Vector_Scale(golf->vel, 5.f);
+							golf->vel = CP_Vector_Scale(golf->vel, 3.f);
 							break;
 						case BIG:
 							golf->diameter *= 2.f;

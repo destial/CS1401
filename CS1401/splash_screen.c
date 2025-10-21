@@ -24,7 +24,7 @@ void splash_screen_init(void)
 	CP_Settings_AntiAlias(TRUE);
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
-	CP_System_SetWindowTitle("Golf Game");
+	CP_System_SetWindowTitle("GGCode - GGGolf Game");
 }
 
 void splash_screen_update(void)

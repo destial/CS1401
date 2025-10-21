@@ -8,9 +8,8 @@
 #include "utils.h"
 #include "math.h"
 
-// static
-CP_BOOL colors_init = FALSE;
-CP_Color colors[LAST];
+static CP_BOOL colors_init = FALSE;
+static CP_Color colors[LAST];
 
 CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {
 	CP_Vector a = { 
