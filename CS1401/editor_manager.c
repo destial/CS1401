@@ -45,7 +45,7 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
 void update_editor_walls(Wall* walls, int size) {
 	CP_Vector mouse_world = get_mouse_world();
 
-	if (CP_Input_KeyTriggered(KEY_P)) {
+	if (CP_Input_KeyTriggered(KEY_EQUAL)) {
 		Wall* wall = add_wall(mouse_world);
 		if (wall) {
 			size++;
@@ -250,7 +250,7 @@ void render_editor_utils(void) {
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
-	CP_Font_DrawText("Game Paused! Press G to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 50.f);
+	CP_Font_DrawText("Game Paused! Press P to toggle editor mode!", CP_System_GetWindowWidth() * 0.5f, 50.f);
 
 	if (current_editing == NULL)
 		return;

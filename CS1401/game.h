@@ -29,6 +29,10 @@ typedef struct WallStruct {
 	float angle_radians; // wall angle in radians (touching this is useless)
 	float rotation_rate; // wall rotation rate in degrees per second
 	CP_BOOL destroyed; // if this wall is disabled
+
+	// debug only values
+	CP_Vector _collision_point;
+	CP_Vector _wall_to_ball;
 } Wall;
 
 typedef struct GolfBallStruct {

@@ -38,13 +38,14 @@ GolfBall* current;
 // scoreboard position
 CP_Vector sBoard;
 
-// editable setting
 #ifdef _DEBUG
 CP_BOOL debug_enabled = TRUE;
 #else
 CP_BOOL debug_enabled = FALSE;
 #endif
+CP_BOOL editor_mode = FALSE;
 
+// editable setting
 float resistance = 1.25f;
 float power = 1.f;
 char current_level = 1;
@@ -84,6 +85,7 @@ void game_init(void)
 	win = FALSE;
 	has_won = FALSE;
 	all_balls_stopped = TRUE;
+	editor_mode = debug_enabled;
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
@@ -95,16 +97,20 @@ void game_update(void)
 	mouse.y = CP_Input_GetMouseY();
 	mouse_world = screen_to_world(mouse.x, mouse.y, world_limits.x, world_limits.y);
 
-	// Quit the engine if pressed escape key
+	// go to main menu if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
-		//save_level();
 		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
 		return;
 	}
 
-	// Enable debug drawing (game data, hitboxes, collision line)
+	// enable debug drawing (game data, hitboxes, collision line)
 	if (CP_Input_KeyTriggered(KEY_G)) {
 		debug_enabled = !debug_enabled;
+	}
+
+	// enable debug drawing (game data, hitboxes, collision line)
+	if (CP_Input_KeyTriggered(KEY_P)) {
+		editor_mode = !editor_mode;
 	}
 
 	// reset level
@@ -115,7 +121,7 @@ void game_update(void)
 		return;
 	}
 
-	if (debug_enabled) {
+	if (editor_mode) {
 		if (CP_Input_KeyTriggered(KEY_E)) { // increase golf ball resistance
 			resistance += 0.1f;
 		}
@@ -181,6 +187,20 @@ void game_physics_update(float dt)
 		playable = TRUE;
 	}
 
+	// golf ball player input logic (ensure all golf balls are stopped before player can putt)
+	all_balls_stopped = TRUE;
+	for (int i = 0; i < 2; ++i) {
+		GolfBall* golf = golf_balls + i;
+		if (golf->dragging || golf->halt || golf->scored)
+			continue;
+
+		// if ball is still moving, cant play
+		if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
+			all_balls_stopped = FALSE;
+			break;
+		}
+	}
+
 	// update golf balls
 	win = TRUE;
 	for (int i = 0; i < 2; ++i) {
@@ -189,7 +209,7 @@ void game_physics_update(float dt)
 			continue;
 
 		win = FALSE;
-		if (debug_enabled)
+		if (editor_mode)
 			continue;
 
 		// golf ball scoring animation
@@ -200,20 +220,6 @@ void game_physics_update(float dt)
 				golf->scored = TRUE;
 			}
 			continue;
-		}
-
-		// golf ball player input logic (ensure all golf balls are stopped before player can putt)
-		all_balls_stopped = TRUE;
-		for (int j = 0; j < 2; ++j) {
-			GolfBall* other_golf = golf_balls + j;
-			if (other_golf->dragging || other_golf->halt || other_golf->scored)
-				continue;
-
-			// if ball is still moving, cant play
-			if (CP_Vector_LengthSquared(other_golf->vel) > 0.01f) {
-				all_balls_stopped = FALSE;
-				break;
-			}
 		}
 
 		// Dragging the power of the ball
@@ -359,7 +365,7 @@ void game_physics_update(float dt)
 		// update wall's normal
 		update_wall(wall, dt);
 
-		if (debug_enabled)
+		if (editor_mode)
 			continue;
 
 		for (int j = 0; j < 2; ++j) {
@@ -438,7 +444,7 @@ void game_render(void)
 			);
 		}
 
-		if (debug_enabled) {
+		if (debug_enabled || editor_mode) {
 			// display wall data on the screen
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
@@ -466,6 +472,22 @@ void game_render(void)
 			char rr[100];
 			sprintf_s(rr, 100, "Wall Rot Rate: %f", wall->rotation_rate);
 			CP_Font_DrawText(rr, c.x, c.y + 140);
+
+			// draw the closest point after rotating it back to original
+			CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -wall->angle_radians);
+			CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
+			CP_Settings_Fill(get_color(RED));
+			CP_Settings_Stroke(get_color(RED));
+			CP_Graphics_DrawPoint(c.x, c.y);
+
+			// draw the collision normal
+			//if (collision) {
+			CP_Vector col_normal = CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians);
+			CP_Vector coords = world_to_screen(wall->pos.x + closest_point.x + col_normal.x, wall->pos.y + closest_point.y + col_normal.y, world_limits.x, world_limits.y);
+			CP_Settings_Fill(get_color(PURPLE));
+			CP_Settings_Stroke(get_color(PURPLE));
+			CP_Graphics_DrawLine(c.x, c.y, coords.x, coords.y);
+			//}
 		}
 	}
 
@@ -518,7 +540,7 @@ void game_render(void)
 				item->angle);
 		}
 
-		if (debug_enabled) {
+		if (debug_enabled || editor_mode) {
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
@@ -575,7 +597,7 @@ void game_render(void)
 			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
 		}
 
-		if (debug_enabled) {
+		if (debug_enabled || editor_mode) {
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
@@ -607,7 +629,7 @@ void game_render(void)
 		/*
 		@todo: add button to cycle to next level or replay the same level
 		*/
-	} else if (playable && all_balls_stopped && !debug_enabled) {
+	} else if (playable && all_balls_stopped && !editor_mode) {
 		CP_Settings_Fill(get_color(ORANGE));
 		CP_Settings_Stroke(get_color(ORANGE));
 		CP_Settings_TextSize(50.f);
@@ -616,10 +638,9 @@ void game_render(void)
 	}
 
 	// render debug text on top of everything
-	if (debug_enabled) {
-		debug_draw();
-		render_editor_utils();
 
+	if (editor_mode) {
+		render_editor_utils();
 		if (saving) {
 			CP_Settings_Fill(get_color(RED));
 			CP_Settings_Stroke(get_color(RED));
@@ -627,6 +648,10 @@ void game_render(void)
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 			CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
 		}
+	}
+
+	if (debug_enabled) {
+		debug_draw();
 	}
 }
 
@@ -690,10 +715,6 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 		closest_point.y = wall_max.y;
 	}
 
-	CP_Vector point_to_check = { 
-		closest_point.x / wall->scale.x, 
-		closest_point.y / wall->scale.y 
-	};
 	// get back the distance between the golf pos and the closest point
 	// this is also the normal for collision response
 	CP_Vector wall_to_ball = CP_Vector_Subtract(local_golf_pos, closest_point);
@@ -702,34 +723,24 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 	CP_BOOL collision = FALSE;
 	if (CP_Vector_LengthSquared(wall_to_ball) <= CP_Math_Square(ball->diameter * 0.5f)) {
 		collision = TRUE;
+		if (debug_enabled) {
+			printf("Collision normal: %.3f, %.3f\n", wall_to_ball.x, wall_to_ball.y);
+			printf("Ball vel: %.3f, %.3f\n", ball->vel.x, ball->vel.y);
+			printf("Local collision point: %.3f, %.3f\n", closest_point.x, closest_point.y);
+			printf("~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~-~\n");
+		}
 	}
+
+	wall->_wall_to_ball = CP_Vector_Normalize(wall_to_ball);
+	wall->_collision_point = closest_point;
 
 	if (collision) {
 		// make sure it doesnt clip through lmao
-		if (CP_Vector_DotProduct(ball->vel, wall_to_ball) <= 0) // in case the wall is rotating and is faster than the ball
-			ball->pos = ball->prev_pos;
+		//if (CP_Vector_DotProduct(ball->vel, wall_to_ball) <= 0) // in case the wall is rotating and is faster than the ball
+		ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
-		collision_response(wall, ball, point_to_check, CP_Vector_Rotate(CP_Vector_Normalize(wall_to_ball), -wall->angle_radians));
-	}
-
-	if (debug_enabled) {
-		// draw the closest point after rotating it back to original
-		closest_point = CP_Vector_Rotate(closest_point, -wall->angle_radians);
-		CP_Vector c = world_to_screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(get_color(GREEN));
-		CP_Settings_Stroke(get_color(GREEN));
-		CP_Graphics_DrawPoint(c.x, c.y);
-
-		// draw the collision normal
-		if (collision) {
-			local_golf_pos = CP_Vector_Rotate(local_golf_pos, -wall->angle_radians);
-			CP_Vector coords = world_to_screen(wall->pos.x + local_golf_pos.x, wall->pos.y + local_golf_pos.y, world_limits.x, world_limits.y);
-			CP_Settings_Fill(get_color(GREEN));
-			CP_Settings_Stroke(get_color(GREEN));
-			CP_Settings_LineJointMode(CP_LINE_JOINT_BEVEL);
-			CP_Graphics_DrawLine(c.x, c.y, coords.x, coords.y);
-		}
+		collision_response(wall, ball, wall->_collision_point, CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians));
 	}
 	return collision;
 }
@@ -758,14 +769,14 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 	r = d - 2(d . n)n
 	source: https://math.stackexchange.com/questions/13261/how-to-get-a-reflection-vector
 	*/
-	if (!CP_Vector_IsZero(ball->vel)) {
+	//if (!CP_Vector_IsZero(ball->vel)) {
 		// reflect the ball velocity from the normal
 		float dot = 2 * CP_Vector_DotProduct(ball->vel, normal); // 2 * (d . n)
 		CP_Vector rhs = { dot * normal.x, dot * normal.y }; // * n
 		CP_Vector reflection = CP_Vector_Subtract(ball->vel, rhs);
 		ball->vel.x = reflection.x / resistance;
 		ball->vel.y = reflection.y / resistance;
-	} 
+	//} 
 
 	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
