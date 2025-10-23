@@ -286,7 +286,8 @@ void game_physics_update(float dt)
 				// item ability checking here !!!!!
 				for (int j = 0; j < items.length; ++j) {
 					Item* item = item_arr + j;
-					if (item == NULL || item->collected) continue;
+					if (item == NULL || item->collected) 
+						continue;
 
 					check_item(item, golf);
 				}
@@ -312,6 +313,7 @@ void game_physics_update(float dt)
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+
 			}
 
 			// bound the ball at the left border
@@ -808,12 +810,13 @@ void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2) {
 		return;
 
 	float restitution = 1.f - (resistance - 1.f);
-	float i = (-(1.f + restitution) * vn) / (ball_1->diameter + ball_2->diameter);
+	float i = (-(1.f + restitution) * vn) / (im1 + im2);
 	CP_Vector impulse = CP_Vector_Scale(CP_Vector_Normalize(mtd), i);
-	ball_1->vel = CP_Vector_Add(ball_1->vel, impulse);
-	ball_2->vel = CP_Vector_Subtract(ball_1->vel, impulse);
+	ball_1->vel = CP_Vector_Add(ball_1->vel, CP_Vector_Scale(impulse, im1));
+	ball_2->vel = CP_Vector_Subtract(ball_2->vel, CP_Vector_Scale(impulse, im2));
 
 	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_Play
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
