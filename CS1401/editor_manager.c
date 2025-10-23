@@ -42,13 +42,12 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
 	return CP_Vector_Distance(pos, mouse_world) <= diameter;
 }
 
-void update_editor_walls(Wall* walls, int size) {
+void update_editor_walls(ObjectArray* walls) {
 	CP_Vector mouse_world = get_mouse_world();
 
 	if (CP_Input_KeyTriggered(KEY_EQUAL)) {
 		Wall* wall = add_wall(mouse_world);
 		if (wall) {
-			size++;
 			current_editing = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 			current_type = WALL;
@@ -60,11 +59,10 @@ void update_editor_walls(Wall* walls, int size) {
 		current_editing = NULL;
 		current_dragging = NULL;
 		current_type = NONE;
-		size--;
 	}
 
-	for (int i = 0; i < size; i++) {
-		Wall* wall = walls + i;
+	for (int i = 0; i < walls->length; i++) {
+		Wall* wall = (Wall*)walls->arr + i;
 		if (wall == NULL)
 			continue;
 
@@ -80,10 +78,27 @@ void update_editor_walls(Wall* walls, int size) {
 	}
 }
 
-void update_editor_holes(Hole* holes, int size) {
+void update_editor_holes(ObjectArray* holes) {
 	CP_Vector mouse_world = get_mouse_world();
-	for (int i = 0; i < size; i++) {
-		Hole* hole = holes + i;
+
+	if (CP_Input_KeyTriggered(KEY_H)) {
+		Hole* hole = add_hole(mouse_world);
+		if (hole) {
+			current_editing = hole;
+			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
+			current_type = HOLE;
+		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == HOLE) {
+		remove_hole((Hole*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
+	}
+
+	for (int i = 0; i < holes->length; i++) {
+		Hole* hole = (Hole*) holes->arr + i;
 		if (hole == NULL )
 			continue;
 
@@ -95,10 +110,27 @@ void update_editor_holes(Hole* holes, int size) {
 	}
 }
 
-void update_editor_golfs(GolfBall* balls, int size) {
+void update_editor_golfs(ObjectArray* golfs) {
 	CP_Vector mouse_world = get_mouse_world();
-	for (int i = 0; i < size; i++) {
-		GolfBall* golf = balls + i;
+
+	if (CP_Input_KeyTriggered(KEY_B)) {
+		GolfBall* ball = add_ball(mouse_world);
+		if (ball) {
+			current_editing = ball;
+			current_editing_offset = CP_Vector_Subtract(ball->pos, mouse_world);
+			current_type = GOLF_BALL;
+		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == GOLF_BALL) {
+		remove_ball((GolfBall*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
+	}
+
+	for (int i = 0; i < golfs->length; i++) {
+		GolfBall* golf = (GolfBall*) golfs->arr + i;
 		if (golf == NULL)
 			continue;
 
@@ -110,13 +142,12 @@ void update_editor_golfs(GolfBall* balls, int size) {
 	}
 }
 
-void update_editor_items(Item* items, int size) {
+void update_editor_items(ObjectArray* items) {
 	CP_Vector mouse_world = get_mouse_world();
 
 	if (CP_Input_KeyTriggered(KEY_1)) {
 		Item* item = add_item(mouse_world, BOOST);
 		if (item) {
-			size++;
 			current_editing = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
@@ -124,7 +155,6 @@ void update_editor_items(Item* items, int size) {
 	} else if (CP_Input_KeyTriggered(KEY_2)) {
 		Item* item = add_item(mouse_world, BIG);
 		if (item) {
-			size++;
 			current_editing = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
@@ -132,7 +162,6 @@ void update_editor_items(Item* items, int size) {
 	} else if (CP_Input_KeyTriggered(KEY_3)) {
 		Item* item = add_item(mouse_world, SMALL);
 		if (item) {
-			size++;
 			current_editing = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
@@ -140,7 +169,6 @@ void update_editor_items(Item* items, int size) {
 	} else if (CP_Input_KeyTriggered(KEY_4)) {
 		Item* item = add_item(mouse_world, REVERSE);
 		if (item) {
-			size++;
 			current_editing = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
@@ -152,11 +180,10 @@ void update_editor_items(Item* items, int size) {
 		current_editing = NULL;
 		current_dragging = NULL;
 		current_type = NONE;
-		size--;
 	}
 
-	for (int i = 0; i < size; i++) {
-		Item* item = items + i;
+	for (int i = 0; i < items->length; i++) {
+		Item* item = (Item*)items->arr + i;
 		if (item == NULL)
 			continue;
 

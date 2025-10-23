@@ -28,10 +28,6 @@ CP_Image background_image;
 CP_Vector mouse = { 0, 0 };
 CP_Vector mouse_world = { 0, 0 };
 
-// golfball and hole positions
-GolfBall golf_balls[2];
-Hole holes[2];
-
 // currently dragging ball
 GolfBall* current;
 
@@ -60,11 +56,28 @@ CP_BOOL has_won = FALSE;
 CP_BOOL all_balls_stopped = TRUE;
 
 // load based on level
-Wall* walls;
-int walls_amount;
+ObjectArray golf_balls;
+ObjectArray holes;
+ObjectArray walls;
+ObjectArray items;
+
 CP_Vector world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
-Item* items;
-int items_amount;
+
+static Wall* get_walls() {
+	return walls.arr;
+}
+
+static Item* get_items() {
+	return items.arr;
+}
+
+static GolfBall* get_golfs() {
+	return golf_balls.arr;
+}
+
+static Hole* get_holes() {
+	return holes.arr;
+}
 
 // Initialize the font, golf positions and wall positions
 void game_init(void)
@@ -130,10 +143,10 @@ void game_update(void)
 			resistance = max(1.f, resistance); // limit to minimum of 1.f
 		}
 
-		update_editor_walls(walls, walls_amount);
-		update_editor_holes(holes, 2);
-		update_editor_golfs(golf_balls, 2);
-		update_editor_items(items, items_amount);
+		update_editor_walls(&walls);
+		update_editor_holes(&holes);
+		update_editor_golfs(&golf_balls);
+		update_editor_items(&items);
 
 		update_editor_utils();
 
@@ -187,11 +200,15 @@ void game_physics_update(float dt)
 		playable = TRUE;
 	}
 
+	Item* item_arr = get_items();
+	Wall* wall_arr = get_walls();
+	GolfBall* golf_arr = get_golfs();
+	Hole* hole_arr = get_holes();
 	// golf ball player input logic (ensure all golf balls are stopped before player can putt)
 	all_balls_stopped = TRUE;
-	for (int i = 0; i < 2; ++i) {
-		GolfBall* golf = golf_balls + i;
-		if (golf->dragging || golf->halt || golf->scored)
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		if (golf->dragging || golf->halt || golf->scored || golf->destroyed)
 			continue;
 
 		// if ball is still moving, cant play
@@ -203,9 +220,9 @@ void game_physics_update(float dt)
 
 	// update golf balls
 	win = TRUE;
-	for (int i = 0; i < 2; ++i) {
-		GolfBall* golf = golf_balls + i;
-		if (golf->scored)
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		if (golf->scored || golf->destroyed)
 			continue;
 
 		win = FALSE;
@@ -239,8 +256,8 @@ void game_physics_update(float dt)
 				golf->vel = CP_Vector_Scale(golf->vel, power);
 
 				// set the other balls velocity
-				for (int j = 0; j < 2; ++j) {
-					GolfBall* other_golf = golf_balls + j;
+				for (int j = 0; j < golf_balls.length; ++j) {
+					GolfBall* other_golf = get_golfs() + j;
 					if (other_golf->scored || i == j)
 						continue;
 
@@ -267,28 +284,11 @@ void game_physics_update(float dt)
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
 				// item ability checking here !!!!!
-				for (int j = 0; j < items_amount; ++j) {
-					Item* item = items + j;
+				for (int j = 0; j < items.length; ++j) {
+					Item* item = item_arr + j;
 					if (item == NULL || item->collected) continue;
 
-					if (check_item(item, golf)) {
-						switch (item->type) {
-						case BOOST:
-							golf->vel = CP_Vector_Scale(golf->vel, 3.f);
-							break;
-						case BIG:
-							golf->diameter *= 2.f;
-							break;
-						case SMALL:
-							golf->diameter *= 0.5f;
-							break;
-						case REVERSE:
-							golf->vel = CP_Vector_Negate(golf->vel);
-							break;
-						default: break;
-						}
-						item->collected = TRUE;
-					}
+					check_item(item, golf);
 				}
 
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
@@ -346,19 +346,30 @@ void game_physics_update(float dt)
 			else if (golf->angle < 0.f) {
 				golf->angle += 360.f;
 			}
+		}
 
-			// calculate if golf ball is inside the hole
-			for (int h = 0; h < 2; ++h) {
-				Hole* hole = holes + h;
-				if (CP_Vector_Distance(golf->pos, hole->pos) < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
-					golf->scoring = TRUE;
-				}
+		for (int j = 0; j < golf_balls.length; ++j) {
+			GolfBall* other = golf_arr + j;
+			if (other == NULL || other->scored || other->destroyed || i == j)
+				continue;
+
+			check_collision_ball(golf, other);
+		}
+
+		// calculate if golf ball is inside the hole
+		for (int h = 0; h < holes.length; ++h) {
+			Hole* hole = hole_arr + h;
+			if (hole == NULL || hole->destroyed)
+				continue;
+
+			if (CP_Vector_Distance(golf->pos, hole->pos) < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
+				golf->scoring = TRUE;
 			}
 		}
 	}
 
-	for (int i = 0; i < walls_amount; ++i) {
-		Wall* wall = walls + i;
+	for (int i = 0; i < walls.length; ++i) {
+		Wall* wall = wall_arr + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
 
@@ -368,8 +379,8 @@ void game_physics_update(float dt)
 		if (editor_mode)
 			continue;
 
-		for (int j = 0; j < 2; ++j) {
-			GolfBall* ball = golf_balls + j;
+		for (int j = 0; j < golf_balls.length; ++j) {
+			GolfBall* ball = golf_arr + j;
 			if (ball->scored)
 				continue;
 
@@ -382,9 +393,9 @@ void game_physics_update(float dt)
 	}
 
 	// after all updates, set the previous position to here
-	for (int i = 0; i < 2; ++i) {
-		GolfBall* ball = golf_balls + i;
-		if (ball->scored)
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* ball = golf_arr + i;
+		if (ball->scored || ball->destroyed)
 			continue;
 
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
@@ -409,10 +420,14 @@ void game_render(void)
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
 
 	CP_Vector world_ratios = get_world_ratios();
+	Item* item_arr = get_items();
+	Wall* wall_arr = get_walls();
+	GolfBall* golf_arr = get_golfs();
+	Hole* hole_arr = get_holes();
 
 	// render walls
-	for (int i = 0; i < walls_amount; ++i) {
-		Wall* wall = walls + i;
+	for (int i = 0; i < walls.length; ++i) {
+		Wall* wall = wall_arr + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
 
@@ -486,21 +501,25 @@ void game_render(void)
 	}
 
 	// render holes
-	for (int i = 0; i < 2; ++i) {
-		draw_hole(holes[i].pos, holes[i].diameter, world_limits.x, world_limits.y, translate);
+	for (int i = 0; i < holes.length; ++i) {
+		Hole* hole = hole_arr + i;
+		if (hole == NULL || hole->destroyed)
+			continue;
+
+		draw_hole(hole->pos, hole->diameter, world_limits.x, world_limits.y, translate);
 
 		if (debug_enabled) {
-			CP_Vector coords = world_to_screen(holes[i].pos.x, holes[i].pos.y, world_limits.x, world_limits.y);
+			CP_Vector coords = world_to_screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
 			CP_Settings_Fill(get_color(GREEN));
 			CP_Settings_TextSize(20.f);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", holes[i].pos.x, holes[i].pos.y);
+			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", hole->pos.x, hole->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 50);
 		}
 	}
 
-	for (int i = 0; i < items_amount; ++i) {
-		Item* item = items + i;
+	for (int i = 0; i < items.length; ++i) {
+		Item* item = item_arr + i;
 		if (item == NULL || item->collected || item->destroyed) 
 			continue;
 
@@ -563,9 +582,9 @@ void game_render(void)
 	}
 
 	// render golf balls
-	for (int i = 0; i < 2; ++i) {
-		GolfBall* golf = golf_balls + i;
-		if (golf->scored) // ignore if golf ball is already scored
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
 			continue;
 
 		// render golf ball
@@ -654,10 +673,10 @@ void game_render(void)
 void game_exit(void)
 {
 	// free level allocations
-	free(walls);
-	free(items);
-	walls = NULL;
-	items = NULL;
+	free(walls.arr);
+	free(items.arr);
+	walls.arr = NULL;
+	items.arr = NULL;
 	reset_strokes();
 	free_assets();
 }
@@ -742,7 +761,59 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 }
 
 CP_BOOL check_item(Item* item, GolfBall* ball) {
-	return CP_Vector_LengthSquared(CP_Vector_Subtract(item->pos, ball->pos)) <= CP_Math_Square(item->diameter * 0.5f) + CP_Math_Square(ball->diameter * 0.5f);
+	CP_BOOL collected = CP_Vector_Length(CP_Vector_Subtract(item->pos, ball->pos)) <= (item->diameter * 0.5f) + (ball->diameter * 0.5f);
+	if (collected) {
+		switch (item->type) {
+		case BOOST:
+			ball->vel = CP_Vector_Scale(ball->vel, 3.f);
+			break;
+		case BIG:
+			ball->diameter *= 2.f;
+			break;
+		case SMALL:
+			ball->diameter *= 0.5f;
+			break;
+		case REVERSE:
+			ball->vel = CP_Vector_Negate(ball->vel);
+			break;
+		default: break;
+		}
+		item->collected = TRUE;
+	}
+	return collected;
+}
+
+CP_BOOL check_collision_ball(GolfBall* ball_1, GolfBall* ball_2) {
+	CP_BOOL collision = CP_Vector_Length(CP_Vector_Subtract(ball_1->pos, ball_2->pos)) <= (ball_1->diameter * 0.5f) + (ball_2->diameter * 0.5f);
+	if (collision) {
+		collision_response_ball(ball_1, ball_2);
+	}
+	return collision;
+}
+
+void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2) {
+	CP_Vector delta = CP_Vector_Subtract(ball_1->pos, ball_2->pos);
+	float mag = CP_Vector_Length(delta);
+	CP_Vector mtd = CP_Vector_Scale(delta, ((ball_1->diameter * 0.5f) + (ball_2->diameter * 0.5f) - mag) / mag);
+
+	float im1 = 1.f / ball_1->diameter;
+	float im2 = 1.f / ball_2->diameter;
+
+	ball_1->pos = CP_Vector_Add(ball_1->pos, CP_Vector_Scale(mtd, im1 / (im1 + im2)));
+	ball_2->pos = CP_Vector_Subtract(ball_2->pos, CP_Vector_Scale(mtd, im2 / (im1 + im2)));
+
+	CP_Vector v = CP_Vector_Subtract(ball_1->vel, ball_2->vel);
+	float vn = CP_Vector_DotProduct(v, CP_Vector_Normalize(mtd));
+	if (vn > 0.f)
+		return;
+
+	float restitution = 1.f - (resistance - 1.f);
+	float i = (-(1.f + restitution) * vn) / (ball_1->diameter + ball_2->diameter);
+	CP_Vector impulse = CP_Vector_Scale(CP_Vector_Normalize(mtd), i);
+	ball_1->vel = CP_Vector_Add(ball_1->vel, impulse);
+	ball_2->vel = CP_Vector_Subtract(ball_1->vel, impulse);
+
+	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
@@ -803,7 +874,7 @@ void debug_render_info(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void save(void) {
-	save_level(current_level, walls, walls_amount, golf_balls, holes, items, items_amount, get_world_limits(), get_lvl_par());
+	save_level(current_level, &walls, &golf_balls, &holes, &items, get_world_limits(), get_lvl_par());
 	saving = 1.5f;
 }
 
@@ -812,18 +883,6 @@ void save(void) {
 */
 void load(void) {
 	// initialize golf balls default values
-	for (int j = 0; j < 2; ++j) {
-		golf_balls[j].vel = CP_Vector_Set(0.f, 0.f);
-		golf_balls[j].angle = 0.f;
-		golf_balls[j].diameter = 1.f;
-		golf_balls[j].halt = FALSE;
-		golf_balls[j].dragging = FALSE;
-		golf_balls[j].scored = FALSE;
-		golf_balls[j].scoring = FALSE;
-
-		// make sure hole diameter is larger than golf ball so it can actually fit
-		holes[j].diameter = 1.5f;
-	}
 
 	// get the currently set level and load the level file
 	Level* loaded_level = get_level(current_level);
@@ -835,20 +894,52 @@ void load(void) {
 
 		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
-		golf_balls[0].pos = loaded_level->golf_pos_1;
-		golf_balls[1].pos = loaded_level->golf_pos_2;
-
-		holes[0].pos = loaded_level->hole_1;
-		holes[1].pos = loaded_level->hole_2;
-
 		set_lvl_par(loaded_level->par);
-		items_amount = loaded_level->items_size;
 
-		if (items_amount) {
-			items = malloc(sizeof(Item) * items_amount);
+		golf_balls.length = loaded_level->golf_balls_size;
+		golf_balls.arr = malloc(sizeof(GolfBall) * golf_balls.length);
+		int ball_index = 0;
+		for (int i = 0; i < loaded_level->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
+			GolfBall* ball = get_golfs() + ball_index;
+			if (ball == NULL)
+				continue;
+
+			ball->pos.x = loaded_level->golf_balls[i];
+			ball->pos.y = loaded_level->golf_balls[i + 1];
+			ball->diameter = loaded_level->golf_balls[i + 2];
+
+			ball->vel = CP_Vector_Set(0.f, 0.f);
+			ball->angle = 0.f;
+			ball->halt = FALSE;
+			ball->dragging = FALSE;
+			ball->scored = FALSE;
+			ball->scoring = FALSE;
+			ball->destroyed = FALSE;
+			++ball_index;
+		}
+
+		holes.length = loaded_level->holes_size;
+		holes.arr = malloc(sizeof(Hole) * holes.length);
+		int hole_index = 0;
+		for (int i = 0; i < loaded_level->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
+			Hole* hole = get_holes() + hole_index;
+			if (hole == NULL)
+				continue;
+
+			hole->pos.x = loaded_level->holes[i];
+			hole->pos.y = loaded_level->holes[i + 1];
+			hole->diameter = loaded_level->holes[i + 2];
+
+			hole->destroyed = FALSE;
+			++hole_index;
+		}
+
+		items.length = loaded_level->items_size;
+		if (items.length) {
+			items.arr = malloc(sizeof(Item) * items.length);
 			int item_index = 0;
 			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET) {
-				Item* item = items + item_index;
+				Item* item = get_items() + item_index;
 				if (item == NULL)
 					continue;
 				// load the items according to index in array
@@ -866,16 +957,16 @@ void load(void) {
 			}
 		}
 		else {
-			items = NULL;
+			items.arr = NULL;
 		}
 
-		walls_amount = loaded_level->walls_size + 1;
-		walls = malloc(sizeof(Wall) * walls_amount);
+		walls.length = loaded_level->walls_size + 1;
+		walls.arr = malloc(sizeof(Wall) * walls.length);
 
-		if (walls) {
+		if (walls.arr) {
 			int wall_index = 1;
 			for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
-				Wall* wall = walls + wall_index;
+				Wall* wall = get_walls() + wall_index;
 				if (wall == NULL)
 					continue;
 				// loading walls according to index in array
@@ -896,7 +987,7 @@ void load(void) {
 			}
 
 			// middle wall is always the first (never in the level file)
-			Wall* middle_wall = walls;
+			Wall* middle_wall = walls.arr;
 			middle_wall->pos.x = world_limits.x * 0.5f;
 			middle_wall->pos.y = world_limits.y * 0.5f;
 			middle_wall->scale.x = world_limits.x * 0.01f;
@@ -923,19 +1014,41 @@ void load(void) {
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
-	golf_balls[0].pos = CP_Vector_Set(world_limits.x * 0.25f, 2.f);
-	golf_balls[1].pos = CP_Vector_Set(world_limits.x * 0.75f, 2.f);
+	golf_balls.length = holes.length = 2;
+	golf_balls.arr = malloc(sizeof(GolfBall) * golf_balls.length); 
+	holes.arr = malloc(sizeof(Hole) * holes.length);
+	GolfBall* golfs_arr = get_golfs();
+	Hole* holes_arr = get_holes();
+	for (int j = 0; j < golf_balls.length; ++j) {
+		GolfBall* ball = golfs_arr + j;
+		ball->vel = CP_Vector_Set(0.f, 0.f);
+		ball->angle = 0.f;
+		ball->diameter = 1.f;
+		ball->halt = FALSE;
+		ball->dragging = FALSE;
+		ball->scored = FALSE;
+		ball->scoring = FALSE;
+		ball->destroyed = FALSE;
 
-	holes[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.75f);
-	holes[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
+		// make sure hole diameter is larger than golf ball so it can actually fit
+		Hole* hole = holes_arr + j;
+		hole->diameter = 1.5f;
+		hole->destroyed = FALSE;
+	}
 
-	walls_amount = 11;
-	walls = malloc(sizeof(Wall) * walls_amount);
-	if (walls) {
+	golfs_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, 2.f);
+	golfs_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, 2.f);
+
+	holes_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.75f);
+	holes_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
+
+	walls.length = 11;
+	walls.arr = malloc(sizeof(Wall) * walls.length);
+	if (walls.arr) {
 		int wall_index = 1;
 		// create the random left side walls
-		for (; wall_index < (walls_amount * 0.5f); ++wall_index) {
-			Wall* wall = walls + wall_index;
+		for (; wall_index < (walls.length * 0.5f); ++wall_index) {
+			Wall* wall = get_walls() + wall_index;
 			if (wall == NULL)
 				continue;
 
@@ -955,8 +1068,8 @@ void load(void) {
 		}
 
 		// create the random right side walls
-		for (; wall_index < walls_amount; ++wall_index) {
-			Wall* wall = walls + wall_index;
+		for (; wall_index < walls.length; ++wall_index) {
+			Wall* wall = get_walls() + wall_index;
 			if (wall == NULL)
 				continue;
 
@@ -976,7 +1089,7 @@ void load(void) {
 		}
 
 		// middle wall is always the first
-		Wall* middle_wall = walls;
+		Wall* middle_wall = walls.arr;
 
 		middle_wall->pos.x = world_limits.x * 0.5f;
 		middle_wall->pos.y = world_limits.y * 0.5f;
@@ -994,46 +1107,47 @@ void load(void) {
 	}
 
 	// set a default layout of item powerups
-	items_amount = 4;
-	items = malloc(sizeof(Item) * items_amount);
-	if (items) {
-		items[0].type = BOOST;
-		items[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
-		items[0].diameter = 1.f;
-		items[0].angle = 0.f;
-		items[0].rotation_rate = 0.f;
-		items[0].collected = FALSE;
-		items[0].destroyed = FALSE;
+	items.length = 4;
+	items.arr = malloc(sizeof(Item) * items.length);
+	if (items.arr) {
+		Item* itemarr = get_items();
+		itemarr[0].type = BOOST;
+		itemarr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
+		itemarr[0].diameter = 1.f;
+		itemarr[0].angle = 0.f;
+		itemarr[0].rotation_rate = 0.f;
+		itemarr[0].collected = FALSE;
+		itemarr[0].destroyed = FALSE;
 
-		items[1].type = BIG;
-		items[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
-		items[1].diameter = 1.f;
-		items[1].angle = 0.f;
-		items[1].rotation_rate = 0.f;
-		items[1].collected = FALSE;
-		items[1].destroyed = FALSE;
+		itemarr[1].type = BIG;
+		itemarr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
+		itemarr[1].diameter = 1.f;
+		itemarr[1].angle = 0.f;
+		itemarr[1].rotation_rate = 0.f;
+		itemarr[1].collected = FALSE;
+		itemarr[1].destroyed = FALSE;
 
-		items[2].type = SMALL;
-		items[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
-		items[2].diameter = 1.f;
-		items[2].angle = 0.f;
-		items[2].rotation_rate = 0.f;
-		items[2].collected = FALSE;
-		items[2].destroyed = FALSE;
+		itemarr[2].type = SMALL;
+		itemarr[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
+		itemarr[2].diameter = 1.f;
+		itemarr[2].angle = 0.f;
+		itemarr[2].rotation_rate = 0.f;
+		itemarr[2].collected = FALSE;
+		itemarr[2].destroyed = FALSE;
 
-		items[3].type = REVERSE;
-		items[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
-		items[3].diameter = 1.f;
-		items[3].angle = 0.f;
-		items[3].rotation_rate = 45.f;
-		items[3].collected = FALSE;
-		items[3].destroyed = FALSE;
+		itemarr[3].type = REVERSE;
+		itemarr[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
+		itemarr[3].diameter = 1.f;
+		itemarr[3].angle = 0.f;
+		itemarr[3].rotation_rate = 45.f;
+		itemarr[3].collected = FALSE;
+		itemarr[3].destroyed = FALSE;
 	}
 }
 
 Wall* add_wall(CP_Vector pos) {
-	for (int wall_index = 1; wall_index < walls_amount; ++wall_index) {
-		Wall* w = walls + wall_index;
+	for (int wall_index = 1; wall_index < walls.length; ++wall_index) {
+		Wall* w = get_walls() + wall_index;
 		if (w == NULL)
 			continue;
 		
@@ -1052,10 +1166,10 @@ Wall* add_wall(CP_Vector pos) {
 	}
 
 	// we create a new wall in memory by resizing it and appending it to the back
-	++walls_amount;
-	walls = walls ? realloc(walls, sizeof(Wall) * walls_amount) : malloc(sizeof(Wall) * walls_amount);
-	if (walls) {
-		Wall* new_wall = walls + (walls_amount - 1);
+	++walls.length;
+	walls.arr = walls.arr ? realloc(walls.arr, sizeof(Wall) * walls.length) : malloc(sizeof(Wall) * walls.length);
+	if (walls.arr) {
+		Wall* new_wall = get_walls() + (walls.length - 1);
 		new_wall->pos = pos;
 		new_wall->scale.x = 1.f;
 		new_wall->scale.y = 1.f;
@@ -1071,8 +1185,8 @@ Wall* add_wall(CP_Vector pos) {
 
 void remove_wall(Wall* wall) {
 	// make sure the middle wall is always skipped (element 0)
-	for (int wall_index = 1; wall_index < walls_amount; ++wall_index) {
-		Wall* w = walls + wall_index;
+	for (int wall_index = 1; wall_index < walls.length; ++wall_index) {
+		Wall* w = get_walls() + wall_index;
 		if (w == NULL)
 			continue;
 
@@ -1084,13 +1198,14 @@ void remove_wall(Wall* wall) {
 			w->rotation_rate = 0.f;
 			w->angle = 0.f;
 			w->destroyed = TRUE;
+			break;
 		}
 	}
 }
 
 Item* add_item(CP_Vector pos, ItemType type) {
-	for (int item_index = 0; item_index < items_amount; ++item_index) {
-		Item* i = items + item_index;
+	for (int item_index = 0; item_index < items.length; ++item_index) {
+		Item* i = get_items() + item_index;
 		if (i == NULL)
 			continue;
 
@@ -1108,10 +1223,10 @@ Item* add_item(CP_Vector pos, ItemType type) {
 	}
 
 	// resize the array to accomodate a new item in memory
-	++items_amount;
-	items = items ? realloc(items, sizeof(Item) * items_amount) : malloc(sizeof(Item) * items_amount);
-	if (items) {
-		Item* new_item = items + (items_amount - 1);
+	++items.length;
+	items.arr = items.arr ? realloc(items.arr, sizeof(Item) * items.length) : malloc(sizeof(Item) * items.length);
+	if (items.arr) {
+		Item* new_item = get_items() + (items.length - 1);
 		new_item->pos = pos;
 		new_item->diameter = 1.f;
 		new_item->angle = 0.f;
@@ -1125,8 +1240,8 @@ Item* add_item(CP_Vector pos, ItemType type) {
 }
 
 void remove_item(Item* item) {
-	for (int item_index = 0; item_index < items_amount; ++item_index) {
-		Item* i = items + item_index;
+	for (int item_index = 0; item_index < items.length; ++item_index) {
+		Item* i = get_items() + item_index;
 		if (i == NULL)
 			continue;
 
@@ -1138,6 +1253,109 @@ void remove_item(Item* item) {
 			i->angle = 0.f;
 			i->destroyed = TRUE;
 			i->collected = FALSE;
+			break;
+		}
+	}
+}
+
+GolfBall* add_ball(CP_Vector pos) {
+	for (int ball_index = 0; ball_index < golf_balls.length; ++ball_index) {
+		GolfBall* b = get_golfs() + ball_index;
+		if (b == NULL)
+			continue;
+
+		// if there's an unused ball in the array, we overwrite it
+		if (b->destroyed) {
+			b->pos = pos;
+			b->prev_pos = pos;
+			b->diameter = 1.f;
+			b->angle = 0.f;
+			b->halt = FALSE;
+			b->dragging = FALSE;
+			b->scored = FALSE;
+			b->scoring = FALSE;
+			b->destroyed = FALSE;
+			b->vel = CP_Vector_Set(0.f, 0.f);
+			return b;
+		}
+	}
+
+	// resize the array to accomodate a new golf ball in memory
+	++golf_balls.length;
+	golf_balls.arr = golf_balls.arr ? realloc(golf_balls.arr, sizeof(GolfBall) * golf_balls.length) : malloc(sizeof(GolfBall) * golf_balls.length);
+	if (golf_balls.arr) {
+		GolfBall* new_ball = get_golfs() + (golf_balls.length - 1);
+		new_ball->pos = pos;
+		new_ball->prev_pos = pos;
+		new_ball->diameter = 1.f;
+		new_ball->vel = CP_Vector_Set(0.f, 0.f);
+		new_ball->angle = 0.f;
+		new_ball->destroyed = FALSE;
+		new_ball->halt = FALSE;
+		new_ball->dragging = FALSE;
+		new_ball->scored = FALSE;
+		new_ball->scoring = FALSE;
+		return new_ball;
+	}
+	return NULL;
+}
+
+Hole* add_hole(CP_Vector pos) {
+	for (int hole_index = 0; hole_index < holes.length; ++hole_index) {
+		Hole* h = get_holes() + hole_index;
+		if (h == NULL)
+			continue;
+
+		// if there's an unused ball in the array, we overwrite it
+		if (h->destroyed) {
+			h->pos = pos;
+			h->diameter = 1.5f;
+			h->destroyed = FALSE;
+			return h;
+		}
+	}
+
+	// resize the array to accomodate a new hole in memory
+	++holes.length;
+	holes.arr = golf_balls.arr ? realloc(holes.arr, sizeof(Hole) * holes.length) : malloc(sizeof(Hole) * holes.length);
+	if (holes.arr) {
+		Hole* new_hole = get_holes() + (holes.length - 1);
+		new_hole->pos = pos;
+		new_hole->diameter = 1.5f;
+		new_hole->destroyed = FALSE;
+		return new_hole;
+	}
+	return NULL;
+}
+
+void remove_ball(GolfBall* ball) {
+	for (int ball_index = 0; ball_index < golf_balls.length; ++ball_index) {
+		GolfBall* b = get_golfs() + ball_index;
+		if (b == NULL)
+			continue;
+
+		if (b == ball) {
+			b->pos.x = -10.f;
+			b->pos.y = -10.f;
+			b->diameter = -1.f;
+			b->destroyed = TRUE;
+			break;
+		}
+	}
+}
+
+void remove_hole(Hole* hole) {
+	for (int hole_index = 0; hole_index < holes.length; ++hole_index) {
+		Hole* h = get_holes() + hole_index;
+		if (h == NULL)
+			continue;
+
+		if (h == hole) {
+			h->pos.x = -10.f;
+			h->pos.y = -10.f;
+			h->diameter = -1.f;
+			h->destroyed = TRUE;
+			break;
 		}
 	}
 }

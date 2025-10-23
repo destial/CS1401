@@ -10,6 +10,7 @@
 #define DEBUG_MANAGER_H
 #include "cprocessing.h"
 #include "game.h"
+#include "utils.h"
 
 /*!
 @brief Check if mouse is on quad
@@ -29,28 +30,28 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter);
 @param walls - The array of walls in the current level
 @param size - The number of walls in the current level
 */
-void update_editor_walls(Wall* walls, int size);
+void update_editor_walls(ObjectArray* walls);
 
 /*!
 @brief Process hole editor
 @param holes - The array of holes in the current level
 @param size - The number of holes in the current level
 */
-void update_editor_holes(Hole* holes, int size);
+void update_editor_holes(ObjectArray* holes);
 
 /*!
 @brief Process ball editor
 @param golfs - The array of golf balls in the current level
 @param size - The number of golf balls in the current level
 */
-void update_editor_golfs(GolfBall* golfs, int size);
+void update_editor_golfs(ObjectArray* golfs);
 
 /*!
 @brief Process items editor
 @param items - The array of items in the current level
 @param size - The number of items in the current level
 */
-void update_editor_items(Item* items, int size);
+void update_editor_items(ObjectArray* items);
 
 /*!
 @brief Final process editors
