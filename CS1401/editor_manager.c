@@ -274,10 +274,18 @@ void update_editor_utils(void) {
 }
 
 void render_editor_utils(void) {
+	CP_Font_Set(get_font(ARIAL_FONT_ASSET));
 	CP_Settings_Fill(get_color(GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
 	CP_Font_DrawText("Editor Mode! Press P to toggle modes!", CP_System_GetWindowWidth() * 0.5f, 50.f);
+
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
+	CP_Settings_TextSize(20.f);
+	CP_Font_DrawText("Left Click: Select/Drag | Right Click: Rotate | Mouse Wheel + Left/Right Click: Scale (Walls Only)", 5.f, CP_System_GetWindowHeight() - 80.f);
+	CP_Font_DrawText("Arrow Up/Down: Increase/Decrease Rotation Speed (Walls Only)", 5.f, CP_System_GetWindowHeight() - 60.f);
+	CP_Font_DrawText("Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'4' to add Items | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
+	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
 
 	if (current_editing == NULL)
 		return;

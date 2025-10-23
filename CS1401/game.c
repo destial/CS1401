@@ -419,6 +419,7 @@ void game_render(void)
 	// reset the color and stroke settings
 	CP_Settings_Stroke(get_color(BLACK));
 	CP_Settings_Fill(get_color(BLACK));
+	CP_Font_Set(font);
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
 
 	CP_Vector world_ratios = get_world_ratios();
@@ -630,18 +631,20 @@ void game_render(void)
 		}
 	}
 
-	// draw current strokes
-	CP_Settings_TextSize(40.f);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-	CP_Settings_Fill(get_color(BLACK));
-	CP_Settings_Stroke(get_color(BLACK));
-	char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
-	CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
+	if (!editor_mode) {
+		// draw current strokes
+		CP_Settings_TextSize(40.f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+		CP_Settings_Fill(get_color(BLACK));
+		CP_Settings_Stroke(get_color(BLACK));
+		char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
+		CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
 
-	char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
-	CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+		char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
+		CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+	}
 
-	if (win || CP_Input_KeyDown(KEY_TAB)) {
+	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
@@ -655,6 +658,9 @@ void game_render(void)
 	}
 
 	// render debug text on top of everything
+	if (debug_enabled) {
+		debug_render_info();
+	}
 
 	if (editor_mode) {
 		render_editor_utils();
@@ -665,10 +671,6 @@ void game_render(void)
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 			CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
 		}
-	}
-
-	if (debug_enabled) {
-		debug_render_info();
 	}
 }
 
@@ -816,7 +818,6 @@ void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2) {
 	ball_2->vel = CP_Vector_Subtract(ball_2->vel, CP_Vector_Scale(impulse, im2));
 
 	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
-	CP_Sound_Play
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
