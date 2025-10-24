@@ -34,6 +34,8 @@ CP_Font button_font;
 
 char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0;
 
+float sound_limit = 1.0f;
+
 void exit_main_menu(void) {
 	CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
 }
@@ -144,7 +146,7 @@ void main_menu_init(void)
 	setting_background = get_image(SETTING_BACKGROUND_ASSET);
 
 	//setting the button anchor to the center of the world
-	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(window_size_W, window_size_H);
 }
@@ -158,6 +160,9 @@ void main_menu_update(void)
 	
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
+
+	CP_Color health_bar = CP_Color_Create(255, 255, 255, 255);
+	CP_Color health_bar_background = CP_Color_Create(150, 150, 150, 255);
 
 	if (!is_clicked) {
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
@@ -263,12 +268,27 @@ void main_menu_update(void)
 
 	if (is_setting_clicked) {
 		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
-	}
-	else {
-		CP_Image_Draw(setting_background, CP_System_GetWindowWidth()* 0.5f, CP_System_GetWindowHeight() * 0.5f, 0.f, 0.f, 255);
+
+		CP_Settings_RectMode(CP_POSITION_CORNER);
+
+		CP_Settings_Fill(health_bar_background);
+		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 900.0f, 45.0f);
+
+		CP_Settings_Fill(health_bar);
+		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, sound_limit * 900.0f, 45.0f);
+		
+		
+		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
+			if (mouse_x >= CP_System_GetWindowWidth() * 0.22f && mouse_x <= CP_System_GetWindowWidth() * 0.22f + 900.0f
+				&& mouse_y >= CP_System_GetWindowHeight() * 0.4f && mouse_y <= CP_System_GetWindowHeight() * 0.4f + 45.0f) {
+				sound_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / 900.0f;
+				CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sound_limit);
+			}
+		}
+		
 	}
 
-	//SETTING BUTTONS
+	//RESOLUTION BUTTONS
 	for (int i = 9; i < 12; i++) {
 		//defining the position of the button
 		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
@@ -365,6 +385,7 @@ void main_menu_update(void)
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
 	CP_Image_DrawAdvanced(buttons[12].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
+
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_TextSize(buttons[12].text_size * CP_System_GetWindowHeight() / world_height1);
