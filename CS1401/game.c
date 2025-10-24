@@ -284,7 +284,7 @@ void game_physics_update(float dt)
 			if (golf->dragging) {
 				golf->stroke_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 				add_stroke();
-				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 			golf->dragging = FALSE;
 			golf->halt = FALSE;
@@ -331,7 +331,7 @@ void game_physics_update(float dt)
 				golf->pos.x = world_limits.x - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
-				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 
 			}
 
@@ -340,7 +340,7 @@ void game_physics_update(float dt)
 				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
-				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 
 			// bound the ball at the top border
@@ -348,7 +348,7 @@ void game_physics_update(float dt)
 				golf->pos.y = world_limits.y - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
-				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 
 			// bound the ball at the bottom border
@@ -356,7 +356,7 @@ void game_physics_update(float dt)
 				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
-				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -424,7 +424,7 @@ void game_physics_update(float dt)
 
 	if (win && !has_won) {
 		has_won = TRUE;
-		CP_Sound_Play((CP_Sound) get_audio(VICTORY_ASSET));
+		CP_Sound_PlayAdvanced(get_audio(VICTORY_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 	}
 
 }
@@ -923,7 +923,7 @@ void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2) {
 	ball_1->vel = CP_Vector_Add(ball_1->vel, CP_Vector_Scale(impulse, im1));
 	ball_2->vel = CP_Vector_Subtract(ball_2->vel, CP_Vector_Scale(impulse, im2));
 
-	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
@@ -955,7 +955,7 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 		ball->vel.y = reflection.y / resistance;
 	//} 
 
-	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 }
 
 float get_resistance(CP_Vector pos) {
