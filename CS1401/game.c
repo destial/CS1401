@@ -283,15 +283,6 @@ void game_physics_update(float dt)
 		if (!golf->dragging && !golf->halt) {
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
-				// item ability checking here !!!!!
-				for (int j = 0; j < items.length; ++j) {
-					Item* item = item_arr + j;
-					if (item == NULL || item->collected) 
-						continue;
-
-					check_item(item, golf);
-				}
-
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
 				float friction = resistance - 1;
 				if (friction != 0) {
@@ -299,6 +290,15 @@ void game_physics_update(float dt)
 				}
 
 				golf->pos = CP_Vector_Add(golf->pos, vel);
+
+				// item powerup checks here !!!!!
+				for (int j = 0; j < items.length; ++j) {
+					Item* item = item_arr + j;
+					if (item == NULL || item->collected)
+						continue;
+
+					check_item(item, golf);
+				}
 			}
 			else {
 
@@ -796,24 +796,42 @@ CP_BOOL check_collision_ball(GolfBall* ball_1, GolfBall* ball_2) {
 }
 
 void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2) {
+	/*
+	source: https://stackoverflow.com/questions/345838/ball-to-ball-collision-detection-and-handling
+	*/
 	CP_Vector delta = CP_Vector_Subtract(ball_1->pos, ball_2->pos);
 	float mag = CP_Vector_Length(delta);
+	if (mag == 0.f) { // if balls are on top of each other
+		mag = (ball_1->diameter * 0.5f) + (ball_2->diameter * 0.5f) - 1.f;
+		delta = CP_Vector_Set((ball_1->diameter * 0.5f) + (ball_2->diameter * 0.5f), 0.f);
+	}
+
+	// minimum translation distance to push balls apart after intersecting
 	CP_Vector mtd = CP_Vector_Scale(delta, ((ball_1->diameter * 0.5f) + (ball_2->diameter * 0.5f) - mag) / mag);
 
+	// substitute mass of ball with diameter
+	// inverse of mass
 	float im1 = 1.f / ball_1->diameter;
 	float im2 = 1.f / ball_2->diameter;
 
-	ball_1->pos = CP_Vector_Add(ball_1->pos, CP_Vector_Scale(mtd, im1 / (im1 + im2)));
-	ball_2->pos = CP_Vector_Subtract(ball_2->pos, CP_Vector_Scale(mtd, im2 / (im1 + im2)));
+	float total_im = im1 + im2;
 
+	// push-pull them apart
+	ball_1->pos = CP_Vector_Add(ball_1->pos, CP_Vector_Scale(mtd, im1 / total_im));
+	ball_2->pos = CP_Vector_Subtract(ball_2->pos, CP_Vector_Scale(mtd, im2 / total_im));
+
+	// impact speed
 	CP_Vector v = CP_Vector_Subtract(ball_1->vel, ball_2->vel);
 	float vn = CP_Vector_DotProduct(v, CP_Vector_Normalize(mtd));
-	if (vn > 0.f)
+	if (vn > 0.f) // if balls are intersecting but already moving away from each other, dont do anything
 		return;
 
+	// collision impulse
 	float restitution = 1.f - (resistance - 1.f);
-	float i = (-(1.f + restitution) * vn) / (im1 + im2);
+	float i = (-(1.f + restitution) * vn) / total_im;
 	CP_Vector impulse = CP_Vector_Scale(CP_Vector_Normalize(mtd), i);
+
+	// change in momentum
 	ball_1->vel = CP_Vector_Add(ball_1->vel, CP_Vector_Scale(impulse, im1));
 	ball_2->vel = CP_Vector_Subtract(ball_2->vel, CP_Vector_Scale(impulse, im2));
 
