@@ -18,6 +18,12 @@ typedef enum ItemTypeEnum {
 	REVERSE
 } ItemType;
 
+typedef enum TerrainTypeEnum {
+	SAND = 0,
+	ICE,
+	PIT
+} TerrainType;
+
 typedef struct WallStruct {
 	CP_Vector pos; // wall position (world space)
 	CP_Vector scale; // wall scale (world space)
@@ -46,6 +52,7 @@ typedef struct GolfBallStruct {
 	CP_BOOL scored; // if this ball has scored
 	CP_BOOL scoring; // if this ball is falling in the hole (for animation purposes)
 	CP_BOOL destroyed; // if this ball is disabled (for object pooling)
+	CP_Vector stroke_pos;
 } GolfBall;
 
 typedef struct ItemStruct {
@@ -63,6 +70,19 @@ typedef struct HoleStruct {
 	float diameter; // hole diameter (world space)
 	CP_BOOL destroyed; // if this hole is disabled (for object pooling)
 } Hole;
+
+typedef struct TerrainStruct {
+	CP_Vector pos;
+	CP_Vector scale; // terrain scale (world space)
+	CP_Vector normal; // terrain normal vector (calculated based on angle, always updated before collision testing)
+	CP_Vector right; // terrain right vector (calculated based on normal)
+	CP_Color color; // terrain color
+	TerrainType type; // terrain type
+	float angle; // terrain rotation angle in degrees
+	float angle_radians; // terrain angle in radians (touching this is useless)
+	float rotation_rate; // terrain rotation rate in degrees per second
+	CP_BOOL destroyed; // if this terrain is disabled (for object pooling)
+} Terrain;
 
 /*!
 @brief Game scene init

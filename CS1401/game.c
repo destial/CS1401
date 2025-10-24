@@ -60,6 +60,7 @@ ObjectArray golf_balls;
 ObjectArray holes;
 ObjectArray walls;
 ObjectArray items;
+ObjectArray terrains;
 
 CP_Vector world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
 
@@ -77,6 +78,10 @@ static GolfBall* get_golfs() {
 
 static Hole* get_holes() {
 	return holes.arr;
+}
+
+static Terrain* get_terrains() {
+	return terrains.arr;
 }
 
 // Initialize the font, golf positions and wall positions
@@ -427,6 +432,26 @@ void game_render(void)
 	Wall* wall_arr = get_walls();
 	GolfBall* golf_arr = get_golfs();
 	Hole* hole_arr = get_holes();
+	Terrain* terrain_arr = get_terrains();
+
+	for (int i = 0; i < terrains.length; ++i) {
+		Terrain* terrain = terrain_arr + i;
+		if (terrain == NULL || terrain->destroyed)
+			continue;
+
+		CP_Vector c = world_to_screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(terrain->color);
+		CP_Settings_Stroke(terrain->color);
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawRectAdvanced(
+			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+			c.y,
+			terrain->scale.x * world_ratios.x,
+			terrain->scale.y * world_ratios.y,
+			terrain->angle,
+			0.f
+		);
+	}
 
 	// render walls
 	for (int i = 0; i < walls.length; ++i) {
@@ -438,6 +463,7 @@ void game_render(void)
 		if (wall->image == NULL) { // theres no image for this wall (most likely the middle wall)
 			CP_Settings_Fill(wall->color);
 			CP_Settings_Stroke(get_color(CLEAR));
+			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(
 				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
 				c.y,
@@ -928,6 +954,8 @@ void load(void) {
 
 			ball->pos.x = loaded_level->golf_balls[i];
 			ball->pos.y = loaded_level->golf_balls[i + 1];
+			ball->stroke_pos.x = ball->pos.x;
+			ball->stroke_pos.y = ball->pos.y;
 			ball->diameter = loaded_level->golf_balls[i + 2];
 
 			ball->vel = CP_Vector_Set(0.f, 0.f);
@@ -1059,7 +1087,12 @@ void load(void) {
 	}
 
 	golfs_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, 2.f);
+	golfs_arr[0].stroke_pos.x = golfs_arr[0].pos.x;
+	golfs_arr[0].stroke_pos.y = golfs_arr[0].pos.y;
+
 	golfs_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, 2.f);
+	golfs_arr[1].stroke_pos.x = golfs_arr[1].pos.x;
+	golfs_arr[1].stroke_pos.y = golfs_arr[1].pos.y;
 
 	holes_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.75f);
 	holes_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
