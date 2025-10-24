@@ -227,6 +227,44 @@ Level* get_level(int level) {
                 lvl->items = NULL;
             }
 
+            // load terrains in level
+            char* terrain_size_line = get_value(root, "terrains_amount");
+            if (terrain_size_line) {
+                lvl->terrains_size = atoi(terrain_size_line);
+                lvl->terrains = malloc(sizeof(float) * lvl->terrains_size * TERRAINS_OFFSET);
+
+                int terrain_index = 0;
+                for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
+                    char terrain_pos[32];
+                    sprintf_s(terrain_pos, 32, "terrain_%d_pos", terrain_index);
+                    char* line_pos = get_value(root, terrain_pos);
+                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    lvl->terrains[i + 0] = pos.x;
+                    lvl->terrains[i + 1] = pos.y;
+
+                    char terrain_scale[32];
+                    sprintf_s(terrain_scale, 32, "terrain_%d_scale", terrain_index);
+                    char* line_scale = get_value(root, terrain_scale);
+                    CP_Vector scale = line_pos ? get_vector(line_scale) : CP_Vector_Set(0, 0);
+                    lvl->terrains[i + 2] = scale.x;
+                    lvl->terrains[i + 3] = scale.y;
+
+                    char terrain_angle[32];
+                    sprintf_s(terrain_angle, 32, "terrain_%d_angle", terrain_index);
+                    char* line_angle = get_value(root, terrain_angle);
+                    lvl->terrains[i + 4] = line_angle ? (float)atof(line_angle) : 0.f;
+
+                    char terrain_type[32];
+                    sprintf_s(terrain_type, 32, "terrain_%d_type", terrain_index);
+                    char* line_type = get_value(root, terrain_type);
+                    lvl->terrains[i + 5] = line_type ? (float)atoi(line_type) : 0.f;
+                }
+            }
+            else {
+                lvl->terrains_size = 0;
+                lvl->terrains = NULL;
+            }
+
             // we are done loading the level, we can now free up the map
             free_map(root);
             root = NULL;
@@ -241,7 +279,7 @@ Level* get_level(int level) {
     return NULL;
 }
 
-void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, CP_Vector world_limits, int par) {
+void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par) {
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
     FILE* fptr = fopen(level_path, "w");
@@ -343,6 +381,28 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     sprintf_s(last_items, 64, "\nitems_amount=%d", item_index);
     strcat_s(level_file, FILE_SIZE, last_items);
 
+    int terrain_index = 0;
+    for (int i = 0; i < terrains->length; ++i) {
+        Terrain* terrain = (Terrain*)terrains->arr + i;
+        if (terrain == NULL || terrain->destroyed || terrain->scale.x <= 0.f)
+            continue;
+
+        char terrain_data[1024];
+        sprintf_s(terrain_data, 1024,
+            "\nterrain_%d_pos=%f,%f\nterrain_%d_scale=%f,%f\nterrain_%d_angle=%f\nterrain_%d_type=%d",
+            terrain_index, terrain->pos.x, terrain->pos.y,
+            terrain_index, terrain->scale.x, terrain->scale.y,
+            terrain_index, terrain->angle,
+            terrain_index, terrain->type
+        );
+        strcat_s(level_file, FILE_SIZE, terrain_data);
+        ++terrain_index;
+    }
+
+    char last_terrains[64];
+    sprintf_s(last_terrains, 64, "\nterrains_amount=%d", terrain_index);
+    strcat_s(level_file, FILE_SIZE, last_terrains);
+
     fputs(level_file, fptr);
     fclose(fptr);
     fptr = NULL;
@@ -422,9 +482,15 @@ void free_map(Map* map) {
 void free_level(Level* level) {
     if (level->walls) {
         free(level->walls);
+        level->walls = NULL;
     }
     if (level->items) {
         free(level->items);
+        level->items = NULL;
+    }
+    if (level->terrains) {
+        free(level->terrains);
+        level->terrains = NULL;
     }
     free(level);
     level = NULL;

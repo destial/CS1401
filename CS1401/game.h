@@ -74,13 +74,9 @@ typedef struct HoleStruct {
 typedef struct TerrainStruct {
 	CP_Vector pos;
 	CP_Vector scale; // terrain scale (world space)
-	CP_Vector normal; // terrain normal vector (calculated based on angle, always updated before collision testing)
-	CP_Vector right; // terrain right vector (calculated based on normal)
-	CP_Color color; // terrain color
 	TerrainType type; // terrain type
 	float angle; // terrain rotation angle in degrees
 	float angle_radians; // terrain angle in radians (touching this is useless)
-	float rotation_rate; // terrain rotation rate in degrees per second
 	CP_BOOL destroyed; // if this terrain is disabled (for object pooling)
 } Terrain;
 
@@ -121,6 +117,14 @@ void update_wall(Wall* wall, float dt);
 @return TRUE if collided, FALSE if not
 */
 CP_BOOL check_collision(Wall* wall, GolfBall* ball);
+
+/*!
+@brief Check if point is on terrain
+@param terrain - The terrain to check
+@param pos - The position in world space
+@return TRUE if on terrain, FALSE if not
+*/
+CP_BOOL check_terrain(Terrain* terrain, CP_Vector pos);
 
 /*!
 @brief Check the collision between golf balls
@@ -196,6 +200,11 @@ CP_Vector get_world_limits(void);
 CP_Vector get_world_ratios(void);
 
 /*!
+@brief Get the terrain resistance at this position
+*/
+float get_resistance(CP_Vector pos);
+
+/*!
 @brief Add a wall to the level
 */
 Wall* add_wall(CP_Vector pos);
@@ -234,5 +243,15 @@ void remove_ball(GolfBall* ball);
 @brief Remove item from the level
 */
 void remove_hole(Hole* hole);
+
+/*!
+@brief Remove a terrain from the level
+*/
+void remove_terrain(Terrain* terrain);
+
+/*!
+@brief Add a terrain to the level
+*/
+Terrain* add_terrain(CP_Vector pos, TerrainType type);
 
 #endif

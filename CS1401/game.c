@@ -54,6 +54,7 @@ CP_BOOL playable = FALSE;
 CP_BOOL win = FALSE;
 CP_BOOL has_won = FALSE;
 CP_BOOL all_balls_stopped = TRUE;
+#define MIN_VEL 0.05f
 
 // load based on level
 ObjectArray golf_balls;
@@ -93,6 +94,10 @@ void game_init(void)
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
+
+	items.arr = NULL;
+	walls.arr = NULL;
+	terrains.arr = NULL;
 
 	// load the current level file set from current_level variable
 	load();
@@ -152,6 +157,7 @@ void game_update(void)
 		update_editor_holes(&holes);
 		update_editor_golfs(&golf_balls);
 		update_editor_items(&items);
+		update_editor_terrains(&terrains);
 
 		update_editor_utils();
 
@@ -217,7 +223,7 @@ void game_physics_update(float dt)
 			continue;
 
 		// if ball is still moving, cant play
-		if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
+		if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
 			all_balls_stopped = FALSE;
 			break;
 		}
@@ -276,6 +282,7 @@ void game_physics_update(float dt)
 		else {
 			// if the previous frame was player input, that means the golf ball has been released and been putted
 			if (golf->dragging) {
+				golf->stroke_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 				add_stroke();
 				CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 			}
@@ -287,11 +294,18 @@ void game_physics_update(float dt)
 		// apply velocity to the golf ball if not being dragged
 		if (!golf->dragging && !golf->halt) {
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
-			if (CP_Vector_LengthSquared(golf->vel) > 0.01f) {
+			if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
-				float friction = resistance - 1;
+				float r = get_resistance(golf->pos);
+				if (r < 0.f) {
+					golf->pos = golf->stroke_pos;
+					golf->vel.x = 0;
+					golf->vel.y = 0;
+					continue;
+				}
+				float friction = r - 1;
 				if (friction != 0) {
-					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (resistance * resistance) - 1));
+					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1));
 				}
 
 				golf->pos = CP_Vector_Add(golf->pos, vel);
@@ -418,12 +432,12 @@ void game_physics_update(float dt)
 void game_render(void)
 {
 	// Clear background and render the background image
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Graphics_ClearBackground(get_color(BLACK));
 
 	// reset the color and stroke settings
 	CP_Settings_Stroke(get_color(BLACK));
 	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Font_Set(font);
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
 
@@ -440,17 +454,40 @@ void game_render(void)
 			continue;
 
 		CP_Vector c = world_to_screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(terrain->color);
-		CP_Settings_Stroke(terrain->color);
-		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Color sand = get_color(ORANGE);
+		CP_Color ice = get_color(BLUE);
+		CP_Color pit = get_color(RED);
+		CP_Settings_Fill(
+			terrain->type == SAND ? CP_Color_Create(sand.r, sand.g, sand.b, 128) :
+			terrain->type == ICE ?  CP_Color_Create(ice.r, ice.g, ice.b, 128) : 
+								    CP_Color_Create(pit.r, pit.g, pit.b, 128));
+		CP_Settings_Stroke(get_color(CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawRectAdvanced(
 			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 			c.y,
 			terrain->scale.x * world_ratios.x,
 			terrain->scale.y * world_ratios.y,
 			terrain->angle,
-			0.f
+			2.f
 		);
+
+		if (debug_enabled) {
+			CP_Settings_Fill(get_color(GREEN));
+			CP_Settings_TextSize(20.f);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
+			char p[50]; sprintf_s(p, 50, "Index: %d", i);
+			CP_Font_DrawText(p, c.x, c.y + 40);
+
+			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", terrain->pos.x, terrain->pos.y);
+			CP_Font_DrawText(b, c.x, c.y + 60);
+
+			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", terrain->scale.x, terrain->scale.y);
+			CP_Font_DrawText(s, c.x, c.y + 80);
+
+			char a[100]; sprintf_s(a, 100, "Degrees: %.2f | Radians: %.2f", terrain->angle, terrain->angle_radians);
+			CP_Font_DrawText(a, c.x, c.y + 100);
+		}
 	}
 
 	// render walls
@@ -474,18 +511,25 @@ void game_render(void)
 			);
 		}
 		else { // theres image for this wall, use that
+			CP_Settings_Save();
+
 			CP_Settings_Fill(get_color(WHITE));
 			CP_Settings_Stroke(get_color(WHITE));
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-			CP_Image_DrawAdvanced(wall->image,
+			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
+			CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_MIRROR);
+			int w = CP_Image_GetWidth(wall->image);
+			int h = CP_Image_GetHeight(wall->image);
+			CP_Image_DrawSubImageAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
-				255,
-				wall->angle
+				0.f, 0.f, wall->scale.x * w, wall->scale.y * h,
+				255, wall->angle
 			);
+
+			CP_Settings_Restore();
 		}
 
 		if (debug_enabled) {
@@ -705,8 +749,10 @@ void game_exit(void)
 	// free level allocations
 	free(walls.arr);
 	free(items.arr);
+	free(terrains.arr);
 	walls.arr = NULL;
 	items.arr = NULL;
+	terrains.arr = NULL;
 	reset_strokes();
 	free_assets();
 }
@@ -788,6 +834,22 @@ CP_BOOL check_collision(Wall* wall, GolfBall* ball) {
 		collision_response(wall, ball, wall->_collision_point, CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians));
 	}
 	return collision;
+}
+
+CP_BOOL check_terrain(Terrain* terrain, CP_Vector pos) {
+	CP_Vector terrain_min = { -terrain->scale.x * 0.5f, -terrain->scale.y * 0.5f };
+	CP_Vector terrain_max = { terrain->scale.x * 0.5f, terrain->scale.y * 0.5f };
+
+	// ball location position in respect to the wall
+	CP_Vector r = CP_Vector_Subtract(pos, terrain->pos);
+
+	// rotate local position back to axis
+	terrain->angle_radians = CP_Math_Radians(terrain->angle);
+	CP_Vector local_pos = CP_Vector_Rotate(r, terrain->angle_radians);
+
+	// AABB collision testing
+	return local_pos.x >= terrain_min.x && local_pos.x <= terrain_max.x &&
+		   local_pos.y >= terrain_min.y && local_pos.y <= terrain_max.y;
 }
 
 CP_BOOL check_item(Item* item, GolfBall* ball) {
@@ -896,6 +958,25 @@ void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector n
 	CP_Sound_Play(get_audio(GOLF_HIT_WALL_ASSET));
 }
 
+float get_resistance(CP_Vector pos) {
+	float r = resistance;
+	Terrain* terrain_arr = get_terrains();
+	for (int i = 0; i < terrains.length; ++i) {
+		Terrain* terrain = terrain_arr + i;
+		if (terrain == NULL || terrain->destroyed)
+			continue;
+
+		if (check_terrain(terrain, pos)) {
+			r *= terrain->type == SAND ? 2.f : terrain->type == ICE ? 0.5f : terrain->type == PIT ? -1.f : 1.f;
+		}
+
+		if (r < 0.f)
+			return -1.f;
+	}
+	r = max(1.f, r);
+	return r;
+}
+
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void debug_render_info(void) {
 	CP_Settings_Fill(get_color(GREEN));
@@ -922,7 +1003,7 @@ void debug_render_info(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void save(void) {
-	save_level(current_level, &walls, &golf_balls, &holes, &items, get_world_limits(), get_lvl_par());
+	save_level(current_level, &walls, &golf_balls, &holes, &items, &terrains, get_world_limits(), get_lvl_par());
 	saving = 1.5f;
 }
 
@@ -1010,6 +1091,32 @@ void load(void) {
 			items.arr = NULL;
 		}
 
+		terrains.length = loaded_level->terrains_size;
+		if (terrains.length) {
+			terrains.arr = malloc(sizeof(Terrain) * terrains.length);
+			int terrain_index = 0;
+			for (int i = 0; i < loaded_level->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET) {
+				Terrain* terrain = get_terrains() + terrain_index;
+				if (terrain == NULL)
+					continue;
+				// load the items according to index in array
+				terrain->pos.x = loaded_level->terrains[i];
+				terrain->pos.y = loaded_level->terrains[i + 1];
+
+				terrain->scale.x = loaded_level->terrains[i + 2];
+				terrain->scale.y = loaded_level->terrains[i + 3];
+
+				terrain->angle = loaded_level->terrains[i + 4];
+				terrain->type = (int)loaded_level->terrains[i + 5];
+
+				terrain->destroyed = FALSE;
+				++terrain_index;
+			}
+		}
+		else {
+			terrains.arr = NULL;
+		}
+
 		walls.length = loaded_level->walls_size + 1;
 		walls.arr = malloc(sizeof(Wall) * walls.length);
 
@@ -1055,6 +1162,7 @@ void load(void) {
 
 		free_level(loaded_level);
 		loaded_level = NULL;
+
 		return;
 	}
 
@@ -1197,6 +1305,25 @@ void load(void) {
 		itemarr[3].rotation_rate = 45.f;
 		itemarr[3].collected = FALSE;
 		itemarr[3].destroyed = FALSE;
+	}
+
+	terrains.length = 2;
+	terrains.arr = malloc(sizeof(Terrain) * terrains.length);
+	if (terrains.arr) {
+		Terrain* terrain_arr = get_terrains();
+		terrain_arr[0].type = SAND;
+		terrain_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
+		terrain_arr[0].scale = CP_Vector_Set(10.f, 10.f);
+		terrain_arr[0].angle = 0.f;
+		terrain_arr[0].angle_radians = 0.f;
+		terrain_arr[0].destroyed = FALSE;
+
+		terrain_arr[1].type = ICE;
+		terrain_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
+		terrain_arr[1].scale = CP_Vector_Set(10.f, 10.f);
+		terrain_arr[1].angle = 0.f;
+		terrain_arr[1].angle_radians = 0.f;
+		terrain_arr[1].destroyed = FALSE;
 	}
 }
 
@@ -1372,7 +1499,7 @@ Hole* add_hole(CP_Vector pos) {
 
 	// resize the array to accomodate a new hole in memory
 	++holes.length;
-	holes.arr = golf_balls.arr ? realloc(holes.arr, sizeof(Hole) * holes.length) : malloc(sizeof(Hole) * holes.length);
+	holes.arr = holes.arr ? realloc(holes.arr, sizeof(Hole) * holes.length) : malloc(sizeof(Hole) * holes.length);
 	if (holes.arr) {
 		Hole* new_hole = get_holes() + (holes.length - 1);
 		new_hole->pos = pos;
@@ -1413,6 +1540,58 @@ void remove_hole(Hole* hole) {
 			break;
 		}
 	}
+}
+
+void remove_terrain(Terrain* terrain) {
+	for (int terrain_index = 0; terrain_index < terrains.length; ++terrain_index) {
+		Terrain* t = get_terrains() + terrain_index;
+		if (t == NULL)
+			continue;
+
+		if (t == terrain) {
+			t->pos.x = -10.f;
+			t->pos.y = -10.f;
+			t->scale.x = 0.f;
+			t->scale.y = 0.f;
+			t->destroyed = TRUE;
+		}
+	}
+}
+
+Terrain* add_terrain(CP_Vector pos, TerrainType type) {
+	for (int terrain_index = 0; terrain_index < terrains.length; ++terrain_index) {
+		Terrain* t = get_terrains() + terrain_index;
+		if (t == NULL)
+			continue;
+
+		// if there's an unused ball in the array, we overwrite it
+		if (t->destroyed) {
+			t->pos = pos;
+			t->scale.x = 1.f;
+			t->scale.y = 1.f;
+			t->angle = 0.f;
+			t->angle_radians = 0.f;
+			t->type = type;
+			t->destroyed = FALSE;
+			return t;
+		}
+	}
+
+	// resize the array to accomodate a new hole in memory
+	++terrains.length;
+	terrains.arr = terrains.arr ? realloc(terrains.arr, sizeof(Terrain) * terrains.length) : malloc(sizeof(Terrain) * terrains.length);
+	if (terrains.arr) {
+		Terrain* t = get_terrains() + (terrains.length - 1);
+		t->pos = pos;
+		t->scale.x = 1.f;
+		t->scale.y = 1.f;
+		t->angle = 0.f;
+		t->angle_radians = 0.f;
+		t->type = type;
+		t->destroyed = FALSE;
+		return t;
+	}
+	return NULL;
 }
 
 void set_game_level(char level) {

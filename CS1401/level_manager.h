@@ -34,12 +34,16 @@ typedef struct LevelStruct {
     int items_size;
     float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = rotation rate, 5 = type]
 
+    int terrains_size;
+    float* terrains; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = type]
+
     int par;
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)
 static const int WALLS_OFFSET = 6;
 static const int ITEMS_OFFSET = 6;
+static const int TERRAINS_OFFSET = 6;
 static const int BALL_HOLE_OFFSET = 3;
 
 /*!
@@ -85,7 +89,7 @@ Level* get_level(int level);
 @param world_limits - The world width and height
 @param par - The par of the level
 */
-void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, CP_Vector world_limits, int par);
+void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
