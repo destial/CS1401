@@ -120,19 +120,19 @@ void main_menu_init(void)
 
 	buttons[9].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[9].pos.x = world_width1 * 0.5f;
-	buttons[9].pos.y = world_height1 * 0.5f;
+	buttons[9].pos.y = world_height1 * 0.48f;
 	buttons[9].start_pos.x = buttons[9].pos.x;
 	buttons[9].text = "1280 X 720";
 
 	buttons[10].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[10].pos.x = world_width1 * 0.5f;
-	buttons[10].pos.y = world_height1 * 0.4f;
+	buttons[10].pos.y = world_height1 * 0.38f;
 	buttons[10].start_pos.x = buttons[10].pos.x;
 	buttons[10].text = "1600 X 900";
 
 	buttons[11].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[11].pos.x = world_width1 * 0.5f;
-	buttons[11].pos.y = world_height1 * 0.3f;
+	buttons[11].pos.y = world_height1 * 0.28f;
 	buttons[11].start_pos.x = buttons[11].pos.x;
 	buttons[11].text = "1920 X 1080";
 
@@ -270,6 +270,11 @@ void main_menu_update(void)
 		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
 
 		CP_Settings_RectMode(CP_POSITION_CORNER);
+
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.35f);
 
 		CP_Settings_Fill(health_bar_background);
 		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
