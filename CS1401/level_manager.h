@@ -34,7 +34,7 @@ typedef struct LevelStruct {
     float middle_wall_angle;
 
     int items_size;
-    float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = rotation rate, 5 = type]
+    float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = type]
 
     int terrains_size;
     float* terrains; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = type]
@@ -44,7 +44,7 @@ typedef struct LevelStruct {
 
 // Offsets the float array by its respective values ^^ (see above)
 static const int WALLS_OFFSET = 6;
-static const int ITEMS_OFFSET = 6;
+static const int ITEMS_OFFSET = 5;
 static const int TERRAINS_OFFSET = 6;
 static const int BALL_HOLE_OFFSET = 3;
 

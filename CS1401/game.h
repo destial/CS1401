@@ -15,13 +15,15 @@ typedef enum ItemTypeEnum {
 	BOOST,
 	BIG,
 	SMALL,
-	REVERSE
+	REVERSE,
+	ITEM_LAST
 } ItemType;
 
 typedef enum TerrainTypeEnum {
 	SAND = 0,
 	ICE,
-	PIT
+	PIT,
+	TERRAIN_LAST
 } TerrainType;
 
 typedef struct WallStruct {
@@ -60,7 +62,6 @@ typedef struct ItemStruct {
 	float diameter; // item diameter (world space)
 	ItemType type; // item type
 	CP_BOOL collected; // if item has collected
-	float rotation_rate; // item rotation rate in degrees per second
 	float angle; // item rotation angle
 	CP_BOOL destroyed; // if this item is disabled (for object pooling)
 } Item;

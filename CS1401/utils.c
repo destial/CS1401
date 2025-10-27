@@ -50,7 +50,7 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length) {
 }
 
 CP_BOOL CP_Vector_IsZero(CP_Vector vect) {
-	return CP_Vector_Length(vect) <= 0.000001f;
+	return CP_Vector_LengthSquared(vect) <= 0.0001f;
 }
 
 float CP_Vector_LengthSquared(CP_Vector vect) {
@@ -64,6 +64,7 @@ CP_Color get_color(ColorCode code) {
 		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
 		colors[RED] = CP_Color_Create(255, 0, 0, 255);
 		colors[GREEN] = CP_Color_Create(3, 127, 81, 255);
+		colors[LIGHT_BLUE] = CP_Color_Create(173, 216, 255, 255);
 		colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
 		colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
 		colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);

@@ -15,6 +15,7 @@ typedef enum ColorCodeEnum {
 	BLACK = 0,
 	RED,
 	GREEN,
+	LIGHT_BLUE,
 	BLUE,
 	PURPLE,
 	VIOLET,
