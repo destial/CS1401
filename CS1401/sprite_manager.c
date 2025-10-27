@@ -14,20 +14,12 @@ void DrawSprite(SpriteSheet* sheet, float x, float y, float w, float h, int alph
 
 void DrawSpriteAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, int alpha, float degrees) {
 
-	// get the root image width & height
-	int img_h = CP_Image_GetHeight((CP_Image)sheet->root_image);
-	int img_w = CP_Image_GetWidth((CP_Image)sheet->root_image);
-
-	// get each sub image width and height according to rows and columns
-	int sub_h = img_h / sheet->rows;
-	int sub_w = img_w / sheet->columns;
-
 	// texture coordinates starting point
-	int u0 = sheet->current_column * sub_w;
-	int v0 = sheet->current_row * sub_h;
+	int u0 = sheet->current_column * sheet->sub_w;
+	int v0 = sheet->current_row * sheet->sub_h;
 
 	// draw the sub image of this sprite
-	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sub_w), (float) (v0 + sub_h), alpha, degrees);
+	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sheet->sub_w), (float) (v0 + sheet->sub_h), alpha, degrees);
 
 	// increment the animation frame based on the time elapsed
 	int frameCount = sheet->rows * sheet->columns;

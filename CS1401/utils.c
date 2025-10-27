@@ -8,9 +8,8 @@
 #include "utils.h"
 #include "math.h"
 
-// static
-CP_BOOL colors_init = FALSE;
-CP_Color colors[LAST];
+static CP_BOOL colors_init = FALSE;
+static CP_Color colors[LAST];
 
 CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {
 	CP_Vector a = { 
@@ -64,7 +63,7 @@ CP_Color get_color(ColorCode code) {
 		colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
 		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
 		colors[RED] = CP_Color_Create(255, 0, 0, 255);
-		colors[GREEN] = CP_Color_Create(0, 255, 0, 255);
+		colors[GREEN] = CP_Color_Create(3, 127, 81, 255);
 		colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
 		colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
 		colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);

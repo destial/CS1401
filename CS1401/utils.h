@@ -27,6 +27,11 @@ typedef enum ColorCodeEnum {
 	LAST
 } ColorCode;
 
+typedef struct ObjectArrayStruct {
+	void* arr;
+	int length;
+} ObjectArray;
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Converts world coordinates to screen coordinates

@@ -10,6 +10,7 @@
 #define LEVEL_MANAGER_H
 #include "cprocessing.h"
 #include "game.h"
+#include "utils.h"
 
 typedef struct Map {
     char* key;
@@ -17,22 +18,33 @@ typedef struct Map {
     struct Map* next;
 } Map;
 
-typedef struct Level {
+typedef struct LevelStruct {
     float world_width, world_height;
-    CP_Vector golf_pos_1, golf_pos_2;
-    CP_Vector hole_1, hole_2;
-    int par;
+
+    int golf_balls_size;
+    float* golf_balls; // [0 = x, 1 = y, 2 = diameter]
+
+    int holes_size;
+    float* holes; // [0 = x, 1 = y, 2 = diameter]
+    
     int walls_size;
     float* walls; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = rotation rate]
     float middle_wall_angle;
 
     int items_size;
     float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = rotation rate, 5 = type]
+
+    int terrains_size;
+    float* terrains; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = type]
+
+    int par;
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)
 static const int WALLS_OFFSET = 6;
 static const int ITEMS_OFFSET = 6;
+static const int TERRAINS_OFFSET = 6;
+static const int BALL_HOLE_OFFSET = 3;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -71,15 +83,13 @@ Level* get_level(int level);
 @brief Save the level based on the given level to a level text file.
 @param level - The level to load from text file (e.g. level_%d.lvl)
 @param walls - The walls array to save
-@param walls_amount - The amount of walls in the walls array
 @param golf_balls - The golf balls array to save
 @param holes - The holes array to save
 @param items - The items array to save
-@param items_amount - The amount of items in the items array
 @param world_limits - The world width and height
 @param par - The par of the level
 */
-void save_level(int level, Wall* walls, int walls_amount, GolfBall* golf_balls, Hole* holes, Item* items, int items_amount, CP_Vector world_limits, int par);
+void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

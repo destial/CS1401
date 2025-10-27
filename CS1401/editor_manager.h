@@ -10,12 +10,19 @@
 #define DEBUG_MANAGER_H
 #include "cprocessing.h"
 #include "game.h"
+#include "utils.h"
 
 /*!
-@brief Check if mouse is on quad
+@brief Check if mouse is on wall
 @param wall - The wall to check
 */
-CP_BOOL check_on_quad(Wall* wall);
+CP_BOOL check_on_wall(Wall* wall);
+
+/*!
+@brief Check if mouse is on terrain
+@param terrain - The terrain to check
+*/
+CP_BOOL check_on_terrain(Terrain* terrain);
 
 /*!
 @brief Check if mouse is on circle
@@ -27,30 +34,32 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter);
 /*!
 @brief Process wall editor
 @param walls - The array of walls in the current level
-@param size - The number of walls in the current level
 */
-void update_editor_walls(Wall* walls, int size);
+void update_editor_walls(ObjectArray* walls);
 
 /*!
 @brief Process hole editor
 @param holes - The array of holes in the current level
-@param size - The number of holes in the current level
 */
-void update_editor_holes(Hole* holes, int size);
+void update_editor_holes(ObjectArray* holes);
 
 /*!
 @brief Process ball editor
 @param golfs - The array of golf balls in the current level
-@param size - The number of golf balls in the current level
 */
-void update_editor_golfs(GolfBall* golfs, int size);
+void update_editor_golfs(ObjectArray* golfs);
 
 /*!
 @brief Process items editor
 @param items - The array of items in the current level
-@param size - The number of items in the current level
 */
-void update_editor_items(Item* items, int size);
+void update_editor_items(ObjectArray* items);
+
+/*!
+@brief Process terrain editor
+@param terrains - The array of terrains in the current level
+*/
+void update_editor_terrains(ObjectArray* terrains);
 
 /*!
 @brief Final process editors
