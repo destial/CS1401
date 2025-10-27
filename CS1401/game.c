@@ -455,7 +455,7 @@ void game_render(void)
 
 		CP_Vector c = world_to_screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
 		CP_Color sand = get_color(ORANGE);
-		CP_Color ice = get_color(BLUE);
+		CP_Color ice = get_color(LIGHT_BLUE);
 		CP_Color pit = get_color(RED);
 		CP_Settings_Fill(
 			terrain->type == SAND ? CP_Color_Create(sand.r, sand.g, sand.b, 128) :
@@ -622,8 +622,8 @@ void game_render(void)
 		}
 
 		if (image != NULL) {
-			if (item->rotation_rate) {
-				item->angle += item->rotation_rate * CP_System_GetDt();
+			if (item->type == REVERSE) {
+				item->angle += 45.f * CP_System_GetDt();
 				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 			}
 			float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
@@ -645,9 +645,6 @@ void game_render(void)
 
 			char p[64]; sprintf_s(p, 64, "Pos: (%.2f, %.2f)", item->pos.x, item->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 60);
-
-			char rr[64]; sprintf_s(rr, 64, "Rot Rate: %.2f", item->rotation_rate);
-			CP_Font_DrawText(rr, coords.x, coords.y + 80);
 
 			CP_Settings_NoFill();
 			CP_Settings_Stroke(get_color(GREEN));
@@ -1080,8 +1077,7 @@ void load(void) {
 
 				item->diameter = loaded_level->items[i + 2];
 				item->angle = loaded_level->items[i + 3];
-				item->rotation_rate = loaded_level->items[i + 4];
-				item->type = (int) loaded_level->items[i + 5];
+				item->type = (int) loaded_level->items[i + 4];
 
 				item->collected = FALSE;
 				item->destroyed = FALSE;
@@ -1279,7 +1275,6 @@ void load(void) {
 		itemarr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
 		itemarr[0].diameter = 1.f;
 		itemarr[0].angle = 0.f;
-		itemarr[0].rotation_rate = 0.f;
 		itemarr[0].collected = FALSE;
 		itemarr[0].destroyed = FALSE;
 
@@ -1287,7 +1282,6 @@ void load(void) {
 		itemarr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
 		itemarr[1].diameter = 1.f;
 		itemarr[1].angle = 0.f;
-		itemarr[1].rotation_rate = 0.f;
 		itemarr[1].collected = FALSE;
 		itemarr[1].destroyed = FALSE;
 
@@ -1295,7 +1289,6 @@ void load(void) {
 		itemarr[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
 		itemarr[2].diameter = 1.f;
 		itemarr[2].angle = 0.f;
-		itemarr[2].rotation_rate = 0.f;
 		itemarr[2].collected = FALSE;
 		itemarr[2].destroyed = FALSE;
 
@@ -1303,7 +1296,6 @@ void load(void) {
 		itemarr[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
 		itemarr[3].diameter = 1.f;
 		itemarr[3].angle = 0.f;
-		itemarr[3].rotation_rate = 45.f;
 		itemarr[3].collected = FALSE;
 		itemarr[3].destroyed = FALSE;
 	}
@@ -1397,7 +1389,6 @@ Item* add_item(CP_Vector pos, ItemType type) {
 			i->pos = pos;
 			i->diameter = 1.f;
 			i->angle = 0.f;
-			i->rotation_rate = type == REVERSE ? 45.f : 0.f;
 			i->destroyed = FALSE;
 			i->collected = FALSE;
 			i->type = type;
@@ -1413,7 +1404,6 @@ Item* add_item(CP_Vector pos, ItemType type) {
 		new_item->pos = pos;
 		new_item->diameter = 1.f;
 		new_item->angle = 0.f;
-		new_item->rotation_rate = type == REVERSE ? 45.f : 0.f;
 		new_item->destroyed = FALSE;
 		new_item->collected = FALSE;
 		new_item->type = type;
@@ -1432,7 +1422,6 @@ void remove_item(Item* item) {
 			i->pos.x = -10.f;
 			i->pos.y = -10.f;
 			i->diameter = -1.f;
-			i->rotation_rate = 0.f;
 			i->angle = 0.f;
 			i->destroyed = TRUE;
 			i->collected = FALSE;

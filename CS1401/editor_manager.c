@@ -60,13 +60,6 @@ void update_editor_walls(ObjectArray* walls) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
-		remove_wall((Wall*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
-	}
-
 	for (int i = 0; i < walls->length; i++) {
 		Wall* wall = (Wall*)walls->arr + i;
 		if (wall == NULL || wall->destroyed)
@@ -81,6 +74,13 @@ void update_editor_walls(ObjectArray* walls) {
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == wall) {
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
+		remove_wall((Wall*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
 	}
 }
 
@@ -114,13 +114,6 @@ void update_editor_terrains(ObjectArray* terrains) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == TERRAIN) {
-		remove_terrain((Terrain*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
-	}
-
 	for (int i = 0; i < terrains->length; i++) {
 		Terrain* terrain = (Terrain*)terrains->arr + i;
 		if (terrain == NULL || terrain->destroyed)
@@ -134,6 +127,28 @@ void update_editor_terrains(ObjectArray* terrains) {
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == terrain) {
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
+		}
+	}
+
+	if (current_editing != NULL && current_type == TERRAIN) {
+		Terrain* t = (Terrain*)current_editing;
+		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
+			++t->type;
+			if (t->type == TERRAIN_LAST) {
+				t->type = 0;
+			}
+		}
+		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
+			--t->type;
+			if (t->type == -1) {
+				t->type = TERRAIN_LAST - 1;
+			}
+		}
+		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
+			remove_terrain(t);
+			current_editing = NULL;
+			current_dragging = NULL;
+			current_type = NONE;
 		}
 	}
 }
@@ -150,13 +165,6 @@ void update_editor_holes(ObjectArray* holes) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == HOLE) {
-		remove_hole((Hole*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
-	}
-
 	for (int i = 0; i < holes->length; i++) {
 		Hole* hole = (Hole*) holes->arr + i;
 		if (hole == NULL || hole->destroyed)
@@ -167,6 +175,13 @@ void update_editor_holes(ObjectArray* holes) {
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
 		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == HOLE) {
+		remove_hole((Hole*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
 	}
 }
 
@@ -182,13 +197,6 @@ void update_editor_golfs(ObjectArray* golfs) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == GOLF_BALL) {
-		remove_ball((GolfBall*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
-	}
-
 	for (int i = 0; i < golfs->length; i++) {
 		GolfBall* golf = (GolfBall*) golfs->arr + i;
 		if (golf == NULL || golf->destroyed)
@@ -199,6 +207,13 @@ void update_editor_golfs(ObjectArray* golfs) {
 			current_editing_offset = CP_Vector_Subtract(golf->pos, mouse_world);
 			current_type = GOLF_BALL;
 		}
+	}
+
+	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == GOLF_BALL) {
+		remove_ball((GolfBall*)current_editing);
+		current_editing = NULL;
+		current_dragging = NULL;
+		current_type = NONE;
 	}
 }
 
@@ -235,13 +250,6 @@ void update_editor_items(ObjectArray* items) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == ITEM) {
-		remove_item((Item*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
-	}
-
 	for (int i = 0; i < items->length; i++) {
 		Item* item = (Item*)items->arr + i;
 		if (item == NULL || item->destroyed)
@@ -251,6 +259,30 @@ void update_editor_items(ObjectArray* items) {
 			current_editing = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
+		}
+	}
+
+	if (current_editing != NULL && current_type == ITEM) {
+		Item* i = (Item*)current_editing;
+		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
+			++i->type;
+			if (i->type == ITEM_LAST) {
+				i->type = NO_ITEM_TYPE + 1;
+			}
+			i->angle = 0.f;
+		}
+		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
+			--i->type;
+			if (i->type == NO_ITEM_TYPE) {
+				i->type = ITEM_LAST - 1;
+			}
+			i->angle = 0.f;
+		}
+		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
+			remove_item(i);
+			current_editing = NULL;
+			current_dragging = NULL;
+			current_type = NONE;
 		}
 	}
 }

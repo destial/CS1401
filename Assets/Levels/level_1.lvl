@@ -20,5 +20,5 @@ terrain_0_type=0
 terrain_1_pos=36.480000,6.990000
 terrain_1_scale=7.599995,7.599995
 terrain_1_angle=0.000000
-terrain_1_type=0
+terrain_1_type=1
 terrains_amount=2

@@ -211,15 +211,10 @@ Level* get_level(int level) {
                     char* line_angle = get_value(root, item_angle);
                     lvl->items[i + 3] = line_angle ? (float)atof(line_angle) : 0.f;
 
-                    char item_rot_rate[32];
-                    sprintf_s(item_rot_rate, 32, "item_%d_rot_rate", item_index);
-                    char* line_rot_rate = get_value(root, item_rot_rate);
-                    lvl->items[i + 4] = line_rot_rate ? (float)atof(line_rot_rate) : 0.f;
-
                     char item_type[32];
                     sprintf_s(item_type, 32, "item_%d_type", item_index);
                     char* line_type = get_value(root, item_type);
-                    lvl->items[i + 5] = line_type ? (float)atoi(line_type) : 0.f;
+                    lvl->items[i + 4] = line_type ? (float)atoi(line_type) : 0.f;
                 }
             }
             else {
@@ -366,11 +361,10 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
 
         char item_data[1024];
         sprintf_s(item_data, 1024,
-            "\nitem_%d_pos=%f,%f\nitem_%d_diameter=%f\nitem_%d_angle=%f\nitem_%d_rot_rate=%f\nitem_%d_type=%d",
+            "\nitem_%d_pos=%f,%f\nitem_%d_diameter=%f\nitem_%d_angle=%f\nitem_%d_type=%d",
             item_index, item->pos.x, item->pos.y,
             item_index, item->diameter,
             item_index, item->angle,
-            item_index, item->rotation_rate,
             item_index, item->type
         );
         strcat_s(level_file, FILE_SIZE, item_data);
