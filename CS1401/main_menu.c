@@ -51,7 +51,7 @@ void main_menu_init(void)
 
 	CP_Font_Set(button_font);
 
-	//defining the individual buttons
+	//play button
 	buttons[0].button_image = get_image(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;
 	buttons[0].pos.y = world_height1 * 0.5f;
@@ -59,6 +59,7 @@ void main_menu_init(void)
 	buttons[0].func = play_button;
 	buttons[0].text = "PLAY";
 
+	//setting button
 	buttons[1].button_image = get_image(BUTTON_BLUE_ASSET);
 	buttons[1].pos.x = world_width1 * 0.5f;
 	buttons[1].pos.y = world_height1 * 0.35f;
@@ -66,6 +67,7 @@ void main_menu_init(void)
 	buttons[1].func = setting_button;
 	buttons[1].text = "SETTING";
 
+	//quit button
 	buttons[2].button_image = get_image(BUTTON_GREY_ASSET);
 	buttons[2].pos.x = world_width1 * 0.5f;
 	buttons[2].pos.y = world_height1 * 0.2f;
@@ -73,6 +75,7 @@ void main_menu_init(void)
 	buttons[2].func = exit_main_menu;
 	buttons[2].text = "QUIT";
 
+	//start of level select button
 	buttons[3].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[3].pos.x = world_width1 * 1.1f;
 	buttons[3].pos.y = world_height1 * .8f;
@@ -112,7 +115,9 @@ void main_menu_init(void)
 	buttons[7].start_pos.x = buttons[7].pos.x;
 	buttons[7].func = change_screen;
 	buttons[7].text = "5";
-
+	//end of level select button
+	
+	//level select back button
 	buttons[8].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[8].pos.x = world_width1 * 1.5f;
 	buttons[8].pos.y = world_height1 * .15f;
@@ -121,6 +126,7 @@ void main_menu_init(void)
 	buttons[8].func = play_button;
 	buttons[8].text = "<";
 
+	//start of resolution buttons
 	buttons[9].button_image = get_image(LEVEL_BUTTON_ASSET);
 	buttons[9].pos.x = world_width1 * 0.35f;
 	buttons[9].pos.y = world_height1 * 0.28f;
@@ -138,7 +144,9 @@ void main_menu_init(void)
 	buttons[11].pos.y = world_height1 * 0.28f;
 	buttons[11].start_pos.x = buttons[11].pos.x;
 	buttons[11].text = "1920 X 1080";
+	//end of resolution button
 
+	//settings back button
 	buttons[12].button_image = get_image(BUTTON_GREY_ASSET);
 	buttons[12].pos.x = world_width1 * 0.25f;
 	buttons[12].pos.y = world_height1 * 0.7f;
