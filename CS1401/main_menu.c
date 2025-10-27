@@ -272,16 +272,17 @@ void main_menu_update(void)
 		CP_Settings_RectMode(CP_POSITION_CORNER);
 
 		CP_Settings_Fill(health_bar_background);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 900.0f, 45.0f);
+		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
 
 		CP_Settings_Fill(health_bar);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, sound_limit * 900.0f, 45.0f);
+		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, (sound_limit * 27.0f) * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
 		
 		
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
-			if (mouse_x >= CP_System_GetWindowWidth() * 0.22f && mouse_x <= CP_System_GetWindowWidth() * 0.22f + 900.0f
-				&& mouse_y >= CP_System_GetWindowHeight() * 0.4f && mouse_y <= CP_System_GetWindowHeight() * 0.4f + 45.0f) {
-				sound_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / 900.0f;
+			if (mouse_x >= 0.22f * CP_System_GetWindowWidth() && mouse_x <= 0.22f * CP_System_GetWindowWidth() + (27.0f * CP_System_GetWindowWidth() / world_width1)
+				&& mouse_y >= 0.4f * CP_System_GetWindowHeight() && mouse_y <= 0.4f * CP_System_GetWindowHeight() + 1.3f * CP_System_GetWindowHeight() / world_height1) {
+				
+				sound_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
 				CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sound_limit);
 			}
 		}
