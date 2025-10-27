@@ -520,12 +520,13 @@ void game_render(void)
 			CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_MIRROR);
 			int w = CP_Image_GetWidth(wall->image);
 			int h = CP_Image_GetHeight(wall->image);
+			int d = gcd((int) wall->scale.x, (int) wall->scale.y);
 			CP_Image_DrawSubImageAdvanced(wall->image,
 				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
-				0.f, 0.f, wall->scale.x * w, wall->scale.y * h,
+				0.f, 0.f, w * (wall->scale.x / d), h * (wall->scale.y / d),
 				255, wall->angle
 			);
 

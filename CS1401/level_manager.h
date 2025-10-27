@@ -12,6 +12,8 @@
 #include "game.h"
 #include "utils.h"
 
+#define TOTAL_LEVELS 5
+
 typedef struct Map {
     char* key;
     char* value;
