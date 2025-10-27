@@ -164,8 +164,7 @@ void main_menu_update(void)
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	CP_Color sound_bar = CP_Color_Create(255, 255, 255, 255);
-	CP_Color sound_bar_background = CP_Color_Create(150, 150, 150, 255);
+	main_menu_button(mouse_x, mouse_y);
 
 	if (!is_clicked) {
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
@@ -178,6 +177,21 @@ void main_menu_update(void)
 			255);
 	}
 
+	level_select_button(mouse_x, mouse_y);
+
+	//SETTING PAGE
+	if (is_setting_clicked) {
+		//drawing setting background
+		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+
+		volume_bar(mouse_x, mouse_y);
+	}
+
+	resolution_button(mouse_x, mouse_y);
+	back_buttons(mouse_x, mouse_y);
+}
+
+void main_menu_button(float mouse_x, float mouse_y) {
 	//MAIN MENU SCREEN BUTTON
 	for (int i = 0; i < 3; i++) {
 		//defining the position of the button
@@ -188,7 +202,7 @@ void main_menu_update(void)
 		};
 
 		//Drawing the button
-		CP_Image_DrawAdvanced((CP_Image) buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		CP_Image_DrawAdvanced((CP_Image)buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 		//Drawing Text
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
@@ -197,13 +211,13 @@ void main_menu_update(void)
 		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
 		//telling what the button should do
-		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5 && !is_overlayed) 
+		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5 && !is_overlayed)
 		{
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 9.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.0f, CP_System_GetDt() * 5);
 
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1)) 
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				if (buttons[i].func) {
 					buttons[i].func();
@@ -223,7 +237,9 @@ void main_menu_update(void)
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].start_pos.x, CP_System_GetDt() * 4);
 		}
 	}
+}
 
+void level_select_button(float mouse_x, float mouse_y) {
 	//LEVEL SELECT BUTTONS
 	for (int i = 3; i < 8; i++) {
 		//defining the position of the button
@@ -248,7 +264,7 @@ void main_menu_update(void)
 		else {
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].start_pos.x, CP_System_GetDt() * 4);
 		}
-		
+
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
@@ -266,79 +282,80 @@ void main_menu_update(void)
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 5.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 		}
-		
+
+	}
+}
+
+void volume_bar(float mouse_x, float mouse_y) {
+	CP_Color sound_bar = CP_Color_Create(255, 255, 255, 255);
+	CP_Color sound_bar_background = CP_Color_Create(150, 150, 150, 255);
+
+	CP_Settings_RectMode(CP_POSITION_CORNER);
+
+	//START DRAWING OF VOLUME BARS
+	//drawing of SFX volume button
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText("SFX Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.35f);
+
+	//drawing of Music volume button
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText("Music Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
+
+	//drawing of SFX volume bar
+	CP_Settings_Fill(sound_bar_background);
+	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
+	//drawing of SFX volume bar background
+	CP_Settings_Fill(sound_bar);
+	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, (sfx_limit * 27.0f) * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
+
+	//drawing of Music volume bar
+	CP_Settings_Fill(sound_bar_background);
+	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.55f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
+	//drawing of Music volume bar background
+	CP_Settings_Fill(sound_bar);
+	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.55f, (music_limit * 27.0f) * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
+
+	//check if mouse is within the SFX volume bar and if the left mouse is held down
+	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
+		if (mouse_x >= 0.22f * CP_System_GetWindowWidth() && mouse_x <= 0.22f * CP_System_GetWindowWidth() + (27.0f * CP_System_GetWindowWidth() / world_width1)
+			&& mouse_y >= 0.4f * CP_System_GetWindowHeight() && mouse_y <= 0.4f * CP_System_GetWindowHeight() + 1.3f * CP_System_GetWindowHeight() / world_height1) {
+
+			sfx_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
+			CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
+		}
 	}
 
-	//SETTING PAGE
-	if (is_setting_clicked) {
-		//drawing setting background
-		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+	//check if mouse is within the Music volume bar and if the left mouse is held down
+	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
+		if (mouse_x >= 0.22f * CP_System_GetWindowWidth() && mouse_x <= 0.22f * CP_System_GetWindowWidth() + (27.0f * CP_System_GetWindowWidth() / world_width1)
+			&& mouse_y >= 0.55f * CP_System_GetWindowHeight() && mouse_y <= 0.55f * CP_System_GetWindowHeight() + 1.3f * CP_System_GetWindowHeight() / world_height1) {
 
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-
-		//START DRAWING OF VOLUME BARS
-		//drawing of SFX volume button
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("SFX Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.35f);
-
-		//drawing of Music volume button
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("Music Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
-
-		//drawing of SFX volume bar
-		CP_Settings_Fill(sound_bar_background);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
-		//drawing of SFX volume bar background
-		CP_Settings_Fill(sound_bar);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, (sfx_limit * 27.0f) * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
-		
-		//drawing of Music volume bar
-		CP_Settings_Fill(sound_bar_background);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.55f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
-		//drawing of Music volume bar background
-		CP_Settings_Fill(sound_bar);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.55f, (music_limit * 27.0f)* CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
-
-		//check if mouse is within the SFX volume bar and if the left mouse is held down
-		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
-			if (mouse_x >= 0.22f * CP_System_GetWindowWidth() && mouse_x <= 0.22f * CP_System_GetWindowWidth() + (27.0f * CP_System_GetWindowWidth() / world_width1)
-				&& mouse_y >= 0.4f * CP_System_GetWindowHeight() && mouse_y <= 0.4f * CP_System_GetWindowHeight() + 1.3f * CP_System_GetWindowHeight() / world_height1) {
-				
-				sfx_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
-				CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
-			}
+			music_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
+			CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
 		}
-
-		//check if mouse is within the Music volume bar and if the left mouse is held down
-		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
-			if (mouse_x >= 0.22f * CP_System_GetWindowWidth() && mouse_x <= 0.22f * CP_System_GetWindowWidth() + (27.0f * CP_System_GetWindowWidth() / world_width1)
-				&& mouse_y >= 0.55f * CP_System_GetWindowHeight() && mouse_y <= 0.55f * CP_System_GetWindowHeight() + 1.3f * CP_System_GetWindowHeight() / world_height1) {
-
-				music_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
-				CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
-			}
-		}
-
-		//drawing of volume percentage base on the mouse position
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(1.0f * CP_System_GetWindowHeight() / world_height1);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		char p[50]; sprintf_s(p, 50, "%.1f", sfx_limit * 100);
-		CP_Font_DrawText(p, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.425f);
-
-		//drawing of volume percentage base on the mouse position
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(1.0f * CP_System_GetWindowHeight() / world_height1);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		char o[50]; sprintf_s(o, 50, "%.1f", music_limit * 100);
-		CP_Font_DrawText(o, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.575f);
-		//ENDING DRAWING OF VOLUME BARS
 	}
 
+	//drawing of volume percentage base on the mouse position
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(1.0f * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	char p[50]; sprintf_s(p, 50, "%.1f", sfx_limit * 100);
+	CP_Font_DrawText(p, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.425f);
+
+	//drawing of volume percentage base on the mouse position
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(1.0f * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	char o[50]; sprintf_s(o, 50, "%.1f", music_limit * 100);
+	CP_Font_DrawText(o, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.575f);
+	//ENDING DRAWING OF VOLUME BARS
+}
+
+void resolution_button(float mouse_x, float mouse_y) {
 	//RESOLUTION BUTTONS
 	for (int i = 9; i < 12; i++) {
 		//defining the position of the button
@@ -380,12 +397,12 @@ void main_menu_update(void)
 				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 0.0f, CP_System_GetDt() * 5);
 				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.0f, CP_System_GetDt() * 5);
 			}
-			
+
 		}
-
-		
 	}
+}
 
+void back_buttons(float mouse_x, float mouse_y) {
 	//BACK BUTTON FOR LEVEL SELECT
 	CP_Vector coords_back_level = world_to_screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_level = {
@@ -484,15 +501,15 @@ void change_screen(void) {
 
 void change_resolution(num) {
 	switch (num) {
-		case 0:
-			CP_System_SetWindowSize(1280, 720);
-			break;
-		case 1:
-			CP_System_SetWindowSize(1600, 900);
-			break;
-		case 2:
-			CP_System_SetWindowSize(1920, 1080);
-			break;
+	case 0:
+		CP_System_SetWindowSize(1280, 720);
+		break;
+	case 1:
+		CP_System_SetWindowSize(1600, 900);
+		break;
+	case 2:
+		CP_System_SetWindowSize(1920, 1080);
+		break;
 	}
 }
 
