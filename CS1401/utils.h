@@ -99,4 +99,11 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 */
 CP_Color get_color(ColorCode code);
 
+/*!
+@brief The greatest common divisor between two integers (e.g. a / b, to find the simplest fraction)
+@param a - The first int
+@param b - The second int
+*/
+int gcd(int a, int b);
+
 #endif
