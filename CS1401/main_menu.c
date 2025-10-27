@@ -160,6 +160,8 @@ void main_menu_init(void)
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(window_size_W, window_size_H);
+
+	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_MUSIC), 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
 }
 
 void main_menu_update(void) 
@@ -167,7 +169,7 @@ void main_menu_update(void)
 	CP_Graphics_ClearBackground(CP_Color_Create(255, 255, 255, 255));
 	CP_Settings_Scale(1.f, 1.f);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-	CP_Image_Draw((CP_Image) background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, 255);
+	CP_Image_Draw(background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, 255);
 	
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
@@ -210,7 +212,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		};
 
 		//Drawing the button
-		CP_Image_DrawAdvanced((CP_Image)buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 		//Drawing Text
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));

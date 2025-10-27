@@ -40,6 +40,7 @@
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
 #define GOLF_HIT_STROKE_ASSET "Assets/Audio/Golf_hit.wav"
 #define VICTORY_ASSET "Assets/Audio/victory.wav"
+#define BACKGROUND_MUSIC_ASSET "Assets/Audio/background_music.wav"
 
 // Fonts
 

@@ -110,6 +110,8 @@ void game_init(void)
 	all_balls_stopped = TRUE;
 	editor_mode = FALSE;
 
+	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_MUSIC), 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
+
 	// fix timestep
 	current_time = CP_System_GetSeconds();
 }
@@ -744,6 +746,7 @@ void game_render(void)
 
 void game_exit(void)
 {
+	CP_Sound_StopAll();
 	// free level allocations
 	free(walls.arr);
 	free(items.arr);
