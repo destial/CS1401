@@ -16,6 +16,11 @@
 #define FILE_SIZE 8192
 #endif
 
+typedef struct MapStruct {
+    char* key, * value;
+    Map* next;
+} Map;
+
 Level* get_level(int level) {
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);

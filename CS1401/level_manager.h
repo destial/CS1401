@@ -14,14 +14,10 @@
 
 #define TOTAL_LEVELS 5
 
-typedef struct Map {
-    char* key;
-    char* value;
-    struct Map* next;
-} Map;
+typedef struct MapStruct Map;
 
 typedef struct LevelStruct {
-    float world_width, world_height;
+    float world_width, world_height, middle_wall_angle;
 
     int golf_balls_size;
     float* golf_balls; // [0 = x, 1 = y, 2 = diameter]
@@ -31,7 +27,6 @@ typedef struct LevelStruct {
     
     int walls_size;
     float* walls; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = rotation rate]
-    float middle_wall_angle;
 
     int items_size;
     float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = type]

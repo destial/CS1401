@@ -27,43 +27,32 @@ typedef enum TerrainTypeEnum {
 } TerrainType;
 
 typedef struct WallStruct {
-	CP_Vector pos; // wall position (world space)
-	CP_Vector scale; // wall scale (world space)
-	CP_Vector normal; // wall normal vector (calculated based on angle, always updated before collision testing)
-	CP_Vector right; // wall right vector (calculated based on normal)
+	CP_Vector pos, scale, normal, right; // wall position, scale, normal, right (world space)
 	CP_Color color; // wall color if no base image
 	CP_Image image; // wall image
-	float angle; // wall rotation angle in degrees
-	float angle_radians; // wall angle in radians (touching this is useless)
-	float rotation_rate; // wall rotation rate in degrees per second
+	float angle, angle_radians, rotation_rate; // wall rotation angle & rate
 	CP_BOOL destroyed; // if this wall is disabled (for object pooling)
 
 	// debug only values
-	CP_Vector _collision_point;
-	CP_Vector _wall_to_ball;
+	CP_Vector _collision_point, _wall_to_ball;
 } Wall;
 
 typedef struct GolfBallStruct {
-	CP_Vector pos; // golfball position (world space)
-	CP_Vector prev_pos; // golfball position in previous physics update
-	CP_Vector vel; // golfball velocity (world space)
-	float diameter; // golfball diameter (world space)
-	float angle; // golfball rotation angle
-	CP_BOOL dragging; // player currently striking
-	CP_BOOL halt; // if one ball is currently striking, halt the other ball from moving
-	CP_BOOL scored; // if this ball has scored
-	CP_BOOL scoring; // if this ball is falling in the hole (for animation purposes)
-	CP_BOOL destroyed; // if this ball is disabled (for object pooling)
-	CP_Vector stroke_pos;
+	CP_Vector pos, vel, prev_pos, stroke_pos; // golfball position, velocity, prev pos & last stroke pos (world space)
+	float diameter, angle; // golfball diameter (world space) & rotation angle
+	CP_BOOL dragging, halt, scored, scoring, destroyed; 
+	// dragging  player currently striking
+	// halt = if one ball is currently striking, halt the other ball from moving
+	// scored = if this ball has scored
+	// scoring = if this ball is falling in the hole (for animation purposes)
+	// destroyed = if this ball is disabled (for object pooling)
 } GolfBall;
 
 typedef struct ItemStruct {
 	CP_Vector pos; // item position (world space)
-	float diameter; // item diameter (world space)
+	float diameter, angle; // item diameter (world space) & rotation angle
 	ItemType type; // item type
-	CP_BOOL collected; // if item has collected
-	float angle; // item rotation angle
-	CP_BOOL destroyed; // if this item is disabled (for object pooling)
+	CP_BOOL collected, destroyed; // if item has collected or destroyed (for object pooling)
 } Item;
 
 typedef struct HoleStruct {
@@ -73,11 +62,9 @@ typedef struct HoleStruct {
 } Hole;
 
 typedef struct TerrainStruct {
-	CP_Vector pos;
-	CP_Vector scale; // terrain scale (world space)
+	CP_Vector pos, scale; // terrain pos & scale (world space)
 	TerrainType type; // terrain type
-	float angle; // terrain rotation angle in degrees
-	float angle_radians; // terrain angle in radians (touching this is useless)
+	float angle, angle_radians; // terrain rotation angle
 	CP_BOOL destroyed; // if this terrain is disabled (for object pooling)
 } Terrain;
 
