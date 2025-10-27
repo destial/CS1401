@@ -77,12 +77,12 @@ Level* get_level(int level) {
             lvl->world_height = (float)atof(get_value(root, "height"));
 
             lvl->walls_size = atoi(get_value(root, "walls_amount"));
-            lvl->walls = lvl->walls_size ? malloc(sizeof(float) * lvl->walls_size * WALLS_OFFSET) : NULL;
+            lvl->walls = lvl->walls_size ? calloc(lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
 
             char* old_format = get_value(root, "golf_1");
             if (old_format) {
                 lvl->golf_balls_size = 2;
-                lvl->golf_balls = malloc(sizeof(float) * lvl->golf_balls_size * BALL_HOLE_OFFSET);
+                lvl->golf_balls = calloc(lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 CP_Vector ball_1 = get_vector(old_format);
                 CP_Vector ball_2 = get_vector(get_value(root, "golf_2"));
@@ -98,7 +98,7 @@ Level* get_level(int level) {
                 CP_Vector hole_2 = get_vector(get_value(root, "hole_2"));
 
                 lvl->holes_size = 2;
-                lvl->holes = malloc(sizeof(float) * lvl->holes_size * BALL_HOLE_OFFSET);
+                lvl->holes = calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
                 lvl->holes[0] = hole_1.x;
                 lvl->holes[1] = hole_1.y;
                 lvl->holes[2] = 1.5f;
@@ -109,7 +109,7 @@ Level* get_level(int level) {
             }
             else {
                 lvl->golf_balls_size = atoi(get_value(root, "golf_amount"));
-                lvl->golf_balls = malloc(sizeof(float) * lvl->golf_balls_size * BALL_HOLE_OFFSET);
+                lvl->golf_balls = calloc(lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int ball_index = 0;
                 for (int i = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
@@ -127,7 +127,7 @@ Level* get_level(int level) {
                 }
 
                 lvl->holes_size = atoi(get_value(root, "holes_amount"));
-                lvl->holes = malloc(sizeof(float) * lvl->holes_size * BALL_HOLE_OFFSET);
+                lvl->holes = calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int hole_index = 0;
                 for (int i = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
@@ -190,7 +190,7 @@ Level* get_level(int level) {
             char* item_size_line = get_value(root, "items_amount");
             if (item_size_line) {
                 lvl->items_size = atoi(item_size_line);
-                lvl->items = malloc(sizeof(float) * lvl->items_size * ITEMS_OFFSET);
+                lvl->items = calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
 
                 int item_index = 0;
                 for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
@@ -226,7 +226,7 @@ Level* get_level(int level) {
             char* terrain_size_line = get_value(root, "terrains_amount");
             if (terrain_size_line) {
                 lvl->terrains_size = atoi(terrain_size_line);
-                lvl->terrains = malloc(sizeof(float) * lvl->terrains_size * TERRAINS_OFFSET);
+                lvl->terrains = calloc(lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
 
                 int terrain_index = 0;
                 for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
@@ -422,7 +422,7 @@ char* read_content(const char* filename) {
         fsize = ftell(fp);
         rewind(fp);
 
-        fcontent = malloc(sizeof(char) * fsize);
+        fcontent = calloc(fsize, sizeof(char));
         if (fcontent) {
             fread(fcontent, 1, fsize, fp);
         }
@@ -461,11 +461,11 @@ void free_map(Map* map) {
         free_map(map->next);
         map->next = NULL;
     }
-    if (map->key != NULL) {
+    if (map->key) {
         free(map->key);
         map->key = NULL;
     }
-    if (map->value != NULL) {
+    if (map->value) {
         free(map->value);
         map->value = NULL;
     }

@@ -50,6 +50,8 @@
 
 #define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
+typedef struct AssetStruct Asset;
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the image at this file path

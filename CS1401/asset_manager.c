@@ -15,17 +15,14 @@ typedef enum AssetType {
     SPRITE
 } AssetType;
 
-// polymorphism !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! hoorayy
-typedef struct Asset { 
+typedef struct AssetStruct { 
     AssetType type;
-    struct Asset* next;
-    const char* key;
-    union {
-        CP_Image image;
-        CP_Font font;
-        CP_Sound audio;
-		SpriteSheet* sprite;
-    };
+    char* key;
+    CP_Image image;
+    CP_Font font;
+    CP_Sound audio;
+    SpriteSheet* sprite;
+    Asset* next;
 } Asset;
 
 Asset* root_assets = NULL;
@@ -168,8 +165,7 @@ static void free_assetmap(Asset* map) {
 }
 
 static Asset* get_node(const char* key) {
-    Asset* ptr;
-    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->key == NULL)
             continue;
 
@@ -192,8 +188,7 @@ CP_Image get_image(const char* filepath) {
     }
     
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    Asset* ptr;
-    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == IMAGE) {
 			return ptr->image;
         }
@@ -229,8 +224,7 @@ CP_Font get_font(const char* filepath) {
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    Asset* ptr;
-    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == FONT) {
             return ptr->font;
         }
@@ -266,8 +260,7 @@ CP_Sound get_audio(const char* filepath) {
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    Asset* ptr;
-    for (ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == AUDIO) {
             return ptr->audio;
         }
