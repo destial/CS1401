@@ -1,5 +1,12 @@
 #pragma once
 
+/*!
+@author Nathan Ng (n.ng@digipen.edu)
+@date 8 September 2025
+@course CSD1401
+@brief this file contains header functions for the main_menu
+*/
+
 void main_menu_init(void);
 void main_menu_update(void);
 void change_screen(void);
