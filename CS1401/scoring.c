@@ -11,6 +11,18 @@
 int stroke = 0;
 int lvl_par = 4;
 int bogey, birdie, eagle, d_bogey, t_bogey, albatross;
+int par;
+
+//setting button
+typedef struct Button {
+	CP_Vector pos;
+	CP_Vector ending_pos;
+	CP_Vector scale;
+	CP_Image button_image;
+	FunctionPtr func;
+} Button;
+
+Button sbButton[10];
 
 void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation) {
 	CP_Settings_Stroke(get_color(WHITE));
@@ -75,14 +87,35 @@ void score(void) {
 	CP_Font_DrawText(w, 800, 400);
 }
 
+
+//Set the buttons to go back to main menu, replay level, next level
+void scoreboard_buttons(void) {
+	//defining the individual buttons
+	sbButton[0].button_image = CP_Image_Load("Assets/Images/Play Button.png");
+	sbButton[0].scale.x = 6.0f;
+	sbButton[0].scale.y = 2.0f;
+	sbButton[0].pos.x = 800;
+	sbButton[0].pos.y = 500;
+	//sbButton[0].func = change_screen;
+}
+
+
+
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	CP_Vector coords = world_to_screen(sBoard.x, sBoard.y, world_width, world_height);
-	CP_Graphics_DrawRect(
+	/*CP_Graphics_DrawRect(
 		coords.x,
 		coords.y,
+		20.0f * CP_System_GetWindowWidth() / world_width,
+		7.f * CP_System_GetWindowHeight() / world_height);*/
+
+	//Manually drawing becuase scoreboard isnt loading in the middle
+	CP_Graphics_DrawRect(
+		800,
+		400,
 		20.0f * CP_System_GetWindowWidth() / world_width,
 		7.f * CP_System_GetWindowHeight() / world_height);
 
@@ -91,7 +124,19 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	sprintf_s(b, 50, "Strokes: %d", stroke);
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
-	CP_Font_DrawText(b, coords.x, coords.y);
+	CP_Font_DrawText(b, 800, 450);
+	CP_Image_DrawAdvanced(sbButton[0].button_image, 
+		coords.x, 
+		coords.y, 
+		10.0f * CP_System_GetWindowWidth() / world_width, 
+		7.f * CP_System_GetWindowHeight() / world_height,
+		255,
+		0);
+}
+
+//Sets the par for each level
+void set_par(int par) {
+	lvl_par = par;
 }
 
 void set_lvl_par(int par) {
