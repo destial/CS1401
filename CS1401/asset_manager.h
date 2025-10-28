@@ -42,6 +42,7 @@
 #define DARK_REPLAY_BUTTON "Assets/Images/icon_repeat_dark.png"
 #define GREY_STAR "Assets/Images/star_outline.png"
 #define YELLOW_STAR "Assets/Images/star.png"
+#define SCOREBOARD_BG "Assets/Images/button_rectangle_gradient.png"
 
 // Sounds / Music / Audio
 

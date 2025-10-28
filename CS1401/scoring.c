@@ -62,6 +62,8 @@ star scoress[3];
 
 CP_Color white_colour;
 
+
+
 int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y)
 {
 	//area_center_x, area_center_y is the center coord of rectangle
@@ -132,6 +134,8 @@ void scoring_init() {
 	//reset the clicks
 	clickbb_x = 0; 
 	clickbb_y = 0;
+
+	
 };
 
 
@@ -244,15 +248,19 @@ void scoreboard_buttons(void) {
 
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
+	CP_Image sbb_bg = get_image(SCOREBOARD_BG);
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Vector coords = world_to_screen(sBoard.x, sBoard.y, world_width, world_height);
-	CP_Graphics_DrawRect(
+	CP_Image_DrawAdvanced(
+		sbb_bg,
 		coords.x,
 		coords.y,
 		40.0f * CP_System_GetWindowWidth() / world_width,
-		20.f * CP_System_GetWindowHeight() / world_height);
+		20.f * CP_System_GetWindowHeight() / world_height, 
+		255, 
+		0.0f);
 
 	CP_Settings_Fill(get_color(BLACK));
 	char b[50];
