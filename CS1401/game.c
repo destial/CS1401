@@ -317,13 +317,19 @@ void game_physics_update(float dt)
 
 				golf->pos = CP_Vector_Add(golf->pos, vel);
 
+				CP_BOOL powerup = FALSE;
 				// item powerup checks here !!!!!
 				for (int j = 0; j < items.length; ++j) {
 					Item* item = item_arr + j;
 					if (item == NULL || item->collected)
 						continue;
 
-					check_item(item, golf);
+					if (check_item(item, golf))
+						powerup = TRUE;
+				}
+
+				if (!powerup) {
+					golf->teleported = FALSE;
 				}
 			}
 			else {
@@ -609,7 +615,8 @@ void game_render(void)
 		CP_Settings_Stroke(get_color(WHITE));
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-		CP_Image image;
+		CP_Image image = NULL;
+		SpriteSheet* sprite = NULL;
 		switch (item->type) {
 		case BOOST:
 			image = get_image(BOOST_ITEM_ASSET);
@@ -623,17 +630,19 @@ void game_render(void)
 		case REVERSE:
 			image = get_image(REVERSE_ITEM_ASSET);
 			break;
-		default: 
-			image = NULL;
+		case PORTAL:
+			sprite = get_sprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 3, 3, 1.f);
+			break;
+		default:
 			break;
 		}
 
+		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		if (image != NULL) {
 			if (item->type == REVERSE) {
 				item->angle += 45.f * CP_System_GetDt();
 				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 			}
-			float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 			CP_Image_DrawAdvanced(image,
 				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 				coords.y,
@@ -641,6 +650,15 @@ void game_render(void)
 				item->diameter * world_ratios.x * anim_mul,
 				255,
 				item->angle);
+		}
+
+		if (sprite != NULL) {
+			DrawSprite(sprite,
+				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.y,
+				item->diameter* world_ratios.x* anim_mul,
+				item->diameter* world_ratios.x* anim_mul, 
+				255);
 		}
 
 		if (debug_enabled) {
@@ -874,6 +892,21 @@ CP_BOOL check_item(Item* item, GolfBall* ball) {
 		case REVERSE:
 			ball->vel = CP_Vector_Negate(ball->vel);
 			break;
+		case PORTAL: {
+			if (ball->teleported)
+				return TRUE;
+			Item* item_arr = get_items();
+			for (int i = 0; i < items.length; ++i) {
+				Item* it = item_arr + i;
+				if (it == NULL || it->destroyed || it == item || it->type != PORTAL)
+					continue;
+
+				ball->pos = CP_Vector_Set(it->pos.x, it->pos.y);
+				ball->teleported = TRUE;
+				return TRUE;
+			}
+			break;
+		}
 		default: break;
 		}
 		item->collected = TRUE;
@@ -1192,6 +1225,7 @@ void load(void) {
 		ball->scored = FALSE;
 		ball->scoring = FALSE;
 		ball->destroyed = FALSE;
+		ball->teleported = FALSE;
 
 		// make sure hole diameter is larger than golf ball so it can actually fit
 		Hole* hole = holes_arr + j;
@@ -1455,6 +1489,7 @@ GolfBall* add_ball(CP_Vector pos) {
 			b->scored = FALSE;
 			b->scoring = FALSE;
 			b->destroyed = FALSE;
+			b->teleported = FALSE;
 			b->vel = CP_Vector_Set(0.f, 0.f);
 			return b;
 		}
@@ -1475,6 +1510,7 @@ GolfBall* add_ball(CP_Vector pos) {
 		new_ball->dragging = FALSE;
 		new_ball->scored = FALSE;
 		new_ball->scoring = FALSE;
+		new_ball->teleported = FALSE;
 		return new_ball;
 	}
 	return NULL;

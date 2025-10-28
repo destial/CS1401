@@ -16,6 +16,7 @@ typedef enum ItemTypeEnum {
 	BIG,
 	SMALL,
 	REVERSE,
+	PORTAL,
 	ITEM_LAST
 } ItemType;
 
@@ -40,7 +41,7 @@ typedef struct WallStruct {
 typedef struct GolfBallStruct {
 	CP_Vector pos, vel, prev_pos, stroke_pos; // golfball position, velocity, prev pos & last stroke pos (world space)
 	float diameter, angle; // golfball diameter (world space) & rotation angle
-	CP_BOOL dragging, halt, scored, scoring, destroyed; 
+	CP_BOOL dragging, halt, scored, scoring, destroyed, teleported;
 	// dragging  player currently striking
 	// halt = if one ball is currently striking, halt the other ball from moving
 	// scored = if this ball has scored
