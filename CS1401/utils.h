@@ -15,6 +15,7 @@ typedef enum ColorCodeEnum {
 	BLACK = 0,
 	RED,
 	GREEN,
+	LIGHT_BLUE,
 	BLUE,
 	PURPLE,
 	VIOLET,
@@ -98,5 +99,12 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 @param code - The color code
 */
 CP_Color get_color(ColorCode code);
+
+/*!
+@brief The greatest common divisor between two integers (e.g. a / b, to find the simplest fraction)
+@param a - The first int
+@param b - The second int
+*/
+int gcd(int a, int b);
 
 #endif
