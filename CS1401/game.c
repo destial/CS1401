@@ -49,7 +49,6 @@ float current_time;
 
 // reset on level loading
 float translate = 1.f;
-float saving = 0.f;
 CP_BOOL playable = FALSE;
 CP_BOOL win = FALSE;
 CP_BOOL has_won = FALSE;
@@ -164,16 +163,6 @@ void game_update(void)
 		update_editor_terrains(&terrains);
 
 		update_editor_utils();
-
-		// save level if debug enabled
-		if (CP_Input_KeyTriggered(KEY_S)) {
-			save();
-		}
-
-		if (saving) {
-			saving -= CP_System_GetDt();
-			saving = max(0.f, saving);
-		}
 	}
 	else {
 		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
@@ -382,9 +371,9 @@ void game_physics_update(float dt)
 			}
 		}
 
-		for (int j = 0; j < golf_balls.length; ++j) {
+		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
-			if (other == NULL || other->scored || other->destroyed || i == j)
+			if (i == j || other == NULL || other->scored || other->destroyed)
 				continue;
 
 			check_collision_ball(golf, other);
@@ -439,7 +428,6 @@ void game_physics_update(float dt)
 		has_won = TRUE;
 		CP_Sound_PlayAdvanced(get_audio(VICTORY_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 	}
-
 }
 
 void game_render(void)
@@ -452,13 +440,68 @@ void game_render(void)
 	CP_Settings_Fill(get_color(BLACK));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Font_Set(font);
-	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
+	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
+	// render terrains
+	render_terrains();
+
+	// render walls
+	render_walls();
+
+	// render holes
+	render_holes();
+
+	// render items
+	render_items();
+
+	// render golf balls
+	render_balls();
+
+	// render ui
+	render_ui();
+
+	// render debug text on top of everything
+	if (debug_enabled) {
+		debug_render_info();
+	}
+
+	if (editor_mode) {
+		render_editor_utils();
+		
+	}
+}
+
+void render_ui(void) {
+	if (!editor_mode) {
+		// draw current strokes
+		CP_Settings_TextSize(40.f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+		CP_Settings_Fill(get_color(BLACK));
+		CP_Settings_Stroke(get_color(BLACK));
+		char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
+		CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
+
+		char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
+		CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+	}
+
+	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
+		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
+		/*
+		@todo: add button to cycle to next level or replay the same level
+		*/
+	}
+	else if (playable && all_balls_stopped && !editor_mode) {
+		CP_Settings_Fill(get_color(ORANGE));
+		CP_Settings_Stroke(get_color(ORANGE));
+		CP_Settings_TextSize(50.f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
+	}
+}
+
+void render_terrains(void) {
 	CP_Vector world_ratios = get_world_ratios();
-	Item* item_arr = get_items();
-	Wall* wall_arr = get_walls();
-	GolfBall* golf_arr = get_golfs();
-	Hole* hole_arr = get_holes();
 	Terrain* terrain_arr = get_terrains();
 
 	for (int i = 0; i < terrains.length; ++i) {
@@ -472,8 +515,8 @@ void game_render(void)
 		CP_Color pit = get_color(RED);
 		CP_Settings_Fill(
 			terrain->type == SAND ? CP_Color_Create(sand.r, sand.g, sand.b, 128) :
-			terrain->type == ICE ?  CP_Color_Create(ice.r, ice.g, ice.b, 128) : 
-								    CP_Color_Create(pit.r, pit.g, pit.b, 128));
+			terrain->type == ICE ? CP_Color_Create(ice.r, ice.g, ice.b, 128) :
+			CP_Color_Create(pit.r, pit.g, pit.b, 128));
 		CP_Settings_Stroke(get_color(CLEAR));
 		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawRectAdvanced(
@@ -502,8 +545,12 @@ void game_render(void)
 			CP_Font_DrawText(a, c.x, c.y + 100);
 		}
 	}
+}
 
-	// render walls
+void render_walls(void) {
+	CP_Vector world_ratios = get_world_ratios();
+	Wall* wall_arr = get_walls();
+
 	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
 		if (wall == NULL || wall->destroyed)
@@ -515,7 +562,7 @@ void game_render(void)
 			CP_Settings_Stroke(get_color(CLEAR));
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(
-				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
+				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
@@ -533,9 +580,9 @@ void game_render(void)
 			CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_MIRROR);
 			int w = CP_Image_GetWidth(wall->image);
 			int h = CP_Image_GetHeight(wall->image);
-			int d = gcd((int) wall->scale.x, (int) wall->scale.y);
+			int d = gcd((int)wall->scale.x, (int)wall->scale.y);
 			CP_Image_DrawSubImageAdvanced(wall->image,
-				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
+				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
@@ -586,8 +633,11 @@ void game_render(void)
 			}
 		}
 	}
+}
 
-	// render holes
+void render_holes(void) {
+	Hole* hole_arr = get_holes();
+
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
 		if (hole == NULL || hole->destroyed)
@@ -604,10 +654,16 @@ void game_render(void)
 			CP_Font_DrawText(p, coords.x, coords.y + 50);
 		}
 	}
+}
 
+void render_items(void) {
+	CP_Vector world_ratios = get_world_ratios();
+	Item* item_arr = get_items();
+
+	Terrain* terrain_arr = get_terrains();
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->collected || item->destroyed) 
+		if (item == NULL || item->collected || item->destroyed)
 			continue;
 
 		CP_Vector coords = world_to_screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -617,6 +673,7 @@ void game_render(void)
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image image = NULL;
 		SpriteSheet* sprite = NULL;
+		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		switch (item->type) {
 		case BOOST:
 			image = get_image(BOOST_ITEM_ASSET);
@@ -631,13 +688,13 @@ void game_render(void)
 			image = get_image(REVERSE_ITEM_ASSET);
 			break;
 		case PORTAL:
-			sprite = get_sprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 3, 3, 1.f);
+			sprite = get_sprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+			anim_mul = 1.f;
 			break;
 		default:
 			break;
 		}
 
-		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		if (image != NULL) {
 			if (item->type == REVERSE) {
 				item->angle += 45.f * CP_System_GetDt();
@@ -656,8 +713,8 @@ void game_render(void)
 			DrawSprite(sprite,
 				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 				coords.y,
-				item->diameter* world_ratios.x* anim_mul,
-				item->diameter* world_ratios.x* anim_mul, 
+				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul,
 				255);
 		}
 
@@ -676,8 +733,12 @@ void game_render(void)
 			CP_Graphics_DrawCircle(coords.x, coords.y, item->diameter * world_ratios.x);
 		}
 	}
+}
 
-	// render golf balls
+void render_balls(void) {
+	CP_Vector world_ratios = get_world_ratios();
+	GolfBall* golf_arr = get_golfs();
+
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
 		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
@@ -690,7 +751,7 @@ void game_render(void)
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image_DrawAdvanced(golf_ball_image,
-			CP_Math_LerpFloat(coords.x, (float) CP_System_GetWindowWidth(), translate),
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 			coords.y,
 			golf->diameter * world_ratios.x,
 			golf->diameter * world_ratios.x,
@@ -703,7 +764,7 @@ void game_render(void)
 			// render the current power of the ball
 			CP_Vector a = world_to_screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 			CP_Vector b = world_to_screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_limits.x, world_limits.y);
-			int x = (int) (CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
+			int x = (int)(CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
 			int red = CP_Math_ClampInt(x, 0, 255);
 			int green = 255 - red;
 			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
@@ -721,48 +782,6 @@ void game_render(void)
 
 			char b[50]; sprintf_s(b, 50, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
-		}
-	}
-
-	if (!editor_mode) {
-		// draw current strokes
-		CP_Settings_TextSize(40.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-		CP_Settings_Fill(get_color(BLACK));
-		CP_Settings_Stroke(get_color(BLACK));
-		char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
-
-		char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
-	}
-
-	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
-		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
-		/*
-		@todo: add button to cycle to next level or replay the same level
-		*/
-	} else if (playable && all_balls_stopped && !editor_mode) {
-		CP_Settings_Fill(get_color(ORANGE));
-		CP_Settings_Stroke(get_color(ORANGE));
-		CP_Settings_TextSize(50.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
-	}
-
-	// render debug text on top of everything
-	if (debug_enabled) {
-		debug_render_info();
-	}
-
-	if (editor_mode) {
-		render_editor_utils();
-		if (saving) {
-			CP_Settings_Fill(get_color(RED));
-			CP_Settings_Stroke(get_color(RED));
-			CP_Settings_TextSize(50.f);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
 		}
 	}
 }
@@ -1043,7 +1062,6 @@ void debug_render_info(void) {
 */
 void save(void) {
 	save_level(current_level, &walls, &golf_balls, &holes, &items, &terrains, get_world_limits(), get_lvl_par());
-	saving = 1.5f;
 }
 
 /*!

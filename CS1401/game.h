@@ -90,6 +90,36 @@ void game_physics_update(float dt);
 void game_render(void);
 
 /*!
+@brief Render items
+*/
+void render_items(void);
+
+/*!
+@brief Render walls
+*/
+void render_walls(void);
+
+/*!
+@brief Render terrains
+*/
+void render_terrains(void);
+
+/*!
+@brief Render balls
+*/
+void render_balls(void);
+
+/*!
+@brief Render holes
+*/
+void render_holes(void);
+
+/*!
+@brief Render ui
+*/
+void render_ui(void);
+
+/*!
 @brief Game scene deallocation
 */
 void game_exit(void);

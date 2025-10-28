@@ -23,6 +23,7 @@ void* current_editing = NULL;
 void* current_dragging = NULL;
 CP_Vector current_editing_offset;
 EditingType current_type = NONE;
+float editor_saving = 0.f;
 
 CP_BOOL check_on_wall(Wall* wall) {
 	CP_Vector wall_min = { -wall->scale.x * 0.5f, -wall->scale.y * 0.5f };
@@ -177,11 +178,20 @@ void update_editor_holes(ObjectArray* holes) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == HOLE) {
-		remove_hole((Hole*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
+	if (current_editing != NULL && current_type == HOLE) {
+		Hole* hole = (Hole*)current_editing;
+		if (CP_Input_MouseWheel() != 0.f) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+				hole->diameter += CP_Input_MouseWheel();
+			}
+		}
+
+		if (CP_Input_KeyTriggered(KEY_DELETE)) {
+			remove_hole(hole);
+			current_editing = NULL;
+			current_dragging = NULL;
+			current_type = NONE;
+		}
 	}
 }
 
@@ -209,11 +219,20 @@ void update_editor_golfs(ObjectArray* golfs) {
 		}
 	}
 
-	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == GOLF_BALL) {
-		remove_ball((GolfBall*)current_editing);
-		current_editing = NULL;
-		current_dragging = NULL;
-		current_type = NONE;
+	if (current_editing != NULL && current_type == GOLF_BALL) {
+		GolfBall* ball = (GolfBall*)current_editing;
+		if (CP_Input_MouseWheel() != 0.f) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+				ball->diameter += CP_Input_MouseWheel();
+			}
+		}
+
+		if (CP_Input_KeyTriggered(KEY_DELETE)) {
+			remove_ball(ball);
+			current_editing = NULL;
+			current_dragging = NULL;
+			current_type = NONE;
+		}
 	}
 }
 
@@ -245,6 +264,13 @@ void update_editor_items(ObjectArray* items) {
 
 	if (current_editing != NULL && current_type == ITEM) {
 		Item* i = (Item*)current_editing;
+
+		if (CP_Input_MouseWheel() != 0.f) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+				i->diameter += CP_Input_MouseWheel();
+			}
+		}
+
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
 			++i->type;
 			if (i->type == ITEM_LAST) {
@@ -269,6 +295,17 @@ void update_editor_items(ObjectArray* items) {
 }
 
 void update_editor_utils(void) {
+	// save level if debug enabled
+	if (CP_Input_KeyTriggered(KEY_S)) {
+		save();
+		editor_saving = 1.5f;
+	}
+
+	if (editor_saving) {
+		editor_saving -= CP_System_GetDt();
+		editor_saving = max(0.f, editor_saving);
+	}
+
 	if (current_editing == NULL)
 		return;
 
@@ -419,6 +456,14 @@ void render_editor_utils(void) {
 	CP_Font_DrawText("Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'4' to add Items", 5.f, CP_System_GetWindowHeight() - 60.f);
 	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
+
+	if (editor_saving) {
+		CP_Settings_Fill(get_color(RED));
+		CP_Settings_Stroke(get_color(RED));
+		CP_Settings_TextSize(50.f);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
+	}
 
 	if (current_editing == NULL)
 		return;
