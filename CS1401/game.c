@@ -114,6 +114,8 @@ void game_init(void)
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
+	
+	scoring_init();
 }
 
 void game_update(void)
@@ -197,6 +199,9 @@ void game_update(void)
 		game_physics_update(dt);
 		frame_time -= dt;
 	}
+
+	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
+		scoring_update();
 
 	// rendering does not need to be in physics time
 	game_render();

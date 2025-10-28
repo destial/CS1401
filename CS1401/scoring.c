@@ -2,10 +2,22 @@
 #include "cprocessing.h"
 #include "utils.h"
 #include <stdio.h>
-
-//void scoring_init();
+#include "main_menu.h"
+#include "game.h"
+#include "asset_manager.h"
+#include "sprite_manager.h"
+#include "end_state.h"
 //void scoring_update();
 //void scoring_exit();
+/*!
+@author Htet (heinhtet.lin.edu)
+@date 10 October 2025
+@course CSD1401
+@brief this file contains functions and code that handles the Scoring system
+*/
+
+
+
 
 //Initialise the variables
 int stroke = 0;
@@ -24,6 +36,105 @@ typedef struct Button {
 
 Button sbButton[10];
 
+float clickbb_x, clickbb_y;
+
+typedef struct Buttonbb {
+	CP_Image button_img;
+	CP_Image button_icon;
+	float x;
+	float y;
+	float width;
+	float height;
+} bb;
+
+typedef struct Star {
+	CP_Image img;
+	float x;
+	float y;
+	float width;
+	float height;
+} star;
+//CP_Graphics_DrawRect(0.3 * CP_System_GetWindowWidth(), 0.7f * CP_System_GetWindowHeight(), 8.0f * CP_System_GetWindowWidth() / world_width, 4.f * CP_System_GetWindowHeight() / world_height);
+//Draw exit buttons
+
+bb scorebb[3];
+star scoress[3];
+
+CP_Color white_colour;
+
+int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y)
+{
+	//area_center_x, area_center_y is the center coord of rectangle
+	//Find the left most and right most side of rectangle
+	float half_width = area_width * 0.5f;
+	float half_height = area_height * 0.5f;
+
+	//Left most area
+	float left_width_x = area_center_x - half_width;
+	//Right most area
+	float right_width_x = area_center_x + half_width;
+
+	//Top most area
+	float top_height = area_center_y - half_height;
+	//Bottom most area
+	float bottom_height = area_center_y + half_height;
+
+	/*click_x = CP_Input_GetMouseX();
+	click_y = CP_Input_GetMouseY();*/
+
+	if (left_width_x < click_x && click_x < right_width_x
+		&& top_height < click_y && click_y < bottom_height) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+
+}
+void scoring_init() {
+	float win_width = CP_System_GetWindowWidth();
+	float win_height = CP_System_GetWindowHeight();
+	//Initialise exit buttons
+	scorebb[0].x = 0.2f * win_width;
+	scorebb[0].y = 0.7f * win_height;
+	scorebb[0].width = 0.2f * win_width;
+	scorebb[0].height = 0.1f * win_height;
+	scorebb[0].button_img = get_image(BUTTON_GREY_ASSET);
+	scorebb[0].button_icon = get_image(RED_CROSS);
+
+	//Initialise Replay buttons
+	scorebb[1].x = 0.5f * win_width;
+	scorebb[1].y = 0.7f * win_height;
+	scorebb[1].width = 0.2f * win_width;
+	scorebb[1].height = 0.1f * win_height;
+	scorebb[1].button_img = get_image(BUTTON_YELLOW_ASSET);
+	scorebb[1].button_icon = get_image(DARK_REPLAY_BUTTON);
+
+	//Initialise Next Lvl buttons
+	scorebb[2].x = 0.8f * win_width;
+	scorebb[2].y = 0.7f * win_height;
+	scorebb[2].width = 0.2f * win_width;
+	scorebb[2].height = 0.1f * win_height;
+	scorebb[2].button_img = get_image(BUTTON_BLUE_ASSET);
+	scorebb[2].button_icon = get_image(DARK_PLAY_BUTTON);
+
+	//Initialise 3 stars
+	scoress[0].x = 0.5f * win_width;
+	scoress[0].y = 0.2f * win_height;
+	scoress[0].width = 0.1f * win_width;
+	scoress[0].height = 0.1f * win_height;
+	scoress[0].img = get_image(GREY_STAR);
+
+	int stroke = 0;
+	int lvl_par = 4;
+	int bogey, birdie, eagle, d_bogey, t_bogey, albatross;
+	CP_Color white_colour = CP_Color_Create(255, 255, 255, 255);
+	//reset the clicks
+	clickbb_x = 0; 
+	clickbb_y = 0;
+};
+
+
 void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation) {
 	CP_Settings_Stroke(get_color(WHITE));
 	CP_Settings_Fill(get_color(BLACK));
@@ -32,6 +143,37 @@ void draw_hole(CP_Vector hole, float diameter, float world_width, float world_he
 		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth() * 1.f, animation),
 		coords.y, 
 		diameter * CP_System_GetWindowWidth() / world_width);
+}
+
+void scoring_update(void) {
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT))
+	{
+		clickbb_x = CP_Input_GetMouseX();
+		clickbb_y = CP_Input_GetMouseY();
+
+		//click on exit
+		if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, clickbb_x, clickbb_y) == 1) {
+			CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
+		}
+		//click on replay
+		if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, clickbb_x, clickbb_y) == 1) {
+			//Set state to current level
+			set_game_level(get_game_level());
+			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+		}
+		//click on next level
+		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
+			set_game_level(get_game_level() + 1);
+			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+
+		}
+
+	}
+
+}
+
+void scoreboard_exit(void) {
+
 }
 
 void add_stroke(void) {
@@ -106,38 +248,57 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	CP_Vector coords = world_to_screen(sBoard.x, sBoard.y, world_width, world_height);
-	/*CP_Graphics_DrawRect(
+	CP_Graphics_DrawRect(
 		coords.x,
 		coords.y,
-		20.0f * CP_System_GetWindowWidth() / world_width,
-		7.f * CP_System_GetWindowHeight() / world_height);*/
-
-	//Manually drawing becuase scoreboard isnt loading in the middle
-	CP_Graphics_DrawRect(
-		800,
-		400,
-		20.0f * CP_System_GetWindowWidth() / world_width,
-		7.f * CP_System_GetWindowHeight() / world_height);
+		40.0f * CP_System_GetWindowWidth() / world_width,
+		20.f * CP_System_GetWindowHeight() / world_height);
 
 	CP_Settings_Fill(get_color(BLACK));
 	char b[50];
+	char a[100];
 	sprintf_s(b, 50, "Strokes: %d", stroke);
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
-	CP_Font_DrawText(b, 800, 450);
-	CP_Image_DrawAdvanced(sbButton[0].button_image, 
-		coords.x, 
-		coords.y, 
-		10.0f * CP_System_GetWindowWidth() / world_width, 
-		7.f * CP_System_GetWindowHeight() / world_height,
-		255,
-		0);
+	CP_Font_DrawText(b, coords.x, coords.y);
+
+	CP_Settings_Fill(get_color(WHITE));
+
+	//Draw level buttons
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
+	CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x - 100.0f, scorebb[2].y - 10.0f , 50, 50, 255, 0.0f);
+	sprintf_s(a, 50, "NEXT LEVEL");
+	CP_Settings_Fill(get_color(BLACK));
+	CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);
+
+	//Draw exit buttons
+	CP_Settings_Fill(get_color(WHITE));
+	/*CP_Graphics_DrawRect(exit.x,exit.y, exit.width ,exit.height);*/
+	CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
+	sprintf_s(a, 50, "EXIT");
+	CP_Settings_Fill(get_color(BLACK));
+	CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);
+
+	//Draw Replay button
+	CP_Settings_Fill(get_color(WHITE));
+	CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
+	sprintf_s(a, 50, "REPLAY");
+	CP_Settings_Fill(get_color(BLACK));
+	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);
+
+
+	
+	//Write scoreboard
+	sprintf_s(a, 50, "SCOREBOARD");
+	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.3f * CP_System_GetWindowHeight());
+
+	//Drawing the grey star points based on the points they get.
+	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 0.0f);
+
+
 }
 
-//Sets the par for each level
-void set_par(int par) {
-	lvl_par = par;
-}
 
 void set_lvl_par(int par) {
 	lvl_par = par;
@@ -146,7 +307,3 @@ void set_lvl_par(int par) {
 int get_lvl_par(void) {
 	return lvl_par;
 }
-
-//char is_win(void) {
-//	if golf
-//}

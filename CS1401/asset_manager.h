@@ -35,6 +35,14 @@
 #define SMALL_ITEM_ASSET "Assets/Images/small_item.png"
 #define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
 
+//Scoreboard
+#define RED_CROSS "Assets/Images/icon_cross.png"
+#define DARK_PLAY_BUTTON "Assets/Images/icon_play_dark.png" 
+#define RED_PLAY_BUTTON "Assets/Images/arrow_basic_w.png"
+#define DARK_REPLAY_BUTTON "Assets/Images/icon_repeat_dark.png"
+#define GREY_STAR "Assets/Images/star_outline.png"
+#define YELLOW_STAR "Assets/Images/star.png"
+
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
