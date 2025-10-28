@@ -79,13 +79,13 @@ CP_Color get_color(ColorCode code) {
 
 int gcd(int a, int b) {
 	// Find Minimum of a and b
-	int result = ((a < b) ? a : b);
+	int result = min(a, b);
 	while (result > 0) {
 		// Check if both a and b are divisible by result
 		if (a % result == 0 && b % result == 0) {
 			break;
 		}
-		result--;
+		--result;
 	}
 	// return gcd of a nd b
 	return result;

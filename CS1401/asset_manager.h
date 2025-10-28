@@ -34,6 +34,8 @@
 #define BIG_ITEM_ASSET "Assets/Images/big_item.png"
 #define SMALL_ITEM_ASSET "Assets/Images/small_item.png"
 #define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
+#define BLUE_PORTAL_SPRITE_ASSET "Assets/Images/blue_portal_sprite.png"
+#define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
 
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_cross.png"

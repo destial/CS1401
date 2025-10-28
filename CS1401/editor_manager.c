@@ -220,33 +220,14 @@ void update_editor_golfs(ObjectArray* golfs) {
 void update_editor_items(ObjectArray* items) {
 	CP_Vector mouse_world = get_mouse_world();
 
-	if (CP_Input_KeyTriggered(KEY_1)) {
-		Item* item = add_item(mouse_world, BOOST);
-		if (item) {
-			current_editing = item;
-			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
-			current_type = ITEM;
-		}
-	} else if (CP_Input_KeyTriggered(KEY_2)) {
-		Item* item = add_item(mouse_world, BIG);
-		if (item) {
-			current_editing = item;
-			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
-			current_type = ITEM;
-		}
-	} else if (CP_Input_KeyTriggered(KEY_3)) {
-		Item* item = add_item(mouse_world, SMALL);
-		if (item) {
-			current_editing = item;
-			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
-			current_type = ITEM;
-		}
-	} else if (CP_Input_KeyTriggered(KEY_4)) {
-		Item* item = add_item(mouse_world, REVERSE);
-		if (item) {
-			current_editing = item;
-			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
-			current_type = ITEM;
+	for (int i = KEY_1; i < KEY_1 + ITEM_LAST - 1; ++i) {
+		if (CP_Input_KeyTriggered(i)) {
+			Item* item = add_item(mouse_world, i - KEY_1 + 1);
+			if (item) {
+				current_editing = item;
+				current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
+				current_type = ITEM;
+			}
 		}
 	}
 
