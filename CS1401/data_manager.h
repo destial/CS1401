@@ -10,10 +10,15 @@
 #define DATA_MANAGER_H
 
 #include "cprocessing.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "string.h"
+
+typedef struct MapStruct Map;
 
 typedef struct MapStruct {
     char* key, * value;
-    struct MapStruct* next;
+    Map* next;
 } Map;
 
 /*!

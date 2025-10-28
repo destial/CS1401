@@ -5,9 +5,6 @@
 @brief Implementation file for loading and saving text files
 */
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "string.h"
 #include "data_manager.h"
 
 char* get_value(Map* map, const char* key) {
