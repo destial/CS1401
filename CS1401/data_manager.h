@@ -36,10 +36,45 @@ void free_map(Map* map);
 */
 Map* load_map(const char* filename);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Add a string entry to this map. If map is NULL, will create a new map with the return as the root.
+@param map - The root map, nullable
+@param key - The string key
+@param value - The string value
+@return The root map node, if map parameter is NULL, will allocate a new map root
+*/
 Map* add_entry(Map* map, const char* key, char* value);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Add an integer entry to this map. If map is NULL, will create a new map with the return as the root.
+@param map - The root map, nullable
+@param key - The string key
+@param value - The integer value
+@return The root map node, if map parameter is NULL, will allocate a new map root
+*/
 Map* add_entry_int(Map* map, const char* key, int value);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Add a float entry to this map. If map is NULL, will create a new map with the return as the root.
+@param map - The root map, nullable
+@param key - The string key
+@param value - The float value
+@return The root map node, if map parameter is NULL, will allocate a new map root
+*/
 Map* add_entry_float(Map* map, const char* key, float value);
-Map* add_entry_vector(Map* map, const char* key, CP_Vector vector);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Add a vector entry to this map. If map is NULL, will create a new map with the return as the root.
+@param map - The root map, nullable
+@param key - The string key
+@param value - The vector value
+@return The root map node, if map parameter is NULL, will allocate a new map root
+*/
+Map* add_entry_vector(Map* map, const char* key, CP_Vector value);
 
 void edit_entry(Map* map, const char* key, char* value);
 void edit_entry_int(Map* map, const char* key, int value);

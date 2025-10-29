@@ -12,6 +12,10 @@
 #include "cprocessing.h"
 
 #define min_max(v, mn, mx) min(mx, max(mn, v))
+#define FREE_MEMORY(ptr) do { \
+	free((ptr)); \
+	(ptr) = NULL; \
+}while(0) \
 
 typedef enum ColorCodeEnum {
 	COLOR_BLACK = 0,

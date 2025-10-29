@@ -6,15 +6,38 @@
 */
 
 #include "data_manager.h"
+#include "utils.h"
 
-char* get_value(Map* map, const char* key) {
-    // loop through each map node and compare the key value with the given key
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, key) == 0) {
-            return ptr->value;
-        }
+// sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
+char* read_content(const char* filename) {
+    int fsize = 0;
+    FILE* fp = fopen(filename, "r");
+    if (!fp) {
+        return NULL;
     }
-    return NULL;
+
+    char* fcontent = NULL;
+    fseek(fp, 0, SEEK_END);
+    fsize = ftell(fp);
+    rewind(fp);
+
+    fcontent = calloc(fsize, sizeof(char));
+    if (fcontent) {
+        fread(fcontent, 1, fsize, fp);
+    }
+    fclose(fp);
+    fp = NULL;
+    return fcontent;
+}
+
+void write_content(const char* filename, char* content) {
+    FILE* fp = fopen(filename, "w");
+    if (!fp) {
+        return;
+    }
+    fputs(content, fp);
+    fclose(fp);
+    fp = NULL;
 }
 
 Map* load_map(const char* filename) {
@@ -72,7 +95,8 @@ Map* load_map(const char* filename) {
     return root;
 }
 
-static Map* get_last(Map* map) {
+// create a node of this map, or if NULL, a new node
+static Map* add_node(Map* map) {
     Map* next;
     if (map == NULL) {
         next = malloc(sizeof(Map));
@@ -94,7 +118,7 @@ static Map* get_last(Map* map) {
 }
 
 Map* add_entry(Map* map, const char* key, char* value) {
-    Map* next = get_last(map);
+    Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -111,7 +135,7 @@ Map* add_entry(Map* map, const char* key, char* value) {
 }
 
 Map* add_entry_int(Map* map, const char* key, int value) {
-    Map* next = get_last(map);
+    Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -130,7 +154,7 @@ Map* add_entry_int(Map* map, const char* key, int value) {
 }
 
 Map* add_entry_float(Map* map, const char* key, float value) {
-    Map* next = get_last(map);
+    Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -148,8 +172,8 @@ Map* add_entry_float(Map* map, const char* key, float value) {
     return map == NULL ? next : map;
 }
 
-Map* add_entry_vector(Map* map, const char* key, CP_Vector vector) {
-    Map* next = get_last(map);
+Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
+    Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -158,7 +182,7 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector vector) {
 
     // set the value (right side)
     char v[128];
-    sprintf_s(v, 128, "%f,%f", vector.x, vector.y);
+    sprintf_s(v, 128, "%f,%f", value.x, value.y);
     size_t val_len = strlen(v) + 1;
     next->value = calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, v);
@@ -229,9 +253,9 @@ Map* remove_entry(Map* map, const char* key) {
     // first one in the map
     if (strcmp(map->key, key) == 0) {
         Map* next = map->next;
-        free(map->key);
-        free(map->value);
-        free(map);
+        FREE_MEMORY(map->key);
+        FREE_MEMORY(map->value);
+        FREE_MEMORY(map);
         return next;
     }
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
@@ -242,9 +266,9 @@ Map* remove_entry(Map* map, const char* key) {
                 Map* after = todel->next;
                 ptr->next = after;
 
-                free(todel->key);
-                free(todel->value);
-                free(todel);
+                FREE_MEMORY(todel->key);
+                FREE_MEMORY(todel->value);
+                FREE_MEMORY(todel);
                 break;
             }
         }
@@ -272,36 +296,14 @@ CP_BOOL save_map(const char* filename, Map* map) {
     return TRUE;
 }
 
-// sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
-char* read_content(const char* filename) {
-    int fsize = 0;
-    FILE* fp = fopen(filename, "r");
-    if (!fp) {
-        return NULL;
+char* get_value(Map* map, const char* key) {
+    // loop through each map node and compare the key value with the given key
+    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            return ptr->value;
+        }
     }
-
-    char* fcontent = NULL;
-    fseek(fp, 0, SEEK_END);
-    fsize = ftell(fp);
-    rewind(fp);
-
-    fcontent = calloc(fsize, sizeof(char));
-    if (fcontent) {
-        fread(fcontent, 1, fsize, fp);
-    }
-    fclose(fp);
-    fp = NULL;
-    return fcontent;
-}
-
-void write_content(const char* filename, char* content) {
-    FILE* fp = fopen(filename, "w");
-    if (!fp) {
-        return;
-    }
-    fputs(content, fp);
-    fclose(fp);
-    fp = NULL;
+    return NULL;
 }
 
 int get_int(Map* map, const char* key, int def) {
@@ -349,13 +351,10 @@ void free_map(Map* map) {
         map->next = NULL;
     }
     if (map->key) {
-        free(map->key);
-        map->key = NULL;
+        FREE_MEMORY(map->key);
     }
     if (map->value) {
-        free(map->value);
-        map->value = NULL;
+        FREE_MEMORY(map->value);
     }
-    free(map);
-    map = NULL;
+    FREE_MEMORY(map);
 }

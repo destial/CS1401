@@ -191,15 +191,15 @@ Level* get_level(int level) {
                 lvl->terrains_size = 0;
                 lvl->terrains = NULL;
             }
-
-            // we are done loading the level, we can now free up the map
-            free_map(root);
-            root = NULL;
-            return lvl;
         }
         else {
             CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
         }
+
+        // we are done loading the level, we can now free up the map
+        free_map(root);
+        root = NULL;
+        return lvl;
     }
     
     // no level file detected, so no level will be loaded
@@ -313,25 +313,19 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
 
 void free_level(Level* level) {
     if (level->walls) {
-        free(level->walls);
-        level->walls = NULL;
+        FREE_MEMORY(level->walls);
     }
     if (level->items) {
-        free(level->items);
-        level->items = NULL;
+        FREE_MEMORY(level->items);
     }
     if (level->terrains) {
-        free(level->terrains);
-        level->terrains = NULL;
+        FREE_MEMORY(level->terrains);
     }
     if (level->golf_balls) {
-        free(level->golf_balls);
-        level->golf_balls = NULL;
+        FREE_MEMORY(level->golf_balls);
     }
     if (level->holes) {
-        free(level->holes);
-        level->holes = NULL;
+        FREE_MEMORY(level->holes);
     }
-    free(level);
-    level = NULL;
+    FREE_MEMORY(level);
 }
