@@ -205,7 +205,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	//MAIN MENU SCREEN BUTTON
 	for (int i = 0; i < 3; i++) {
 		//defining the position of the button
-		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
+		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
 			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
 			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
@@ -253,7 +253,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 	//LEVEL SELECT BUTTONS
 	for (int i = 3; i < 8; i++) {
 		//defining the position of the button
-		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
+		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
 			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
 			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
@@ -283,7 +283,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 4.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				set_game_level(i - 3 + 1);
+				Set_Current_Level(i - 3 + 1);
 				buttons[i].func();
 			}
 		}
@@ -369,7 +369,7 @@ void resolution_button(float mouse_x, float mouse_y) {
 	//RESOLUTION BUTTONS
 	for (int i = 9; i < 12; i++) {
 		//defining the position of the button
-		CP_Vector coords = world_to_screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
+		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
 			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
 			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
@@ -414,7 +414,7 @@ void resolution_button(float mouse_x, float mouse_y) {
 
 void back_buttons(float mouse_x, float mouse_y) {
 	//BACK BUTTON FOR LEVEL SELECT
-	CP_Vector coords_back_level = world_to_screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
+	CP_Vector coords_back_level = World_To_Screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_level = {
 		buttons[8].scale.x * CP_System_GetWindowWidth() / world_width1,
 		buttons[8].scale.y * CP_System_GetWindowHeight() / world_height1
@@ -454,7 +454,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 	}
 
 	//BACK BUTTON FOR SETTINGS PAGE
-	CP_Vector coords_back_setting = world_to_screen(buttons[12].pos.x, buttons[12].pos.y, world_width1, world_height1);
+	CP_Vector coords_back_setting = World_To_Screen(buttons[12].pos.x, buttons[12].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_setting = {
 		buttons[12].scale.x * CP_System_GetWindowWidth() / world_width1,
 		buttons[12].scale.y * CP_System_GetWindowHeight() / world_height1

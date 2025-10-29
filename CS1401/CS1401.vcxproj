@@ -20,6 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="asset_manager.c" />
+    <ClCompile Include="currency_manager.c" />
+    <ClCompile Include="data_manager.c" />
     <ClCompile Include="editor_manager.c" />
     <ClCompile Include="end_state.c" />
     <ClCompile Include="game.c" />
@@ -33,6 +35,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset_manager.h" />
+    <ClInclude Include="currency_manager.h" />
+    <ClInclude Include="data_manager.h" />
     <ClInclude Include="editor_manager.h" />
     <ClInclude Include="end_state.h" />
     <ClInclude Include="game.h" />

@@ -23,7 +23,7 @@ void end_state_init(void) {
 }
 
 void end_state_update(void) {
-	CP_Graphics_ClearBackground(get_color(BLACK));
+	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
 	if (end_revert == 0) {
 		end_alpha += CP_System_GetDt() / end_duration;
 		if (end_alpha >= 1.f) {
