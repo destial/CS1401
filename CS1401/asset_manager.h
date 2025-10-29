@@ -45,6 +45,7 @@
 #define GREY_STAR "Assets/Images/star_outline.png"
 #define YELLOW_STAR "Assets/Images/star.png"
 #define SCOREBOARD_BG "Assets/Images/button_rectangle_gradient.png"
+#define STROKE_BG "Assets/Images/button_rectangle_depth_line.png"
 
 // Sounds / Music / Audio
 

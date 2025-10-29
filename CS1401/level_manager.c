@@ -8,73 +8,18 @@
 #include "level_manager.h"
 #include "asset_manager.h"
 #include "end_state.h"
+#include "data_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include "string.h"
-
-#ifndef FILE_SIZE
-#define FILE_SIZE 8192
-#endif
-
-typedef struct MapStruct {
-    char* key, * value;
-    Map* next;
-} Map;
 
 Level* get_level(int level) {
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
 
-    // read the level text file
-    char* level_file = read_content(level_path);
-
+    Map* root = load_map(level_path);
     // make sure this file actually exists
-    if (level_file != NULL) {
-        //trim_string(level_file);
-        // set contexts for string tokenizer ('\n' to split between lines, '=' to split between key and value)
-        const char outerdel[] = "\n";
-        const char innerdel[] = "=";
-
-        // allocate the root of this level map
-        Map* root = malloc(sizeof(Map));
-        Map* next = root;
-        char* outerptr = NULL;
-        char* innerptr = NULL;
-
-        // set initial variable pointers for string tokenization (strtok)
-        char* k, * v;
-        char* line = strtok_s(level_file, outerdel, &outerptr);
-        while (line) {
-            // set the key (left side)
-            k = strtok_s(line, innerdel, &innerptr);
-
-            // +1 because last character is '\0' to terminate the string
-            size_t key_len = strlen(k) + 1;
-            next->key = malloc(key_len);
-            strcpy_s(next->key, key_len, k);
-
-            // set the value (right side)
-            v = strtok_s(NULL, innerdel, &innerptr);
-            size_t val_len = strlen(v) + 1;
-            next->value = malloc(val_len);
-            strcpy_s(next->value, val_len, v);
-
-            // end of check, go to next line or quit if already at the end
-            line = strtok_s(NULL, outerdel, &outerptr);
-            if (line) {
-                next->next = malloc(sizeof(Map));
-                next = next->next;
-            }
-            else {
-                next->next = NULL;
-            }
-        }
-        next = NULL;
-
-        // make sure to free up allocated memory for the text file contents
-        free(level_file);
-        level_file = NULL;
-
+    if (root != NULL) {
         // create the level to load and set all the values *** all must have values!!!
         Level* lvl = malloc(sizeof(Level));
         if (lvl) {
@@ -280,13 +225,12 @@ Level* get_level(int level) {
 }
 
 void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par) {
+    // save the world limits, golf balls, holes and middle wall first
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
-    FILE* fptr = fopen(level_path, "w");
+    FILE* fp = fopen(level_path, "w");
 
-    // save the world limits, golf balls, holes and middle wall first
-    char level_file[FILE_SIZE];
-    sprintf_s(level_file, FILE_SIZE,
+    fprintf(fp,
         "width=%f\nheight=%f\nmiddle_wall_angle=%f",
         world_limits.x, world_limits.y,
         ((Wall*)walls->arr)->angle
@@ -298,20 +242,16 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         if (ball == NULL || ball->destroyed || ball->diameter <= 0.f)
             continue;
 
-        char ball_data[128];
-        sprintf_s(ball_data, 128,
+        fprintf(fp,
             "\ngolf_%d_pos=%f,%f\ngolf_%d_diameter=%f",
             ball_index, ball->pos.x, ball->pos.y,
             ball_index, ball->diameter
         );
-        strcat_s(level_file, FILE_SIZE, ball_data);
         ++ball_index;
     }
 
     // save the amount of golf balls saved
-    char last_balls[64];
-    sprintf_s(last_balls, 64, "\ngolf_amount=%d", ball_index);
-    strcat_s(level_file, FILE_SIZE, last_balls);
+    fprintf(fp, "\ngolf_amount=%d", ball_index);
 
     int hole_index = 0;
     for (int i = 0; i < holes->length; ++i) {
@@ -319,20 +259,16 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         if (hole == NULL || hole->destroyed || hole->diameter <= 0.f)
             continue;
 
-        char hole_data[128];
-        sprintf_s(hole_data, 128,
+        fprintf(fp,
             "\nhole_%d_pos=%f,%f\nhole_%d_diameter=%f",
             hole_index, hole->pos.x, hole->pos.y,
             hole_index, hole->diameter
         );
-        strcat_s(level_file, FILE_SIZE, hole_data);
         ++hole_index;
     }
 
     // save the amount of holes saved
-    char last_holes[64];
-    sprintf_s(last_holes, 64, "\nholes_amount=%d", hole_index);
-    strcat_s(level_file, FILE_SIZE, last_holes);
+    fprintf(fp, "\nholes_amount=%d", hole_index);
 
     // save the walls now
     int wall_index = 0;
@@ -341,22 +277,18 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         if (wall == NULL || wall->destroyed || wall->scale.x <= 0.f || wall->scale.y <= 0.f)
             continue;
 
-        char wall_data[1024];
-        sprintf_s(wall_data, 1024,
+        fprintf(fp,
             "\nwall_%d_pos=%f,%f\nwall_%d_scale=%f,%f\nwall_%d_angle=%f\nwall_%d_rot_rate=%f",
             wall_index, wall->pos.x, wall->pos.y,
             wall_index, wall->scale.x, wall->scale.y,
             wall_index, wall->angle,
             wall_index, wall->rotation_rate
         );
-        strcat_s(level_file, FILE_SIZE, wall_data);
         ++wall_index;
     }
 
     // save the amount of walls saved
-    char last_walls[64];
-    sprintf_s(last_walls, 64, "\nwalls_amount=%d", wall_index);
-    strcat_s(level_file, FILE_SIZE, last_walls);
+    fprintf(fp, "\nwalls_amount=%d", wall_index);
 
     int item_index = 0;
     for (int i = 0; i < items->length; ++i) {
@@ -364,21 +296,17 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         if (item == NULL || item->destroyed || item->diameter <= 0.f)
             continue;
 
-        char item_data[1024];
-        sprintf_s(item_data, 1024,
+        fprintf(fp,
             "\nitem_%d_pos=%f,%f\nitem_%d_diameter=%f\nitem_%d_angle=%f\nitem_%d_type=%d",
             item_index, item->pos.x, item->pos.y,
             item_index, item->diameter,
             item_index, item->angle,
             item_index, item->type
         );
-        strcat_s(level_file, FILE_SIZE, item_data);
         ++item_index;
     }
 
-    char last_items[64];
-    sprintf_s(last_items, 64, "\nitems_amount=%d", item_index);
-    strcat_s(level_file, FILE_SIZE, last_items);
+    fprintf(fp, "\nitems_amount=%d", item_index);
 
     int terrain_index = 0;
     for (int i = 0; i < terrains->length; ++i) {
@@ -386,96 +314,19 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         if (terrain == NULL || terrain->destroyed || terrain->scale.x <= 0.f)
             continue;
 
-        char terrain_data[1024];
-        sprintf_s(terrain_data, 1024,
+        fprintf(fp,
             "\nterrain_%d_pos=%f,%f\nterrain_%d_scale=%f,%f\nterrain_%d_angle=%f\nterrain_%d_type=%d",
             terrain_index, terrain->pos.x, terrain->pos.y,
             terrain_index, terrain->scale.x, terrain->scale.y,
             terrain_index, terrain->angle,
             terrain_index, terrain->type
         );
-        strcat_s(level_file, FILE_SIZE, terrain_data);
         ++terrain_index;
     }
 
-    char last_terrains[64];
-    sprintf_s(last_terrains, 64, "\nterrains_amount=%d", terrain_index);
-    strcat_s(level_file, FILE_SIZE, last_terrains);
-
-    fputs(level_file, fptr);
-    fclose(fptr);
-    fptr = NULL;
-}
-
-char* get_value(Map* map, const char* key) {
-    // loop through each map node and compare the key value with the given key
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, key) == 0) {
-            return ptr->value;
-        }
-    }
-    return NULL;
-}
-
-// sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
-char* read_content(const char* filename) {
-    char* fcontent = NULL;
-    int fsize = 0;
-    FILE* fp = fopen(filename, "r");
-    if (fp) {
-        fseek(fp, 0, SEEK_END);
-        fsize = ftell(fp);
-        rewind(fp);
-
-        fcontent = calloc(fsize, sizeof(char));
-        if (fcontent) {
-            fread(fcontent, 1, fsize, fp);
-        }
-        fclose(fp);
-        fp = NULL;
-    }
-    return fcontent;
-}
-
-// tokenize the given string from (131231,14512) to a proper vector
-CP_Vector get_vector(char* line) {
-    const char innerdel[] = ",";
-    char* innerptr = NULL;
-
-    // get the x value (left side)
-    char* xstr = strtok_s(line, innerdel, &innerptr);
-    float x = (float) atof(xstr);
-
-    // get the y value (right side)
-    char* ystr = strtok_s(NULL, innerdel, &innerptr);
-    float y = (float) atof(ystr);
-    CP_Vector vector = CP_Vector_Set(x, y);
-
-    // clean up
-    xstr = NULL;
-    ystr = NULL;
-    return vector;
-}
-
-// recursively loops through the map to free up the allocations, starting from the last node
-void free_map(Map* map) {
-    if (map == NULL)
-        return;
-
-    if (map->next) {
-        free_map(map->next);
-        map->next = NULL;
-    }
-    if (map->key) {
-        free(map->key);
-        map->key = NULL;
-    }
-    if (map->value) {
-        free(map->value);
-        map->value = NULL;
-    }
-    free(map);
-    map = NULL;
+    fprintf(fp, "\nterrains_amount=%d", terrain_index);
+    fclose(fp);
+    fp = NULL;
 }
 
 void free_level(Level* level) {
@@ -490,6 +341,14 @@ void free_level(Level* level) {
     if (level->terrains) {
         free(level->terrains);
         level->terrains = NULL;
+    }
+    if (level->golf_balls) {
+        free(level->golf_balls);
+        level->golf_balls = NULL;
+    }
+    if (level->holes) {
+        free(level->holes);
+        level->holes = NULL;
     }
     free(level);
     level = NULL;

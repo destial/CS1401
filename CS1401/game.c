@@ -49,7 +49,6 @@ float current_time;
 
 // reset on level loading
 float translate = 1.f;
-float saving = 0.f;
 CP_BOOL playable = FALSE;
 CP_BOOL win = FALSE;
 CP_BOOL has_won = FALSE;
@@ -318,9 +317,9 @@ void game_physics_update(float dt)
 			}
 		}
 
-		for (int j = 0; j < golf_balls.length; ++j) {
+		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
-			if (other == NULL || other->scored || other->destroyed || i == j)
+			if (i == j || other == NULL || other->scored || other->destroyed)
 				continue;
 
 			Check_Ball_Collision(golf, other);
@@ -375,7 +374,6 @@ void game_physics_update(float dt)
 		has_won = TRUE;
 		CP_Sound_PlayAdvanced(get_audio(VICTORY_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
 	}
-
 }
 
 void game_render(void)
@@ -388,7 +386,7 @@ void game_render(void)
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Font_Set(font);
-	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight() * 1.f, 255);
+	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
 	// render terrains
 	render_terrains();
@@ -498,7 +496,6 @@ void render_walls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Wall* wall_arr = Get_Walls();
 
-	// render walls
 	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
 		if (wall == NULL || wall->destroyed)
@@ -510,7 +507,7 @@ void render_walls(void) {
 			CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(
-				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
+				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
@@ -528,9 +525,9 @@ void render_walls(void) {
 			CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_MIRROR);
 			int w = CP_Image_GetWidth(wall->image);
 			int h = CP_Image_GetHeight(wall->image);
-			int d = gcd((int) wall->scale.x, (int) wall->scale.y);
+			int d = gcd((int)wall->scale.x, (int)wall->scale.y);
 			CP_Image_DrawSubImageAdvanced(wall->image,
-				CP_Math_LerpFloat(c.x, (float) CP_System_GetWindowWidth(), translate), 
+				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
@@ -586,7 +583,6 @@ void render_walls(void) {
 void render_holes(void) {
 	Hole* hole_arr = Get_Holes();
 
-	// render holes
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
 		if (hole == NULL || hole->destroyed)
@@ -612,7 +608,7 @@ void render_items(void) {
 	Terrain* terrain_arr = Get_Terrains();
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->collected || item->destroyed) 
+		if (item == NULL || item->collected || item->destroyed)
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -622,6 +618,7 @@ void render_items(void) {
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image image = NULL;
 		SpriteSheet* sprite = NULL;
+		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		switch (item->type) {
 		case BOOST:
 			image = get_image(BOOST_ITEM_ASSET);
@@ -636,13 +633,13 @@ void render_items(void) {
 			image = get_image(REVERSE_ITEM_ASSET);
 			break;
 		case PORTAL:
-			sprite = get_sprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 3, 3, 1.f);
+			sprite = get_sprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+			anim_mul = 1.f;
 			break;
 		default:
 			break;
 		}
 
-		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		if (image != NULL) {
 			if (item->type == REVERSE) {
 				item->angle += 45.f * CP_System_GetDt();
@@ -661,8 +658,8 @@ void render_items(void) {
 			DrawSprite(sprite,
 				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 				coords.y,
-				item->diameter* world_ratios.x* anim_mul,
-				item->diameter* world_ratios.x* anim_mul, 
+				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul,
 				255);
 		}
 
@@ -687,7 +684,6 @@ void render_balls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	GolfBall* golf_arr = Get_Golfs();
 
-	// render golf balls
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
 		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
@@ -700,7 +696,7 @@ void render_balls(void) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image_DrawAdvanced(golf_ball_image,
-			CP_Math_LerpFloat(coords.x, (float) CP_System_GetWindowWidth(), translate),
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 			coords.y,
 			golf->diameter * world_ratios.x,
 			golf->diameter * world_ratios.x,

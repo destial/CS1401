@@ -264,6 +264,13 @@ void update_editor_items(ObjectArray* items) {
 
 	if (current_editing != NULL && current_type == ITEM) {
 		Item* i = (Item*)current_editing;
+
+		if (CP_Input_MouseWheel() != 0.f) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+				i->diameter += CP_Input_MouseWheel();
+			}
+		}
+
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
 			++i->type;
 			if (i->type == ITEM_LAST) {
@@ -288,6 +295,17 @@ void update_editor_items(ObjectArray* items) {
 }
 
 void update_editor_utils(void) {
+	// save level if debug enabled
+	if (CP_Input_KeyTriggered(KEY_S)) {
+		save();
+		editor_saving = 1.5f;
+	}
+
+	if (editor_saving) {
+		editor_saving -= CP_System_GetDt();
+		editor_saving = max(0.f, editor_saving);
+	}
+
 	if (current_editing == NULL)
 		return;
 
