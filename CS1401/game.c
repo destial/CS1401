@@ -763,13 +763,6 @@ void render_balls(void) {
 
 	if (editor_mode) {
 		render_editor_utils();
-		if (saving) {
-			CP_Settings_Fill(Get_Color(COLOR_RED));
-			CP_Settings_Stroke(Get_Color(COLOR_RED));
-			CP_Settings_TextSize(50.f);
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
-		}
 	}
 }
 
