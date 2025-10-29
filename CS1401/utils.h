@@ -11,6 +11,8 @@
 #define UTILS_H
 #include "cprocessing.h"
 
+#define min_max(v, mn, mx) min(mx, max(mn, v))
+
 typedef enum ColorCodeEnum {
 	COLOR_BLACK = 0,
 	COLOR_RED,

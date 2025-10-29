@@ -31,6 +31,8 @@ CP_BOOL check_on_terrain(Terrain* terrain);
 */
 CP_BOOL check_on_circle(CP_Vector pos, float diameter);
 
+void start_update_editor_utils(void);
+
 /*!
 @brief Process wall editor
 @param walls - The array of walls in the current level
@@ -64,7 +66,7 @@ void update_editor_terrains(ObjectArray* terrains);
 /*!
 @brief Final process editors
 */
-void update_editor_utils(void);
+void end_update_editor_utils(void);
 
 /*!
 @brief Render editor overlays

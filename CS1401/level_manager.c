@@ -23,19 +23,19 @@ Level* get_level(int level) {
         // create the level to load and set all the values *** all must have values!!!
         Level* lvl = malloc(sizeof(Level));
         if (lvl) {
-            lvl->world_width = (float)atof(get_value(root, "width"));
-            lvl->world_height = (float)atof(get_value(root, "height"));
+            lvl->world_width = get_float(root, "width", 48.f);
+            lvl->world_height = get_float(root, "height", 27.f);
 
-            lvl->walls_size = atoi(get_value(root, "walls_amount"));
-            lvl->walls = lvl->walls_size ? calloc(lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
+            lvl->walls_size = get_int(root, "walls_amount", 1);
+            lvl->walls = lvl->walls_size ? calloc((size_t)lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
 
             char* old_format = get_value(root, "golf_1");
             if (old_format) {
                 lvl->golf_balls_size = 2;
-                lvl->golf_balls = calloc(lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->golf_balls = calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
-                CP_Vector ball_1 = get_vector(old_format);
-                CP_Vector ball_2 = get_vector(get_value(root, "golf_2"));
+                CP_Vector ball_1 = get_vector(root, "golf_1");
+                CP_Vector ball_2 = get_vector(root, "golf_2");
                 lvl->golf_balls[0] = ball_1.x;
                 lvl->golf_balls[1] = ball_1.y;
                 lvl->golf_balls[2] = 1.f;
@@ -44,8 +44,8 @@ Level* get_level(int level) {
                 lvl->golf_balls[4] = ball_2.y;
                 lvl->golf_balls[5] = 1.f;
 
-                CP_Vector hole_1 = get_vector(get_value(root, "hole_1"));
-                CP_Vector hole_2 = get_vector(get_value(root, "hole_2"));
+                CP_Vector hole_1 = get_vector(root, "hole_1");
+                CP_Vector hole_2 = get_vector(root, "hole_2");
 
                 lvl->holes_size = 2;
                 lvl->holes = calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
@@ -58,49 +58,43 @@ Level* get_level(int level) {
                 lvl->holes[5] = 1.5f;
             }
             else {
-                lvl->golf_balls_size = atoi(get_value(root, "golf_amount"));
-                lvl->golf_balls = calloc(lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->golf_balls_size = get_int(root, "golf_amount", 1);
+                lvl->golf_balls = calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int ball_index = 0;
                 for (int i = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
                     char ball_pos[32];
                     sprintf_s(ball_pos, 32, "golf_%d_pos", ball_index);
-                    char* line_pos = get_value(root, ball_pos);
-                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    CP_Vector pos = get_vector(root, ball_pos);
                     lvl->golf_balls[i + 0] = pos.x;
                     lvl->golf_balls[i + 1] = pos.y;
 
                     char ball_diameter[32];
                     sprintf_s(ball_diameter, 32, "golf_%d_diameter", ball_index);
-                    char* line_diameter = get_value(root, ball_diameter);
-                    lvl->golf_balls[i + 2] = line_diameter ? (float) atof(line_diameter) : 1.f;
+                    lvl->golf_balls[i + 2] = get_float(root, ball_diameter, 1.f);
                 }
 
-                lvl->holes_size = atoi(get_value(root, "holes_amount"));
-                lvl->holes = calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->holes_size = get_int(root, "holes_amount", 1);
+                lvl->holes = calloc((size_t)lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int hole_index = 0;
                 for (int i = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
                     char hole_pos[32];
                     sprintf_s(hole_pos, 32, "hole_%d_pos", hole_index);
-                    char* line_pos = get_value(root, hole_pos);
-                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    CP_Vector pos = get_vector(root, hole_pos);
                     lvl->holes[i + 0] = pos.x;
                     lvl->holes[i + 1] = pos.y;
 
                     char hole_diameter[32];
                     sprintf_s(hole_diameter, 32, "hole_%d_diameter", hole_index);
-                    char* line_diameter = get_value(root, hole_diameter);
-                    lvl->holes[i + 2] = line_diameter ? (float) atof(line_diameter) : 1.5f;
+                    lvl->holes[i + 2] = get_float(root, hole_diameter, 1.5f);
                 }
             }
 
             // some versions of the level file dont include the par, so make sure to check
-            char* line_par = get_value(root, "par");
-            lvl->par = line_par ? atoi(line_par) : 3;
+            lvl->par = get_int(root, "par", 3);
 
-            char* line_m_angle = get_value(root, "middle_wall_angle");
-            lvl->middle_wall_angle = line_m_angle ? (float)atof(line_m_angle) : 0.f;
+            lvl->middle_wall_angle = get_float(root, "middle_wall_angle", 0.f);
 
             // set the walls position, scaling, angle and rotation rates
             // check if any of them exists first, if not use default values
@@ -110,16 +104,14 @@ Level* get_level(int level) {
                 // set wall position if exists
                 char wall_pos[32];
                 sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
-                char* line_pos = get_value(root, wall_pos);
-                CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                CP_Vector pos = get_vector(root, wall_pos);
                 lvl->walls[i + 0] = pos.x;
                 lvl->walls[i + 1] = pos.y;
 
                 // set wall scale if exists
                 char wall_scale[32];
                 sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
-                char* line_scale = get_value(root, wall_scale);
-                CP_Vector scale = line_scale ? get_vector(line_scale) : CP_Vector_Set(0, 0);
+                CP_Vector scale = get_vector(root, wall_scale);
                 lvl->walls[i + 2] = scale.x;
                 lvl->walls[i + 3] = scale.y;
 
@@ -137,34 +129,29 @@ Level* get_level(int level) {
             }
 
             // load items in level
-            char* item_size_line = get_value(root, "items_amount");
-            if (item_size_line) {
-                lvl->items_size = atoi(item_size_line);
+            lvl->items_size = get_int(root, "items_amount", 0);
+            if (lvl->items_size) {
                 lvl->items = calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
 
                 int item_index = 0;
                 for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
                     char item_pos[32];
                     sprintf_s(item_pos, 32, "item_%d_pos", item_index);
-                    char* line_pos = get_value(root, item_pos);
-                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    CP_Vector pos = get_vector(root, item_pos);
                     lvl->items[i + 0] = pos.x;
                     lvl->items[i + 1] = pos.y;
 
                     char item_diameter[32];
                     sprintf_s(item_diameter, 32, "item_%d_diameter", item_index);
-                    char* line_diameter = get_value(root, item_diameter);
-                    lvl->items[i + 2] = line_diameter ? (float)atof(line_diameter) : 0.f;
+                    lvl->items[i + 2] = get_float(root, item_diameter, 0.f);
 
                     char item_angle[32];
                     sprintf_s(item_angle, 32, "item_%d_angle", item_index);
-                    char* line_angle = get_value(root, item_angle);
-                    lvl->items[i + 3] = line_angle ? (float)atof(line_angle) : 0.f;
+                    lvl->items[i + 3] = get_float(root, item_angle, 0.f);
 
                     char item_type[32];
                     sprintf_s(item_type, 32, "item_%d_type", item_index);
-                    char* line_type = get_value(root, item_type);
-                    lvl->items[i + 4] = line_type ? (float)atoi(line_type) : 0.f;
+                    lvl->items[i + 4] = (float) get_int(root, item_type, 0);
                 }
             }
             else {
@@ -173,36 +160,31 @@ Level* get_level(int level) {
             }
 
             // load terrains in level
-            char* terrain_size_line = get_value(root, "terrains_amount");
-            if (terrain_size_line) {
-                lvl->terrains_size = atoi(terrain_size_line);
-                lvl->terrains = calloc(lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
+            lvl->terrains_size = get_int(root, "terrains_amount", 0);
+            if (lvl->terrains_size) {
+                lvl->terrains = calloc((size_t)lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
 
                 int terrain_index = 0;
                 for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
                     char terrain_pos[32];
                     sprintf_s(terrain_pos, 32, "terrain_%d_pos", terrain_index);
-                    char* line_pos = get_value(root, terrain_pos);
-                    CP_Vector pos = line_pos ? get_vector(line_pos) : CP_Vector_Set(0, 0);
+                    CP_Vector pos = get_vector(root, terrain_pos);
                     lvl->terrains[i + 0] = pos.x;
                     lvl->terrains[i + 1] = pos.y;
 
                     char terrain_scale[32];
                     sprintf_s(terrain_scale, 32, "terrain_%d_scale", terrain_index);
-                    char* line_scale = get_value(root, terrain_scale);
-                    CP_Vector scale = line_pos ? get_vector(line_scale) : CP_Vector_Set(0, 0);
+                    CP_Vector scale = get_vector(root, terrain_scale);
                     lvl->terrains[i + 2] = scale.x;
                     lvl->terrains[i + 3] = scale.y;
 
                     char terrain_angle[32];
                     sprintf_s(terrain_angle, 32, "terrain_%d_angle", terrain_index);
-                    char* line_angle = get_value(root, terrain_angle);
-                    lvl->terrains[i + 4] = line_angle ? (float)atof(line_angle) : 0.f;
+                    lvl->terrains[i + 4] = get_float(root, terrain_angle, 0.f);
 
                     char terrain_type[32];
                     sprintf_s(terrain_type, 32, "terrain_%d_type", terrain_index);
-                    char* line_type = get_value(root, terrain_type);
-                    lvl->terrains[i + 5] = line_type ? (float)atoi(line_type) : 0.f;
+                    lvl->terrains[i + 5] = (float) get_int(root, terrain_type, 0);
                 }
             }
             else {

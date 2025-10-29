@@ -32,9 +32,36 @@ void free_map(Map* map);
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Load the file into a searchable map
 @param filename - The filename
-@return The loaded map in heap. Ensure to free_map() after using!!!!
+@return The loaded map in heap, nullable. Ensure to free_map() after using!!!!
 */
 Map* load_map(const char* filename);
+
+Map* add_entry(Map* map, const char* key, char* value);
+Map* add_entry_int(Map* map, const char* key, int value);
+Map* add_entry_float(Map* map, const char* key, float value);
+Map* add_entry_vector(Map* map, const char* key, CP_Vector vector);
+
+void edit_entry(Map* map, const char* key, char* value);
+void edit_entry_int(Map* map, const char* key, int value);
+void edit_entry_float(Map* map, const char* key, float value);
+void edit_entry_vector(Map* map, const char* key, CP_Vector value);
+
+/*!
+@brief Remove an entry from the given map
+@param map - The root map object
+@param key - The key to remove
+@return The new root map pointer if we removed the first map node, else the same root node
+*/
+Map* remove_entry(Map* map, const char* key);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Save the searchable map into a file
+@param filename - The filename
+@param map - The loaded map in heap
+@return TRUE if saved, FALSE if not
+*/
+CP_BOOL save_map(const char* filename, Map* map);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -62,10 +89,37 @@ char* get_value(Map* map, const char* key);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the value as a float in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@param def - The default value if it doesn't exist
+*/
+float get_float(Map* map, const char* key, float def);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the value as an int in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@param def - The default value if it doesn't exist
+*/
+int get_int(Map* map, const char* key, int def);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the value as an int in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@return If the vector doesn't exist, it's a {0,0} vector
+*/
+CP_Vector get_vector(Map* map, const char* key);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Parse the given line as a vector (e.g. 123,421)
 @param line - The string line to parse
 @return The parsed vector
 */
-CP_Vector get_vector(char* line);
+CP_Vector parse_vector(char* line);
 
 #endif

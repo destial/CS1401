@@ -4,6 +4,7 @@
 #include "game.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
+#include "data_manager.h"
 #include "end_state.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,8 +37,8 @@ CP_Image background, setting_background;
 CP_Font button_font;
 
 char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0;
-
 float sfx_limit = 1.0f, music_limit = 1.0f;
+Map* settings_map = NULL;
 
 void exit_main_menu(void) {
 	CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
@@ -161,7 +162,21 @@ void main_menu_init(void)
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(window_size_W, window_size_H);
 
-	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_MUSIC), 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
+	settings_map = load_map("user.data");
+	if (settings_map) {
+		printf("Loading previous user data!\n");
+		sfx_limit = get_float(settings_map, "sfx_volume", sfx_limit);
+		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
+		music_limit = get_float(settings_map, "music_volume", music_limit);
+		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
+	}
+	else {
+		printf("User data file not found! Creating new one!\n");
+		settings_map = add_entry_float(settings_map, "sfx_volume", sfx_limit);
+		settings_map = add_entry_float(settings_map, "music_volume", music_limit);
+	}
+
+	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), music_limit, 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
 }
 
 void main_menu_update(void) 
@@ -527,4 +542,12 @@ void change_resolution(num) {
 void main_menu_exit(void) 
 {
 	free_assets();
+	if (settings_map) {
+		printf("Saving user data!\n");
+		edit_entry_float(settings_map, "sfx_volume", sfx_limit);
+		edit_entry_float(settings_map, "music_volume", music_limit);
+
+		save_map("user.data", settings_map);
+		free_map(settings_map);
+	}
 }

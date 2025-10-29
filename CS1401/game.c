@@ -46,6 +46,7 @@ float resistance = 1.25f;
 float power = 1.f;
 char current_level = 1;
 float current_time;
+CP_Matrix camera_matrix;
 
 // reset on level loading
 float translate = 1.f;
@@ -63,6 +64,8 @@ ObjectArray items;
 ObjectArray terrains;
 
 CP_Vector world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
+float camera_scale;
+CP_Vector camera_pos;
 
 static Wall* Get_Walls() {
 	return walls.arr;
@@ -113,12 +116,16 @@ void game_init(void)
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
+	camera_matrix = CP_Matrix_Identity();
+	camera_scale = 1.f;
+	camera_pos = CP_Vector_Set(0, 0);
 	
 	scoring_init();
 }
 
 void game_update(void)
 {
+	CP_Settings_ApplyMatrix(camera_matrix);
 	Process_Inputs();
 
 	// semi-fixed timestep for physics time
@@ -140,6 +147,7 @@ void game_update(void)
 
 	// rendering does not need to be in physics time
 	game_render();
+	CP_Settings_ResetMatrix();
 }
 
 void game_physics_update(float dt)
@@ -386,6 +394,7 @@ void game_render(void)
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Font_Set(font);
+
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
 	// render terrains
@@ -406,28 +415,24 @@ void game_render(void)
 	// render ui
 	render_ui();
 
-	// render debug text on top of everything
-	if (debug_enabled) {
-		debug_render_info();
-	}
-
 	if (editor_mode) {
 		render_editor_utils();		
 	}
 }
 
 void render_ui(void) {
+	CP_Settings_ResetMatrix();
 	if (!editor_mode) {
 		// draw current strokes
 		CP_Settings_TextSize(40.f);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-		char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
+		char strokes[32]; sprintf_s(strokes, 32, "Strokes: %d", get_strokes());
+		CP_Font_DrawText(strokes, 0, CP_System_GetWindowHeight() * 0.5f);
 
-		char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
+		CP_Font_DrawText(par, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
@@ -443,6 +448,13 @@ void render_ui(void) {
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
 	}
+
+	// render debug text on top of everything
+	if (debug_enabled) {
+		debug_render_info();
+	}
+
+	CP_Settings_ApplyMatrix(camera_matrix);
 }
 
 void render_terrains(void) {
@@ -729,41 +741,6 @@ void render_balls(void) {
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
 	}
-
-	if (!editor_mode) {
-		// draw current strokes
-		CP_Settings_TextSize(40.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-		CP_Settings_Fill(Get_Color(COLOR_BLACK));
-		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-		char b[32]; sprintf_s(b, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(b, 0, CP_System_GetWindowHeight() * 0.5f);
-
-		char p[32]; sprintf_s(p, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(p, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
-	}
-
-	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
-		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
-		/*
-		@todo: add button to cycle to next level or replay the same level
-		*/
-	} else if (playable && all_balls_stopped && !editor_mode) {
-		CP_Settings_Fill(Get_Color(COLOR_ORANGE));
-		CP_Settings_Stroke(Get_Color(COLOR_ORANGE));
-		CP_Settings_TextSize(50.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
-	}
-
-	// render debug text on top of everything
-	if (debug_enabled) {
-		debug_render_info();
-	}
-
-	if (editor_mode) {
-		render_editor_utils();
-	}
 }
 
 void game_exit(void)
@@ -783,6 +760,7 @@ void game_exit(void)
 void Process_Inputs(void) {
 	mouse.x = CP_Input_GetMouseX();
 	mouse.y = CP_Input_GetMouseY();
+	mouse = CP_Vector_MatrixMultiply(CP_Matrix_Inverse(camera_matrix), mouse);
 	mouse_world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
 
 	// go to main menu if pressed escape key
@@ -802,7 +780,7 @@ void Process_Inputs(void) {
 	}
 
 	// reset level
-	if (CP_Input_KeyTriggered(KEY_R)) {
+	if (CP_Input_KeyTriggered(KEY_R) && (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL))) {
 		game_exit();
 		game_init();
 		translate = 0.f;
@@ -818,23 +796,47 @@ void Process_Inputs(void) {
 			resistance = max(1.f, resistance); // limit to minimum of 1.f
 		}
 
+		start_update_editor_utils();
+
 		update_editor_walls(&walls);
 		update_editor_holes(&holes);
 		update_editor_golfs(&golf_balls);
 		update_editor_items(&items);
 		update_editor_terrains(&terrains);
 
-		update_editor_utils();
+		end_update_editor_utils();
 	}
 	else {
-		if (CP_Input_MouseWheel() > 0.f) { // increase power of putt
-			power += 0.1f;
-			power = min(3.f, power); // limit to maximum of 3f
+		if (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL)) {
+			power += CP_Input_MouseWheel() * 0.1f;
+			power = min_max(power, 0.1f, 3.f); // limit to maximum of 3f, min 0.1f
 		}
-		if (CP_Input_MouseWheel() < 0.f) { // decrease power of putt
-			power -= 0.1f;
-			power = max(0.1f, power); // limit to minimum of 0.1f
+	}
+
+	if (CP_Input_KeyDown(KEY_LEFT_CONTROL) || CP_Input_KeyDown(KEY_RIGHT_CONTROL)) {
+		if (CP_Input_MouseWheel()) {
+			float ratio = Get_World_Limits().y / Get_World_Limits().x;
+			camera_scale += (CP_Input_MouseWheel() * 0.1f);
+			camera_scale = max(1.f, camera_scale);
 		}
+		if (CP_Input_KeyTriggered(KEY_R)) {
+			camera_scale = 1.f;
+			camera_pos.x = 0.f;
+			camera_pos.y = 0.f;
+		}
+
+		if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
+			camera_pos.x += CP_Input_GetMouseDeltaX();
+			camera_pos.y += CP_Input_GetMouseDeltaY();
+		}
+
+		float x_lim = (CP_System_GetWindowWidth() * (1.f - camera_scale)) / camera_scale;
+		float y_lim = (CP_System_GetWindowHeight() * (1.f - camera_scale)) / camera_scale;
+		camera_pos.x = min_max(camera_pos.x, x_lim, 0.f);
+		camera_pos.y = min_max(camera_pos.y, y_lim, 0.f);
+
+		camera_matrix = CP_Matrix_Multiply(CP_Matrix_Identity(), CP_Matrix_Scale(CP_Vector_Set(camera_scale, camera_scale)));
+		camera_matrix = CP_Matrix_Multiply(camera_matrix, CP_Matrix_Translate(camera_pos));
 	}
 }
 
@@ -1081,7 +1083,7 @@ void debug_render_info(void) {
 	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 0, 20);
 
-	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.2f, %.2f)", mouse.x, mouse.y);
+	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
 	CP_Font_DrawText(m, 0, 40);
 
 	CP_Vector world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
@@ -1091,8 +1093,11 @@ void debug_render_info(void) {
 	char r[50]; sprintf_s(r, 50, "Resistance: %.2f", resistance);
 	CP_Font_DrawText(r, 0, 80);
 
+	char po[50]; sprintf_s(po, 50, "Shoot Power: %.2f", power);
+	CP_Font_DrawText(po, 0, 100);
+
 	char p[50]; sprintf_s(p, 50, "Mouse Wheel: %.2f", CP_Input_MouseWheel());
-	CP_Font_DrawText(p, 0, 100);
+	CP_Font_DrawText(p, 0, 120);
 }
 
 /*!
@@ -1702,4 +1707,8 @@ CP_Vector Get_World_Limits(void) {
 
 CP_Vector Get_World_Ratios(void) {
 	return CP_Vector_Set(CP_System_GetWindowWidth() / world_limits.x, CP_System_GetWindowHeight() / world_limits.y);
+}
+
+CP_Matrix Get_Camera(void) {
+	return camera_matrix;
 }

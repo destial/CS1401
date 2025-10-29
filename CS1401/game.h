@@ -70,6 +70,11 @@ typedef struct TerrainStruct {
 } Terrain;
 
 /*!
+@brief Get the camera transformation matrix
+*/
+CP_Matrix Get_Camera(void);
+
+/*!
 @brief Game scene init
 */
 void game_init(void);

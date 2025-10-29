@@ -5,10 +5,11 @@
 @brief Definition file for debug and level editor UI
 */
 
+#include <math.h>
+#include <stdio.h>
 #include "editor_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
-#include <math.h>
 
 typedef enum EditingType {
 	NONE = 0,
@@ -21,6 +22,7 @@ typedef enum EditingType {
 
 void* current_editing = NULL;
 void* current_dragging = NULL;
+void* current_click = NULL;
 CP_Vector current_editing_offset;
 EditingType current_type = NONE;
 float editor_saving = 0.f;
@@ -66,13 +68,14 @@ void update_editor_walls(ObjectArray* walls) {
 		if (wall == NULL || wall->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_wall(wall)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_wall(wall)) {
 			current_editing = wall;
+			current_click = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 			current_type = WALL;
 		}
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == wall) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_RIGHT) && current_editing == wall) {
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 		}
 	}
@@ -120,13 +123,14 @@ void update_editor_terrains(ObjectArray* terrains) {
 		if (terrain == NULL || terrain->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_terrain(terrain)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_terrain(terrain)) {
 			current_editing = terrain;
+			current_click = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
 		}
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == terrain) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_RIGHT) && current_editing == terrain) {
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 		}
 	}
@@ -171,8 +175,9 @@ void update_editor_holes(ObjectArray* holes) {
 		if (hole == NULL || hole->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(hole->pos, hole->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(hole->pos, hole->diameter)) {
 			current_editing = hole;
+			current_click = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
 		}
@@ -181,7 +186,7 @@ void update_editor_holes(ObjectArray* holes) {
 	if (current_editing != NULL && current_type == HOLE) {
 		Hole* hole = (Hole*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				hole->diameter += CP_Input_MouseWheel();
 			}
 		}
@@ -212,8 +217,9 @@ void update_editor_golfs(ObjectArray* golfs) {
 		if (golf == NULL || golf->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(golf->pos, golf->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(golf->pos, golf->diameter)) {
 			current_editing = golf;
+			current_click = golf;
 			current_editing_offset = CP_Vector_Subtract(golf->pos, mouse_world);
 			current_type = GOLF_BALL;
 		}
@@ -222,7 +228,7 @@ void update_editor_golfs(ObjectArray* golfs) {
 	if (current_editing != NULL && current_type == GOLF_BALL) {
 		GolfBall* ball = (GolfBall*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				ball->diameter += CP_Input_MouseWheel();
 			}
 		}
@@ -255,8 +261,9 @@ void update_editor_items(ObjectArray* items) {
 		if (item == NULL || item->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(item->pos, item->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(item->pos, item->diameter)) {
 			current_editing = item;
+			current_click = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
 		}
@@ -294,7 +301,13 @@ void update_editor_items(ObjectArray* items) {
 	}
 }
 
-void update_editor_utils(void) {
+void start_update_editor_utils(void) {
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) {
+		current_click = NULL;
+	}
+}
+
+void end_update_editor_utils(void) {
 	// save level if debug enabled
 	if (CP_Input_KeyTriggered(KEY_S)) {
 		save();
@@ -304,6 +317,10 @@ void update_editor_utils(void) {
 	if (editor_saving) {
 		editor_saving -= CP_System_GetDt();
 		editor_saving = max(0.f, editor_saving);
+	}
+
+	if (current_click == NULL) {
+		current_editing = NULL;
 	}
 
 	if (current_editing == NULL)
@@ -442,6 +459,7 @@ void update_editor_utils(void) {
 }
 
 void render_editor_utils(void) {
+	CP_Settings_ResetMatrix();
 	CP_Font_Set(get_font(ARIAL_FONT_ASSET));
 	CP_Settings_Fill(Get_Color(COLOR_GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
@@ -453,7 +471,9 @@ void render_editor_utils(void) {
 	CP_Font_DrawText("Left Click: Select/Drag | Right Click: Rotate | Mouse Wheel + Left/Right Click: Scale (Walls Only)", 5.f, CP_System_GetWindowHeight() - 120.f);
 	CP_Font_DrawText("Arrow Up/Down: Increase/Decrease Rotation Speed (Walls Only)", 5.f, CP_System_GetWindowHeight() - 100.f);
 	CP_Font_DrawText("Arrow Left/Right: Change Item / Terrain Type", 5.f, CP_System_GetWindowHeight() - 80.f);
-	CP_Font_DrawText("Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'4' to add Items", 5.f, CP_System_GetWindowHeight() - 60.f);
+	char a[100];
+	sprintf_s(a, 100, "Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'%d' to add Items", ITEM_LAST - 1);
+	CP_Font_DrawText(a, 5.f, CP_System_GetWindowHeight() - 60.f);
 	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
 
@@ -467,6 +487,8 @@ void render_editor_utils(void) {
 
 	if (current_editing == NULL)
 		return;
+
+	CP_Settings_ApplyMatrix(Get_Camera());
 
 	CP_Vector world_limits = Get_World_Limits();
 	CP_Vector world_ratios = Get_World_Ratios();
