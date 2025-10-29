@@ -54,7 +54,7 @@ CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
 void update_editor_walls(ObjectArray* walls) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
-	if (CP_Input_KeyTriggered(KEY_EQUAL)) {
+	if (CP_Input_KeyTriggered(KEY_W)) {
 		Wall* wall = Add_Wall(mouse_world);
 		if (wall) {
 			current_editing = wall;
@@ -273,7 +273,7 @@ void update_editor_items(ObjectArray* items) {
 		Item* i = (Item*)current_editing;
 
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				i->diameter += CP_Input_MouseWheel();
 			}
 		}
@@ -326,7 +326,7 @@ void end_update_editor_utils(void) {
 	if (current_editing == NULL)
 		return;
 
-	if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) {
+	if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) {
 		if (current_type == WALL && check_on_wall((Wall*)current_editing)) {
 			current_dragging = current_editing;
 		}
@@ -343,7 +343,7 @@ void end_update_editor_utils(void) {
 			current_dragging = current_editing;
 		}
 	}
-	else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) {
+	else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) {
 		current_dragging = current_editing;
 	}
 	else {
@@ -352,7 +352,7 @@ void end_update_editor_utils(void) {
 
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 	if (current_dragging != NULL) {
-		if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) { // translate
+		if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) { // translate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
@@ -376,7 +376,7 @@ void end_update_editor_utils(void) {
 				terrain->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 			}
 		}
-		else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) { // rotate
+		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
@@ -430,12 +430,12 @@ void end_update_editor_utils(void) {
 		}
 
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				wall->scale.x += CP_Input_MouseWheel();
 				wall->scale.x = max(1.f, wall->scale.x);
 			}
 
-			if (CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				wall->scale.y += CP_Input_MouseWheel();
 				wall->scale.y = max(1.f, wall->scale.y);
 			}
@@ -445,12 +445,12 @@ void end_update_editor_utils(void) {
 	if (current_type == TERRAIN) {
 		Terrain* terrain = (Terrain*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				terrain->scale.x += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.x = max(0.1f, terrain->scale.x);
 			}
 
-			if (CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				terrain->scale.y += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.y = max(0.1f, terrain->scale.y);
 			}
@@ -471,8 +471,7 @@ void render_editor_utils(void) {
 	CP_Font_DrawText("Left Click: Select/Drag | Right Click: Rotate | Mouse Wheel + Left/Right Click: Scale (Walls Only)", 5.f, CP_System_GetWindowHeight() - 120.f);
 	CP_Font_DrawText("Arrow Up/Down: Increase/Decrease Rotation Speed (Walls Only)", 5.f, CP_System_GetWindowHeight() - 100.f);
 	CP_Font_DrawText("Arrow Left/Right: Change Item / Terrain Type", 5.f, CP_System_GetWindowHeight() - 80.f);
-	char a[100];
-	sprintf_s(a, 100, "Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'%d' to add Items", ITEM_LAST - 1);
+	char a[100]; sprintf_s(a, 100, "Press 'W' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'%d' to add Items", ITEM_LAST - 1);
 	CP_Font_DrawText(a, 5.f, CP_System_GetWindowHeight() - 60.f);
 	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);

@@ -118,6 +118,9 @@ static Map* add_node(Map* map) {
 }
 
 Map* add_entry(Map* map, const char* key, char* value) {
+    if (get_value(map, key))
+        return map;
+
     Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
@@ -135,6 +138,9 @@ Map* add_entry(Map* map, const char* key, char* value) {
 }
 
 Map* add_entry_int(Map* map, const char* key, int value) {
+    if (get_value(map, key))
+        return map;
+
     Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
@@ -154,6 +160,9 @@ Map* add_entry_int(Map* map, const char* key, int value) {
 }
 
 Map* add_entry_float(Map* map, const char* key, float value) {
+    if (get_value(map, key))
+        return map;
+
     Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
@@ -173,6 +182,9 @@ Map* add_entry_float(Map* map, const char* key, float value) {
 }
 
 Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
+    if (get_value(map, key))
+        return map;
+
     Map* next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
@@ -184,7 +196,7 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
     char v[128];
     sprintf_s(v, 128, "%f,%f", value.x, value.y);
     size_t val_len = strlen(v) + 1;
-    next->value = calloc(val_len, sizeof(char));
+    next->value = malloc(val_len * sizeof(char));
     strcpy_s(next->value, val_len, v);
 
     next->next = NULL;
@@ -192,58 +204,75 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
 }
 
 void edit_entry(Map* map, const char* key, char* value) {
+    // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
+            // free up the current value
             free(ptr->value);
+
+            // set the new value
             size_t val_len = strlen(value) + 1;
             ptr->value = calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, value);
-            return;
+            return; // after modified, we dont need to look anymore
         }
     }
     add_entry(map, key, value);
 }
 
 void edit_entry_int(Map* map, const char* key, int value) {
+    // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
+            // free up the current value
             free(ptr->value);
+
+            // set the new value
             char v[64];
             sprintf_s(v, 64, "%d", value);
             size_t val_len = strlen(v) + 1;
             ptr->value = calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
-            return;
+            return; // after modified, we dont need to look anymore
         }
     }
     add_entry_int(map, key, value);
 }
 
 void edit_entry_float(Map* map, const char* key, float value) {
+    // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
+            // free up the current value
             free(ptr->value);
+
+            // set the new value
             char v[64];
             sprintf_s(v, 64, "%f", value);
             size_t val_len = strlen(v) + 1;
             ptr->value = calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
-            return;
+            return; // after modified, we dont need to look anymore
         }
     }
     add_entry_float(map, key, value);
 }
 
 void edit_entry_vector(Map* map, const char* key, CP_Vector value) {
+    // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
+
+            // free up the current value
             free(ptr->value);
+
+            // set the new value
             char v[128];
             sprintf_s(v, 128, "%f,%f", value.x, value.y);
             size_t val_len = strlen(v) + 1;
             ptr->value = calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
-            return;
+            return; // after modified, we dont need to look anymore
         }
     }
     add_entry_vector(map, key, value);
@@ -287,7 +316,9 @@ CP_BOOL save_map(const char* filename, Map* map) {
         fputs(next->key, fp);
         fputc('=', fp);
         fputs(next->value, fp);
-        fputc('\n', fp);
+        if (next->next) {
+            fputc('\n', fp);
+        }
         next = next->next;
     }
 
@@ -321,24 +352,29 @@ CP_Vector get_vector(Map* map, const char* key) {
     return value ? parse_vector(value) : CP_Vector_Set(0, 0);
 }
 
-// tokenize the given string from (131231,14512) to a proper vector
+// split the given string from (131231,14512) into a proper vector
+// sourced from https://stackoverflow.com/a/54450265
 CP_Vector parse_vector(char* line) {
-    const char innerdel[] = ",";
-    char* innerptr = NULL;
+    const char* s = line;
+    CP_Vector v = CP_Vector_Set(0.f, 0.f);
+    CP_BOOL x = TRUE;
+    while (*(s += strspn(s, ",")) != '\0') {
+        size_t len = strcspn(s, ",");
+        char b[64];
+        // Instead of printing, use the nth parsed token for key sorting
+        sprintf_s(b, 64, "%.*s", (int)len, s);
+        if (x) {
+            v.x = (float)atof(b);
+            x = FALSE;
+        }
+        else {
+            v.y = (float)atof(b);
+            break;
+        }
 
-    // get the x value (left side)
-    char* xstr = strtok_s(line, innerdel, &innerptr);
-    float x = (float)atof(xstr);
-
-    // get the y value (right side)
-    char* ystr = strtok_s(NULL, innerdel, &innerptr);
-    float y = (float)atof(ystr);
-    CP_Vector vector = CP_Vector_Set(x, y);
-
-    // clean up
-    xstr = NULL;
-    ystr = NULL;
-    return vector;
+        s += len;
+    }
+    return v;
 }
 
 // recursively loops through the map to free up the allocations, starting from the last node

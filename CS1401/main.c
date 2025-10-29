@@ -10,7 +10,7 @@
 static void run_data_tests(void) {
 	Map* map = load_map("test.txt");
 	map = add_entry(map, "a", "test");
-	map = add_entry_float(map, "b", 1.f);
+	map = add_entry_float(map, "b", 1.67f);
 	map = add_entry_int(map, "c", 2);
 	map = add_entry_vector(map, "v", CP_Vector_Set(6.f, 7.f));
 
@@ -19,7 +19,7 @@ static void run_data_tests(void) {
 		fprintf(stderr, "Failed test 1!\n");
 	}
 	float s_test = get_float(map, "b", -1.f);
-	if (s_test != 1.f) {
+	if (s_test != 1.67f) {
 		fprintf(stderr, "Failed test 2!\n");
 	}
 	int t_test = get_int(map, "c", -1);
@@ -32,7 +32,7 @@ static void run_data_tests(void) {
 	}
 
 	edit_entry(map, "a", "test2");
-	edit_entry_float(map, "b", 3.f);
+	edit_entry_float(map, "b", 3.21f);
 	edit_entry_int(map, "c", 5);
 
 	f_test = get_value(map, "a");
@@ -40,7 +40,7 @@ static void run_data_tests(void) {
 		fprintf(stderr, "Failed test 5!\n");
 	}
 	s_test = get_float(map, "b", -1.f);
-	if (s_test != 3.f) {
+	if (s_test != 3.21f) {
 		fprintf(stderr, "Failed test 6!\n");
 	}
 	t_test = get_int(map, "c", -1);
@@ -48,9 +48,9 @@ static void run_data_tests(void) {
 		fprintf(stderr, "Failed test 7!\n");
 	}
 
-	edit_entry_float(map, "d", 2.5f);
+	edit_entry_float(map, "d", 2.53f);
 	s_test = get_float(map, "d", -1.f);
-	if (s_test != 2.5f) {
+	if (s_test != 2.53f) {
 		fprintf(stderr, "Failed test 8!\n");
 	}
 
@@ -66,10 +66,19 @@ static void run_data_tests(void) {
 		fprintf(stderr, "Failed test 10!\n");
 	}
 
+	v_test = get_vector(map, "v");
+	if (v_test.x != 6.f && v_test.y != 7.f) {
+		fprintf(stderr, "Failed test 11!\n");
+	}
+
+	if (!save_map("test.txt", map)) {
+		fprintf(stderr, "Failed test 12!\n");
+	}
+
 	free_map(map);
 	map = NULL;
 	if (get_value(map, "b")) {
-		fprintf(stderr, "Failed test 11!\n");
+		fprintf(stderr, "Failed test 13!\n");
 	}
 	fprintf(stdout, "Passed all data tests!\n");
 }

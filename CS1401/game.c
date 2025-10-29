@@ -201,10 +201,10 @@ void game_physics_update(float dt)
 		}
 
 		// Dragging the power of the ball
-		if (CP_Input_MouseDown(MOUSE_BUTTON_1) && playable) {
+		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && playable) {
 
 			// make sure the mouse is on the ball and its currently not moving
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
 				golf->dragging = all_balls_stopped;
 				if (all_balls_stopped) {
 					current = golf;
