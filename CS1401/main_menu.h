@@ -18,5 +18,7 @@ void exit_main_menu(void);
 void main_menu_button(float mouse_x, float mouse_y);
 void level_select_button(float mouse_x, float mouse_y);
 void volume_bar(float mouse_x, float mouse_y);
-void resolution_button(float mouse_x, float mouse_y);
+void settings_button(float mouse_x, float mouse_y);
 void back_buttons(float mouse_x, float mouse_y);
+void is_shadow(void);
+char get_shadow(void);
