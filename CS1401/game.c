@@ -402,9 +402,9 @@ void game_render(void)
 	render_terrains();
 
 	// render shadows
-	// if (get_shadow_enabled()) {
-	render_shadows();
-	// }
+	if (get_shadow()) {
+		render_shadows();
+	}
 
 	// render walls
 	render_walls();
