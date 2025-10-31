@@ -90,6 +90,7 @@ static Terrain* Get_Terrains() {
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
+	printf("Init game\n");
 	font = get_font(ESL_FONT_ASSET);
 	golf_ball_image = get_image(GOLF_BALL_ASSET);
 	background_image = get_image(GAME_BACKGROUND_ASSET);
@@ -747,14 +748,19 @@ void game_exit(void)
 {
 	CP_Sound_StopAll();
 	// free level allocations
-	free(walls.arr);
-	free(items.arr);
-	free(terrains.arr);
-	walls.arr = NULL;
-	items.arr = NULL;
-	terrains.arr = NULL;
+	if (walls.arr)
+		FREE_MEMORY(walls.arr);
+	if (items.arr)
+		FREE_MEMORY(items.arr);
+	if (terrains.arr)
+		FREE_MEMORY(terrains.arr);
+	if (golf_balls.arr)
+		FREE_MEMORY(golf_balls.arr);
+	if (holes.arr)
+		FREE_MEMORY(holes.arr);
 	reset_strokes();
 	free_assets();
+	printf("Exit game\n");
 }
 
 void Process_Inputs(void) {
@@ -1126,7 +1132,7 @@ void load(void) {
 		set_lvl_par(loaded_level->par);
 
 		golf_balls.length = loaded_level->golf_balls_size;
-		golf_balls.arr = malloc(sizeof(GolfBall) * golf_balls.length);
+		golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
 		int ball_index = 0;
 		for (int i = 0; i < loaded_level->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
 			GolfBall* ball = Get_Golfs() + ball_index;
@@ -1150,7 +1156,7 @@ void load(void) {
 		}
 
 		holes.length = loaded_level->holes_size;
-		holes.arr = malloc(sizeof(Hole) * holes.length);
+		holes.arr = gc_malloc(sizeof(Hole) * holes.length);
 		int hole_index = 0;
 		for (int i = 0; i < loaded_level->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
 			Hole* hole = Get_Holes() + hole_index;
@@ -1167,7 +1173,7 @@ void load(void) {
 
 		items.length = loaded_level->items_size;
 		if (items.length) {
-			items.arr = malloc(sizeof(Item) * items.length);
+			items.arr = gc_malloc(sizeof(Item) * items.length);
 			int item_index = 0;
 			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET) {
 				Item* item = Get_Items() + item_index;
@@ -1192,7 +1198,7 @@ void load(void) {
 
 		terrains.length = loaded_level->terrains_size;
 		if (terrains.length) {
-			terrains.arr = malloc(sizeof(Terrain) * terrains.length);
+			terrains.arr = gc_malloc(sizeof(Terrain) * terrains.length);
 			int terrain_index = 0;
 			for (int i = 0; i < loaded_level->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET) {
 				Terrain* terrain = Get_Terrains() + terrain_index;
@@ -1217,7 +1223,7 @@ void load(void) {
 		}
 
 		walls.length = loaded_level->walls_size + 1;
-		walls.arr = malloc(sizeof(Wall) * walls.length);
+		walls.arr = gc_malloc(sizeof(Wall) * walls.length);
 
 		if (walls.arr) {
 			int wall_index = 1;
@@ -1272,8 +1278,8 @@ void load(void) {
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
 	golf_balls.length = holes.length = 2;
-	golf_balls.arr = malloc(sizeof(GolfBall) * golf_balls.length); 
-	holes.arr = malloc(sizeof(Hole) * holes.length);
+	golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
+	holes.arr = gc_malloc(sizeof(Hole) * holes.length);
 	GolfBall* golfs_arr = Get_Golfs();
 	Hole* holes_arr = Get_Holes();
 	for (int j = 0; j < golf_balls.length; ++j) {
@@ -1306,7 +1312,7 @@ void load(void) {
 	holes_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
 
 	walls.length = 11;
-	walls.arr = malloc(sizeof(Wall) * walls.length);
+	walls.arr = gc_malloc(sizeof(Wall) * walls.length);
 	if (walls.arr) {
 		int wall_index = 1;
 		// create the random left side walls
@@ -1371,7 +1377,7 @@ void load(void) {
 
 	// set a default layout of item powerups
 	items.length = 4;
-	items.arr = malloc(sizeof(Item) * items.length);
+	items.arr = gc_malloc(sizeof(Item) * items.length);
 	if (items.arr) {
 		Item* itemarr = Get_Items();
 		itemarr[0].type = BOOST;
@@ -1404,7 +1410,7 @@ void load(void) {
 	}
 
 	terrains.length = 2;
-	terrains.arr = malloc(sizeof(Terrain) * terrains.length);
+	terrains.arr = gc_malloc(sizeof(Terrain) * terrains.length);
 	if (terrains.arr) {
 		Terrain* terrain_arr = Get_Terrains();
 		terrain_arr[0].type = SAND;
@@ -1445,7 +1451,7 @@ Wall* Add_Wall(CP_Vector pos) {
 
 	// we create a new wall in memory by resizing it and appending it to the back
 	++walls.length;
-	walls.arr = walls.arr ? realloc(walls.arr, sizeof(Wall) * walls.length) : malloc(sizeof(Wall) * walls.length);
+	walls.arr = walls.arr ? gc_realloc(walls.arr, sizeof(Wall) * walls.length) : gc_malloc(sizeof(Wall) * walls.length);
 	if (walls.arr) {
 		Wall* new_wall = Get_Walls() + (walls.length - 1);
 		new_wall->pos = pos;
@@ -1501,7 +1507,7 @@ Item* Add_Item(CP_Vector pos, ItemType type) {
 
 	// resize the array to accomodate a new item in memory
 	++items.length;
-	items.arr = items.arr ? realloc(items.arr, sizeof(Item) * items.length) : malloc(sizeof(Item) * items.length);
+	items.arr = items.arr ? gc_realloc(items.arr, sizeof(Item) * items.length) : gc_malloc(sizeof(Item) * items.length);
 	if (items.arr) {
 		Item* new_item = Get_Items() + (items.length - 1);
 		new_item->pos = pos;
@@ -1558,7 +1564,7 @@ GolfBall* Add_Ball(CP_Vector pos) {
 
 	// resize the array to accomodate a new golf ball in memory
 	++golf_balls.length;
-	golf_balls.arr = golf_balls.arr ? realloc(golf_balls.arr, sizeof(GolfBall) * golf_balls.length) : malloc(sizeof(GolfBall) * golf_balls.length);
+	golf_balls.arr = golf_balls.arr ? gc_realloc(golf_balls.arr, sizeof(GolfBall) * golf_balls.length) : gc_malloc(sizeof(GolfBall) * golf_balls.length);
 	if (golf_balls.arr) {
 		GolfBall* new_ball = Get_Golfs() + (golf_balls.length - 1);
 		new_ball->pos = pos;
@@ -1594,7 +1600,7 @@ Hole* Add_Hole(CP_Vector pos) {
 
 	// resize the array to accomodate a new hole in memory
 	++holes.length;
-	holes.arr = holes.arr ? realloc(holes.arr, sizeof(Hole) * holes.length) : malloc(sizeof(Hole) * holes.length);
+	holes.arr = holes.arr ? gc_realloc(holes.arr, sizeof(Hole) * holes.length) : gc_malloc(sizeof(Hole) * holes.length);
 	if (holes.arr) {
 		Hole* new_hole = Get_Holes() + (holes.length - 1);
 		new_hole->pos = pos;
@@ -1674,7 +1680,7 @@ Terrain* Add_Terrain(CP_Vector pos, TerrainType type) {
 
 	// resize the array to accomodate a new hole in memory
 	++terrains.length;
-	terrains.arr = terrains.arr ? realloc(terrains.arr, sizeof(Terrain) * terrains.length) : malloc(sizeof(Terrain) * terrains.length);
+	terrains.arr = terrains.arr ? gc_realloc(terrains.arr, sizeof(Terrain) * terrains.length) : gc_malloc(sizeof(Terrain) * terrains.length);
 	if (terrains.arr) {
 		Terrain* t = Get_Terrains() + (terrains.length - 1);
 		t->pos = pos;

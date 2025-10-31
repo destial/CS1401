@@ -5,6 +5,8 @@
 @brief Definition file for implementing basic vector math that is not included in CProcessing, but useful for conversion into game coordinates
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
 #include "math.h"
 
@@ -89,4 +91,33 @@ int gcd(int a, int b) {
 	}
 	// return gcd of a nd b
 	return result;
+}
+
+static int gccounter = 0;
+void* gc_malloc(size_t size) {
+	++gccounter;
+	printf("m: %d, ", gccounter);
+	return malloc(size);
+}
+
+void* gc_calloc(size_t count, size_t size) {
+	++gccounter;
+	printf("c: %d, ", gccounter);
+	return calloc(count, size);
+}
+
+void* gc_realloc(void* ptr, size_t size) {
+	//++counter;
+	printf("r: %d, ", gccounter);
+	return realloc(ptr, size);
+}
+
+void gc_free(void* ptr) {
+	--gccounter;
+	printf("freed: %d\n", gccounter);
+	free(ptr);
+}
+
+int gc_counter(void) {
+	return gccounter;
 }

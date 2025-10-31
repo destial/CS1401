@@ -13,7 +13,7 @@
 
 #define min_max(v, mn, mx) min(mx, max(mn, v))
 #define FREE_MEMORY(ptr) do { \
-	free((ptr)); \
+	gc_free((ptr)); \
 	(ptr) = NULL; \
 }while(0) \
 
@@ -112,5 +112,12 @@ CP_Color Get_Color(ColorCode code);
 @param b - The second int
 */
 int gcd(int a, int b);
+
+void* gc_malloc(size_t size);
+void* gc_calloc(size_t count, size_t size);
+void* gc_realloc(void* ptr, size_t size);
+void gc_free(void* ptr);
+
+int gc_counter(void);
 
 #endif

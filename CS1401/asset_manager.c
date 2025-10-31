@@ -5,8 +5,9 @@
 @brief Definition file for an asset manager that will handle loading and freeing of assets
 */
 
-#include "asset_manager.h"
 #include <stdlib.h>
+#include "asset_manager.h"
+#include "utils.h"
 
 typedef enum AssetType {
     IMAGE = 1,
@@ -45,7 +46,7 @@ static CP_Image load_image(Asset* node, const char* filepath) {
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(l);
+    node->key = gc_malloc(l);
     if (node->key) {
         strcpy_s(node->key, l, filepath);
     }
@@ -76,7 +77,7 @@ static CP_Font load_font(Asset* node, const char* filepath) {
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(l);
+    node->key = gc_malloc(l);
     if (node->key) {
         strcpy_s(node->key, l, filepath);
     }
@@ -107,7 +108,7 @@ static CP_Sound load_audio(Asset* node, const char* filepath) {
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = malloc(l);
+    node->key = gc_malloc(l);
     if (node->key) {
         strcpy_s(node->key, l, filepath);
     }
@@ -151,17 +152,15 @@ static void free_assetmap(Asset* map) {
     else if (map->type == SPRITE && map->sprite != NULL) {
         CP_Image_Free(map->sprite->root_image);
         map->sprite->root_image = NULL;
-        free(map->sprite);
+        FREE_MEMORY(map->sprite);
     }
 
     // free up the key memory address (we used malloc here)
     if (map->key) {
-        free(map->key);
-        map->key = NULL;
+        FREE_MEMORY(map->key);
     }
 
-    free(map);
-    map = NULL;
+    FREE_MEMORY(map);
 }
 
 static Asset* get_node(const char* key) {
@@ -178,11 +177,10 @@ static Asset* get_node(const char* key) {
 CP_Image get_image(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(Asset));
         CP_Image image = load_image(root_assets, filepath);
         if (image == NULL) {
-            free(root_assets);
-            root_assets = NULL;
+            FREE_MEMORY(root_assets);
             return NULL;
         }
     }
@@ -193,7 +191,7 @@ CP_Image get_image(const char* filepath) {
 			return ptr->image;
         }
         if (ptr->next == NULL) {
-            ptr->next = malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(Asset));
 
             // ensure the image exists and can actually be loaded
             CP_Image image = load_image(ptr->next, filepath);
@@ -201,8 +199,7 @@ CP_Image get_image(const char* filepath) {
                 return image;
             }
             else { // filepath is wrong!
-                free(ptr->next);
-                ptr->next = NULL;
+                FREE_MEMORY(ptr->next);
                 return NULL;
             }
         }
@@ -213,11 +210,10 @@ CP_Image get_image(const char* filepath) {
 CP_Font get_font(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(Asset));
         CP_Font font = load_font(root_assets, filepath);
         if (font == NULL) {
-            free(root_assets);
-            root_assets = NULL;
+            FREE_MEMORY(root_assets);
             return NULL;
         }
         return font;
@@ -229,7 +225,7 @@ CP_Font get_font(const char* filepath) {
             return ptr->font;
         }
         if (ptr->next == NULL) {
-            ptr->next = malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(Asset));
 
             // ensure the font exists and can actually be loaded
             CP_Font font = load_font(ptr->next, filepath);
@@ -237,8 +233,7 @@ CP_Font get_font(const char* filepath) {
                 return font;
             }
             else { // filepath is wrong!
-                free(ptr->next);
-                ptr->next = NULL;
+                FREE_MEMORY(ptr->next);
                 return NULL;
             }
         }
@@ -249,11 +244,10 @@ CP_Font get_font(const char* filepath) {
 CP_Sound get_audio(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(Asset));
         CP_Sound audio = load_audio(root_assets, filepath);
         if (audio == NULL) {
-            free(root_assets);
-            root_assets = NULL;
+            FREE_MEMORY(root_assets);
             return NULL;
         }
         return audio;
@@ -265,7 +259,7 @@ CP_Sound get_audio(const char* filepath) {
             return ptr->audio;
         }
         if (ptr->next == NULL) {
-            ptr->next = malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(Asset));
 
             // ensure the audio file exists and can actually be loaded
             CP_Sound audio = load_audio(ptr->next, filepath);
@@ -273,8 +267,7 @@ CP_Sound get_audio(const char* filepath) {
                 return audio;
             }
             else { // filepath is wrong!
-                free(ptr->next);
-                ptr->next = NULL;
+                FREE_MEMORY(ptr->next);
                 return NULL;
             }
         }
@@ -284,7 +277,7 @@ CP_Sound get_audio(const char* filepath) {
 
 SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration) {
     if (root_assets == NULL) {
-        root_assets = malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(Asset));
         if (root_assets == NULL) 
             return NULL;
         
@@ -302,7 +295,7 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 	// the current filepath is not a sprite yet, so check if it's an image first
 	// then we convert it to a sprite sheet
     if (node != NULL && node->type == IMAGE) {
-        SpriteSheet* sheet = malloc(sizeof(SpriteSheet));
+        SpriteSheet* sheet = gc_malloc(sizeof(SpriteSheet));
         if (sheet == NULL) 
             return NULL;
         

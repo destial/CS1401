@@ -10,18 +10,23 @@
 
 // sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
 char* read_content(const char* filename) {
-    int fsize = 0;
-    FILE* fp = fopen(filename, "r");
+    FILE* fp;
+    fopen_s(&fp, filename, "r");
     if (!fp) {
         return NULL;
     }
 
-    char* fcontent = NULL;
+    // check size of file contents, make sure its empty
     fseek(fp, 0, SEEK_END);
-    fsize = ftell(fp);
+    int fsize = ftell(fp);
+    if (fsize == 0) {
+        fclose(fp);
+        return NULL;
+    }
     rewind(fp);
 
-    fcontent = calloc(fsize, sizeof(char));
+    // read contents
+    char* fcontent = gc_calloc(fsize, sizeof(char));
     if (fcontent) {
         fread(fcontent, 1, fsize, fp);
     }
@@ -31,7 +36,8 @@ char* read_content(const char* filename) {
 }
 
 void write_content(const char* filename, char* content) {
-    FILE* fp = fopen(filename, "w");
+    FILE* fp;
+    fopen_s(&fp, filename, "w");
     if (!fp) {
         return;
     }
@@ -49,7 +55,7 @@ Map* load_map(const char* filename) {
     const char innerdel[] = "=";
 
     // allocate the root of this level map
-    Map* root = malloc(sizeof(Map));
+    Map* root = gc_malloc(sizeof(Map));
     if (root == NULL)
         return NULL;
 
@@ -66,19 +72,19 @@ Map* load_map(const char* filename) {
 
         // +1 because last character is '\0' to terminate the string
         size_t key_len = strlen(k) + 1;
-        next->key = calloc(key_len, sizeof(char));
+        next->key = gc_malloc(key_len * sizeof(char));
         strcpy_s(next->key, key_len, k);
 
         // set the value (right side)
         v = strtok_s(NULL, innerdel, &innerptr);
         size_t val_len = strlen(v) + 1;
-        next->value = calloc(val_len, sizeof(char));
+        next->value = gc_malloc(val_len * sizeof(char));
         strcpy_s(next->value, val_len, v);
 
         // end of check, go to next line or quit if already at the end
         line = strtok_s(NULL, outerdel, &outerptr);
         if (line) {
-            next->next = malloc(sizeof(Map));
+            next->next = gc_malloc(sizeof(Map));
             if (next->next) {
                 next = next->next;
             }
@@ -90,8 +96,9 @@ Map* load_map(const char* filename) {
     next = NULL;
 
     // make sure to free up allocated memory for the text file contents
-    free(contents);
+    gc_free(contents);
     contents = NULL;
+
     return root;
 }
 
@@ -99,7 +106,7 @@ Map* load_map(const char* filename) {
 static Map* add_node(Map* map) {
     Map* next;
     if (map == NULL) {
-        next = malloc(sizeof(Map));
+        next = gc_malloc(sizeof(Map));
     }
     else {
         if (map->key == NULL) {
@@ -110,7 +117,7 @@ static Map* add_node(Map* map) {
             while (last->next) {
                 last = last->next;
             }
-            last->next = malloc(sizeof(Map));
+            last->next = gc_malloc(sizeof(Map));
             next = last->next;
         }
     }
@@ -125,12 +132,12 @@ Map* add_entry(Map* map, const char* key, char* value) {
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
-    next->key = calloc(key_len, sizeof(char));
+    next->key = gc_calloc(key_len, sizeof(char));
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
     size_t val_len = strlen(value) + 1;
-    next->value = calloc(val_len, sizeof(char));
+    next->value = gc_calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, value);
 
     next->next = NULL;
@@ -145,14 +152,14 @@ Map* add_entry_int(Map* map, const char* key, int value) {
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
-    next->key = calloc(key_len, sizeof(char));
+    next->key = gc_calloc(key_len, sizeof(char));
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
     char v[64];
     sprintf_s(v, 64, "%d", value);
     size_t val_len = strlen(v) + 1;
-    next->value = calloc(val_len, sizeof(char));
+    next->value = gc_calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, v);
 
     next->next = NULL;
@@ -167,14 +174,14 @@ Map* add_entry_float(Map* map, const char* key, float value) {
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
-    next->key = calloc(key_len, sizeof(char));
+    next->key = gc_calloc(key_len, sizeof(char));
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
     char v[64];
     sprintf_s(v, 64, "%f", value);
     size_t val_len = strlen(v) + 1;
-    next->value = calloc(val_len, sizeof(char));
+    next->value = gc_calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, v);
 
     next->next = NULL;
@@ -189,14 +196,14 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
-    next->key = calloc(key_len, sizeof(char));
+    next->key = gc_calloc(key_len, sizeof(char));
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
     char v[128];
     sprintf_s(v, 128, "%f,%f", value.x, value.y);
     size_t val_len = strlen(v) + 1;
-    next->value = malloc(val_len * sizeof(char));
+    next->value = gc_malloc(val_len * sizeof(char));
     strcpy_s(next->value, val_len, v);
 
     next->next = NULL;
@@ -208,11 +215,11 @@ void edit_entry(Map* map, const char* key, char* value) {
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
-            free(ptr->value);
+            gc_free(ptr->value);
 
             // set the new value
             size_t val_len = strlen(value) + 1;
-            ptr->value = calloc(val_len, sizeof(char));
+            ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, value);
             return; // after modified, we dont need to look anymore
         }
@@ -225,13 +232,13 @@ void edit_entry_int(Map* map, const char* key, int value) {
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
-            free(ptr->value);
+            gc_free(ptr->value);
 
             // set the new value
             char v[64];
             sprintf_s(v, 64, "%d", value);
             size_t val_len = strlen(v) + 1;
-            ptr->value = calloc(val_len, sizeof(char));
+            ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
             return; // after modified, we dont need to look anymore
         }
@@ -244,13 +251,13 @@ void edit_entry_float(Map* map, const char* key, float value) {
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
-            free(ptr->value);
+            gc_free(ptr->value);
 
             // set the new value
             char v[64];
             sprintf_s(v, 64, "%f", value);
             size_t val_len = strlen(v) + 1;
-            ptr->value = calloc(val_len, sizeof(char));
+            ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
             return; // after modified, we dont need to look anymore
         }
@@ -262,15 +269,14 @@ void edit_entry_vector(Map* map, const char* key, CP_Vector value) {
     // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
-
             // free up the current value
-            free(ptr->value);
+            gc_free(ptr->value);
 
             // set the new value
             char v[128];
             sprintf_s(v, 128, "%f,%f", value.x, value.y);
             size_t val_len = strlen(v) + 1;
-            ptr->value = calloc(val_len, sizeof(char));
+            ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
             return; // after modified, we dont need to look anymore
         }
@@ -306,7 +312,8 @@ Map* remove_entry(Map* map, const char* key) {
 }
 
 CP_BOOL save_map(const char* filename, Map* map) {
-    FILE* fp = fopen(filename, "w");
+    FILE* fp;
+    fopen_s(&fp, filename, "w");
     if (!fp) {
         return FALSE;
     }

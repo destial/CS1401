@@ -46,6 +46,7 @@ void exit_main_menu(void) {
 
 void main_menu_init(void) 
 {
+	printf("Init main menu\n");
 	button_font = get_font(ARIAL_FONT_ASSET);
 	window_size_H = CP_System_GetWindowHeight();
 	window_size_W = CP_System_GetWindowWidth();
@@ -549,5 +550,7 @@ void main_menu_exit(void)
 
 		save_map("user.data", settings_map);
 		free_map(settings_map);
+		settings_map = NULL;
 	}
+	printf("Exit main menu\n");
 }

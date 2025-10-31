@@ -21,18 +21,18 @@ Level* get_level(int level) {
     // make sure this file actually exists
     if (root != NULL) {
         // create the level to load and set all the values *** all must have values!!!
-        Level* lvl = malloc(sizeof(Level));
+        Level* lvl = gc_malloc(sizeof(Level));
         if (lvl) {
             lvl->world_width = get_float(root, "width", 48.f);
             lvl->world_height = get_float(root, "height", 27.f);
 
             lvl->walls_size = get_int(root, "walls_amount", 1);
-            lvl->walls = lvl->walls_size ? calloc((size_t)lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
+            lvl->walls = lvl->walls_size ? gc_calloc((size_t)lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
 
             char* old_format = get_value(root, "golf_1");
             if (old_format) {
                 lvl->golf_balls_size = 2;
-                lvl->golf_balls = calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->golf_balls = gc_calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 CP_Vector ball_1 = get_vector(root, "golf_1");
                 CP_Vector ball_2 = get_vector(root, "golf_2");
@@ -48,7 +48,7 @@ Level* get_level(int level) {
                 CP_Vector hole_2 = get_vector(root, "hole_2");
 
                 lvl->holes_size = 2;
-                lvl->holes = calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->holes = gc_calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
                 lvl->holes[0] = hole_1.x;
                 lvl->holes[1] = hole_1.y;
                 lvl->holes[2] = 1.5f;
@@ -59,7 +59,7 @@ Level* get_level(int level) {
             }
             else {
                 lvl->golf_balls_size = get_int(root, "golf_amount", 1);
-                lvl->golf_balls = calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->golf_balls = gc_calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int ball_index = 0;
                 for (int i = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
@@ -75,7 +75,7 @@ Level* get_level(int level) {
                 }
 
                 lvl->holes_size = get_int(root, "holes_amount", 1);
-                lvl->holes = calloc((size_t)lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
+                lvl->holes = gc_calloc((size_t)lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int hole_index = 0;
                 for (int i = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
@@ -131,7 +131,7 @@ Level* get_level(int level) {
             // load items in level
             lvl->items_size = get_int(root, "items_amount", 0);
             if (lvl->items_size) {
-                lvl->items = calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
+                lvl->items = gc_calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
 
                 int item_index = 0;
                 for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
@@ -162,7 +162,7 @@ Level* get_level(int level) {
             // load terrains in level
             lvl->terrains_size = get_int(root, "terrains_amount", 0);
             if (lvl->terrains_size) {
-                lvl->terrains = calloc((size_t)lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
+                lvl->terrains = gc_calloc((size_t)lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
 
                 int terrain_index = 0;
                 for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
@@ -210,7 +210,10 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     // save the world limits, golf balls, holes and middle wall first
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
-    FILE* fp = fopen(level_path, "w");
+    FILE* fp;
+    fopen_s(&fp, level_path, "w");
+    if (!fp)
+        return;
 
     fprintf(fp,
         "width=%f\nheight=%f\nmiddle_wall_angle=%f",

@@ -5,6 +5,7 @@
 @brief Definition file for the splash screen when the game starts up
 */
 
+#include <stdio.h>
 #include "splash_screen.h"
 #include "cprocessing.h"
 #include "main_menu.h"
@@ -18,6 +19,7 @@ char splash_revert = 0;
 
 void splash_screen_init(void)
 {
+	printf("Init splash\n");
 	splash_logo = get_image(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
@@ -52,4 +54,5 @@ void splash_screen_update(void)
 void splash_screen_exit(void)
 {
 	free_assets();
+	printf("Exit splash\n");
 }
