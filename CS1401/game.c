@@ -401,6 +401,11 @@ void game_render(void)
 	// render terrains
 	render_terrains();
 
+	// render shadows
+	// if (get_shadow_enabled()) {
+	render_shadows();
+	// }
+
 	// render walls
 	render_walls();
 
@@ -429,11 +434,14 @@ void render_ui(void) {
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-		char strokes[32]; sprintf_s(strokes, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(strokes, 0, CP_System_GetWindowHeight() * 0.5f);
+		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
+		CP_Font_DrawText(str, 0, CP_System_GetWindowHeight() * 0.5f - 40.f);
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+		CP_Font_DrawText(par, 0, CP_System_GetWindowHeight() * 0.5f);
+
+		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Get_Current_Level());
+		CP_Font_DrawText(lvl, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
@@ -508,27 +516,6 @@ void render_terrains(void) {
 void render_walls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Wall* wall_arr = Get_Walls();
-
-	// render wall shadows
-	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
-	for (int i = 1; i < walls.length; ++i) {
-		Wall* wall = wall_arr + i;
-		if (wall == NULL || wall->destroyed)
-			continue;
-
-		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(shadow);
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Graphics_DrawRectAdvanced(
-			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			c.y + 5.f,
-			wall->scale.x * world_ratios.x,
-			wall->scale.y * world_ratios.y,
-			wall->angle,
-			0.f
-		);
-	}
 
 	// main walls
 	for (int i = 0; i < walls.length; ++i) {
@@ -640,7 +627,6 @@ void render_items(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Item* item_arr = Get_Items();
 
-	Terrain* terrain_arr = Get_Terrains();
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
 		if (item == NULL || item->collected || item->destroyed)
@@ -719,23 +705,6 @@ void render_balls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	GolfBall* golf_arr = Get_Golfs();
 
-	// render ball shadow
-	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
-	for (int i = 0; i < golf_balls.length; ++i) {
-		GolfBall* golf = golf_arr + i;
-		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
-			continue;
-
-		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(shadow);
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Graphics_DrawCircle(
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			coords.y + 5.f,
-			golf->diameter * world_ratios.x);
-	}
-
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
 		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
@@ -780,6 +749,67 @@ void render_balls(void) {
 			char b[50]; sprintf_s(b, 50, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60);
 		}
+	}
+}
+
+void render_shadows(void) {
+	CP_Vector world_ratios = Get_World_Ratios();
+	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
+
+	Wall* wall_arr = Get_Walls();
+	// render wall shadows
+	for (int i = 1; i < walls.length; ++i) {
+		Wall* wall = wall_arr + i;
+		if (wall == NULL || wall->destroyed)
+			continue;
+
+		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(shadow);
+		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawRectAdvanced(
+			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
+			c.y,
+			wall->scale.x * world_ratios.x,
+			wall->scale.y * world_ratios.y,
+			wall->angle,
+			0.f
+		);
+	}
+
+	Item* item_arr = Get_Items();
+	// render item shadow
+	for (int i = 0; i < items.length; ++i) {
+		Item* item = item_arr + i;
+		if (item == NULL || item->collected || item->destroyed)
+			continue;
+
+		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(shadow);
+		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawCircle(
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.y,
+			item->diameter * world_ratios.x);
+	}
+
+	GolfBall* golf_arr = Get_Golfs();
+	// render ball shadow
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
+			continue;
+
+		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(shadow);
+		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawEllipse(
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
+			coords.y,
+			golf->diameter * world_ratios.x + 5.f,
+			golf->diameter * world_ratios.y);
 	}
 }
 

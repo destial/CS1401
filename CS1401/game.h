@@ -120,6 +120,11 @@ void render_items(void);
 void render_balls(void);
 
 /*!
+@brief Render shadows (optional)
+*/
+void render_shadows(void);
+
+/*!
 @brief Render UI
 */
 void render_ui(void);
