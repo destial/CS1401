@@ -126,7 +126,6 @@ void game_init(void)
 
 void game_update(void)
 {
-	CP_Settings_ApplyMatrix(camera_matrix);
 	Process_Inputs();
 
 	// semi-fixed timestep for physics time
@@ -147,6 +146,7 @@ void game_update(void)
 		scoring_update();
 
 	// rendering does not need to be in physics time
+	CP_Settings_ApplyMatrix(camera_matrix);
 	game_render();
 	CP_Settings_ResetMatrix();
 }
@@ -509,6 +509,28 @@ void render_walls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Wall* wall_arr = Get_Walls();
 
+	// render wall shadows
+	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
+	for (int i = 1; i < walls.length; ++i) {
+		Wall* wall = wall_arr + i;
+		if (wall == NULL || wall->destroyed)
+			continue;
+
+		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(shadow);
+		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawRectAdvanced(
+			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
+			c.y + 5.f,
+			wall->scale.x * world_ratios.x,
+			wall->scale.y * world_ratios.y,
+			wall->angle,
+			0.f
+		);
+	}
+
+	// main walls
 	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
 		if (wall == NULL || wall->destroyed)
@@ -696,6 +718,23 @@ void render_items(void) {
 void render_balls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	GolfBall* golf_arr = Get_Golfs();
+
+	// render ball shadow
+	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
+			continue;
+
+		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(shadow);
+		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawCircle(
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
+			coords.y + 5.f,
+			golf->diameter * world_ratios.x);
+	}
 
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
