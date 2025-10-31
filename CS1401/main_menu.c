@@ -53,6 +53,23 @@ void main_menu_init(void)
 
 	CP_Font_Set(button_font);
 
+	settings_map = load_map("user.data");
+	if (settings_map) {
+		printf("Loading previous user data!\n");
+		sfx_limit = get_float(settings_map, "sfx_volume", sfx_limit);
+		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
+		music_limit = get_float(settings_map, "music_volume", music_limit);
+		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
+		is_shadowed = get_int(settings_map, "is_shadowed", is_shadowed);
+
+	}
+	else {
+		printf("User data file not found! Creating new one!\n");
+		settings_map = add_entry_float(settings_map, "sfx_volume", sfx_limit);
+		settings_map = add_entry_float(settings_map, "music_volume", music_limit);
+		settings_map = add_entry_int(settings_map, "is_shadowed", is_shadowed);
+	}
+
 	//play button
 	buttons[0].button_image = get_image(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;
@@ -155,7 +172,7 @@ void main_menu_init(void)
 	buttons[12].start_pos.x = buttons[12].pos.x;
 	buttons[12].text = "X";
 
-	buttons[13].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[13].button_image = is_shadowed ? get_image(LEVEL_BUTTON_ASSET) : get_image(BUTTON_GREY_ASSET);
 	buttons[13].pos.x = world_width1 * 0.75f;
 	buttons[13].pos.y = world_height1 * 0.7f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
@@ -169,23 +186,6 @@ void main_menu_init(void)
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(window_size_W, window_size_H);
-
-	settings_map = load_map("user.data");
-	if (settings_map) {
-		printf("Loading previous user data!\n");
-		sfx_limit = get_float(settings_map, "sfx_volume", sfx_limit);
-		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
-		music_limit = get_float(settings_map, "music_volume", music_limit);
-		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
-		is_shadowed = get_int(settings_map, "is_shadowed", is_shadowed);
-		
-	}
-	else {
-		printf("User data file not found! Creating new one!\n");
-		settings_map = add_entry_float(settings_map, "sfx_volume", sfx_limit);
-		settings_map = add_entry_float(settings_map, "music_volume", music_limit);
-		settings_map = add_entry_int(settings_map, "is_shadowed", is_shadowed);
-	}
 
 	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), music_limit, 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
 }
@@ -593,6 +593,7 @@ void change_resolution(num) {
 
 void is_shadow(void) {
 	is_shadowed = !is_shadowed;
+	buttons[13].button_image = is_shadowed ? get_image(LEVEL_BUTTON_ASSET): get_image(BUTTON_GREY_ASSET);
 }
 
 char get_shadow(void) {
