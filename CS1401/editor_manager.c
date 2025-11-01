@@ -301,9 +301,23 @@ void update_editor_items(ObjectArray* items) {
 	}
 }
 
+float world_rescaling = 1.f;
+
 void start_update_editor_utils(void) {
 	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) {
 		current_click = NULL;
+	}
+
+	if (CP_Input_KeyDown(KEY_LEFT_CONTROL) || CP_Input_KeyDown(KEY_RIGHT_CONTROL)) {
+		if (CP_Input_KeyTriggered(KEY_EQUAL)) {
+			world_rescaling -= 0.1f;
+			world_rescaling = max(0.1f, world_rescaling);
+			Scale_World(world_rescaling);
+		}
+		else if (CP_Input_KeyTriggered(KEY_MINUS)) {
+			world_rescaling += 0.1f;
+			Scale_World(world_rescaling);
+		}
 	}
 }
 

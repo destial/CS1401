@@ -65,6 +65,7 @@ ObjectArray items;
 ObjectArray terrains;
 
 CP_Vector world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
+CP_Vector og_world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height)
 float camera_scale;
 CP_Vector camera_pos;
 
@@ -761,7 +762,7 @@ void render_balls(void) {
 
 		if (swinging) {
 			CP_Vector n = CP_Vector_Normalize(golf->vel);
-			n = CP_Vector_Scale(n, (golf->diameter * 0.5f) + sqrt(min(5.f, CP_Vector_Length(golf->vel) * swinging)));
+			n = CP_Vector_Scale(n, (golf->diameter * 0.5f) + sqrtf(min(5.f, CP_Vector_Length(golf->vel) * swinging)));
 			CP_Vector b = World_To_Screen(golf->pos.x - n.x, golf->pos.y - n.y, world_limits.x, world_limits.y);
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(0, 1), n);
 
@@ -770,7 +771,7 @@ void render_balls(void) {
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(b.x, b.y, 
 				golf->diameter * world_ratios.x,
-				golf->diameter * world_ratios.x * 0.75f, angle, 1.f);
+				golf->diameter * world_ratios.x * 0.5f, angle, 1.f);
 		}
 
 		if (debug_enabled) {
@@ -1229,6 +1230,7 @@ void load(void) {
 	if (loaded_level != NULL) {
 		world_limits.x = loaded_level->world_width;
 		world_limits.y = loaded_level->world_height;
+		og_world_limits = CP_Vector_Set(world_limits.x, world_limits.y);
 
 		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 
@@ -1376,6 +1378,7 @@ void load(void) {
 
 	// load a default randomized level if no level file exists
 	world_limits = CP_Vector_Set(48.f, 27.f);
+	og_world_limits = CP_Vector_Set(world_limits.x, world_limits.y);
 
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
@@ -1812,6 +1815,69 @@ CP_Vector Get_Mouse_WorldSpace(void) {
 
 CP_Vector Get_World_Limits(void) {
 	return world_limits;
+}
+
+void Scale_World(float scale) {
+	float prev_x = world_limits.x;
+	float prev_y = world_limits.y;
+
+	world_limits = CP_Vector_Scale(og_world_limits, scale);
+	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
+
+	Wall* walls_arr = Get_Walls();
+	GolfBall* golfs_arr = Get_Golfs();
+	Hole* holes_arr = Get_Holes();
+	Item* items_arr = Get_Items();
+	Terrain* terrains_arr = Get_Terrains();
+
+	for (int i = 0; i < walls.length; ++i) {
+		Wall* w = walls_arr + i;
+		if (w == NULL)
+			continue;
+
+		w->pos.x *= (world_limits.x / prev_x);
+		w->pos.y *= (world_limits.y / prev_y);
+		if (i == 0) {
+			w->scale.x = world_limits.x * 0.01f;
+			w->scale.y = world_limits.y * 2.5f;
+		}
+	}
+
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* g = golfs_arr + i;
+		if (g == NULL)
+			continue;
+
+		g->pos.x *= (world_limits.x / prev_x);
+		g->pos.y *= (world_limits.y / prev_y);
+	}
+
+	for (int i = 0; i < items.length; ++i) {
+		Item* it = items_arr + i;
+		if (it == NULL)
+			continue;
+
+		it->pos.x *= (world_limits.x / prev_x);
+		it->pos.y *= (world_limits.y / prev_y);
+	}
+
+	for (int i = 0; i < holes.length; ++i) {
+		Hole* h = holes_arr + i;
+		if (h == NULL)
+			continue;
+
+		h->pos.x *= (world_limits.x / prev_x);
+		h->pos.y *= (world_limits.y / prev_y);
+	}
+
+	for (int i = 0; i < terrains.length; ++i) {
+		Terrain* t = terrains_arr + i;
+		if (t == NULL)
+			continue;
+		
+		t->pos.x *= (world_limits.x / prev_x);
+		t->pos.y *= (world_limits.y / prev_y);
+	}
 }
 
 CP_Vector Get_World_Ratios(void) {

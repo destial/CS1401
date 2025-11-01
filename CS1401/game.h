@@ -231,6 +231,11 @@ CP_Vector Get_Mouse_WorldSpace(void);
 CP_Vector Get_World_Limits(void);
 
 /*!
+@brief Rescale the world limits
+*/
+void Scale_World(float scale);
+
+/*!
 @brief Get the world width and height ratios according to the display width and height (e.g. displayWidth / worldWidth)
 */
 CP_Vector Get_World_Ratios(void);
