@@ -30,6 +30,7 @@ CP_Vector mouse_world = { 0, 0 };
 
 // currently dragging ball
 GolfBall* current;
+float swinging = 0.f;
 
 // scoreboard position
 CP_Vector sBoard;
@@ -180,6 +181,16 @@ void game_physics_update(float dt)
 		}
 	}
 
+	if (swinging) {
+		swinging -= dt;
+		swinging = max(0.f, swinging);
+		if (swinging == 0.f) {
+			current = NULL;
+			add_stroke();
+			CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
+		}
+	}
+
 	// update golf balls
 	win = TRUE;
 	for (int i = 0; i < golf_balls.length; ++i) {
@@ -200,6 +211,9 @@ void game_physics_update(float dt)
 			}
 			continue;
 		}
+
+		if (swinging)
+			continue;
 
 		// Dragging the power of the ball
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && playable) {
@@ -234,8 +248,10 @@ void game_physics_update(float dt)
 			// if the previous frame was player input, that means the golf ball has been released and been putted
 			if (golf->dragging) {
 				golf->stroke_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
-				add_stroke();
-				CP_Sound_PlayAdvanced(get_audio(GOLF_HIT_WALL_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_SFX), 1.f, FALSE, CP_SOUND_GROUP_SFX);
+				golf->dragging = FALSE;
+				golf->halt = FALSE;
+				swinging = 0.5f;
+				break;
 			}
 			golf->dragging = FALSE;
 			golf->halt = FALSE;
@@ -427,6 +443,25 @@ void game_render(void)
 }
 
 void render_ui(void) {
+	GolfBall* golf_arr = Get_Golfs();
+	for (int i = 0; i < golf_balls.length; ++i) {
+		GolfBall* golf = golf_arr + i;
+		// render current stroke
+		if (golf->dragging && golf == current) {
+
+			// render the current power of the ball
+			CP_Vector a = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
+			CP_Vector b = World_To_Screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_limits.x, world_limits.y);
+			int x = (int)(CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
+			int red = CP_Math_ClampInt(x, 0, 255);
+			int green = 255 - red;
+			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
+			CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
+			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
+			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+		}
+	}
+
 	CP_Settings_ResetMatrix();
 	if (!editor_mode) {
 		// draw current strokes
@@ -724,19 +759,18 @@ void render_balls(void) {
 			255,
 			golf->angle);
 
-		// render current stroke
-		if (golf->dragging && golf == current) {
+		if (swinging) {
+			CP_Vector n = CP_Vector_Normalize(golf->vel);
+			n = CP_Vector_Scale(n, (golf->diameter * 0.5f) + sqrt(min(5.f, CP_Vector_Length(golf->vel) * swinging)));
+			CP_Vector b = World_To_Screen(golf->pos.x - n.x, golf->pos.y - n.y, world_limits.x, world_limits.y);
+			float angle = CP_Vector_AngleCCW(CP_Vector_Set(0, 1), n);
 
-			// render the current power of the ball
-			CP_Vector a = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
-			CP_Vector b = World_To_Screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_limits.x, world_limits.y);
-			int x = (int)(CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
-			int red = CP_Math_ClampInt(x, 0, 255);
-			int green = 255 - red;
-			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
-			CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
-			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+			CP_Settings_Fill(Get_Color(COLOR_WHITE));
+			CP_Settings_Stroke(Get_Color(COLOR_BLACK));
+			CP_Settings_RectMode(CP_POSITION_CENTER);
+			CP_Graphics_DrawRectAdvanced(b.x, b.y, 
+				golf->diameter * world_ratios.x,
+				golf->diameter * world_ratios.x * 0.75f, angle, 1.f);
 		}
 
 		if (debug_enabled) {
@@ -873,11 +907,11 @@ void Process_Inputs(void) {
 
 		start_update_editor_utils();
 
+		update_editor_terrains(&terrains);
 		update_editor_walls(&walls);
 		update_editor_holes(&holes);
-		update_editor_golfs(&golf_balls);
 		update_editor_items(&items);
-		update_editor_terrains(&terrains);
+		update_editor_golfs(&golf_balls);
 
 		end_update_editor_utils();
 	}
@@ -1394,8 +1428,8 @@ void load(void) {
 			wall->pos.x = CP_Random_RangeFloat(1.f, world_limits.x * 0.5f - 1.f);
 			wall->pos.y = CP_Random_RangeFloat(1.f, world_limits.y - 1.f);
 
-			wall->scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-			wall->scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->scale.x = (float)CP_Random_RangeInt(1, 5);
+			wall->scale.y = (float)CP_Random_RangeInt(1, 5);
 
 			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
 			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
@@ -1415,8 +1449,8 @@ void load(void) {
 			wall->pos.x = (world_limits.x * 0.5f) + CP_Random_RangeFloat(1.f, world_limits.x * 0.5f - 1.f);
 			wall->pos.y = CP_Random_RangeFloat(1.f, world_limits.y - 1.f);
 
-			wall->scale.x = CP_Random_RangeFloat(0.5f, 5.f);
-			wall->scale.y = CP_Random_RangeFloat(0.5f, 5.f);
+			wall->scale.x = (float)CP_Random_RangeInt(1, 5);
+			wall->scale.y = (float)CP_Random_RangeInt(1, 5);
 
 			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
 			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
