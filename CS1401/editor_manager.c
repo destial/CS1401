@@ -26,6 +26,7 @@ void* current_click = NULL;
 CP_Vector current_editing_offset;
 EditingType current_type = NONE;
 float editor_saving = 0.f;
+CP_BOOL editor_dirty = FALSE;
 
 CP_BOOL check_on_wall(Wall* wall) {
 	CP_Vector wall_min = { -wall->scale.x * 0.5f, -wall->scale.y * 0.5f };
@@ -85,6 +86,7 @@ void update_editor_walls(ObjectArray* walls) {
 		current_editing = NULL;
 		current_dragging = NULL;
 		current_type = NONE;
+		editor_dirty = TRUE;
 	}
 }
 
@@ -97,6 +99,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
+			editor_dirty = TRUE;
 		}
 	}
 
@@ -106,6 +109,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
+			editor_dirty = TRUE;
 		}
 	}
 
@@ -115,6 +119,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
+			editor_dirty = TRUE;
 		}
 	}
 
@@ -142,18 +147,21 @@ void update_editor_terrains(ObjectArray* terrains) {
 			if (t->type == TERRAIN_LAST) {
 				t->type = 0;
 			}
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
 			--t->type;
 			if (t->type == -1) {
 				t->type = TERRAIN_LAST - 1;
 			}
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
 			Remove_Terrain(t);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
+			editor_dirty = TRUE;
 		}
 	}
 }
@@ -167,6 +175,7 @@ void update_editor_holes(ObjectArray* holes) {
 			current_editing = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
+			editor_dirty = TRUE;
 		}
 	}
 
@@ -196,6 +205,7 @@ void update_editor_holes(ObjectArray* holes) {
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
+			editor_dirty = TRUE;
 		}
 	}
 }
@@ -209,6 +219,7 @@ void update_editor_golfs(ObjectArray* golfs) {
 			current_editing = ball;
 			current_editing_offset = CP_Vector_Subtract(ball->pos, mouse_world);
 			current_type = GOLF_BALL;
+			editor_dirty = TRUE;
 		}
 	}
 
@@ -230,6 +241,7 @@ void update_editor_golfs(ObjectArray* golfs) {
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				ball->diameter += CP_Input_MouseWheel();
+				editor_dirty = TRUE;
 			}
 		}
 
@@ -238,6 +250,7 @@ void update_editor_golfs(ObjectArray* golfs) {
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
+			editor_dirty = TRUE;
 		}
 	}
 }
@@ -275,6 +288,7 @@ void update_editor_items(ObjectArray* items) {
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				i->diameter += CP_Input_MouseWheel();
+				editor_dirty = TRUE;
 			}
 		}
 
@@ -284,6 +298,7 @@ void update_editor_items(ObjectArray* items) {
 				i->type = NO_ITEM_TYPE + 1;
 			}
 			i->angle = 0.f;
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
 			--i->type;
@@ -291,12 +306,14 @@ void update_editor_items(ObjectArray* items) {
 				i->type = ITEM_LAST - 1;
 			}
 			i->angle = 0.f;
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
 			Remove_Item(i);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
+			editor_dirty = TRUE;
 		}
 	}
 }
@@ -313,10 +330,12 @@ void start_update_editor_utils(void) {
 			world_rescaling -= 0.1f;
 			world_rescaling = max(0.1f, world_rescaling);
 			Scale_World(world_rescaling);
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_MINUS)) {
 			world_rescaling += 0.1f;
 			Scale_World(world_rescaling);
+			editor_dirty = TRUE;
 		}
 	}
 }
@@ -325,6 +344,7 @@ void end_update_editor_utils(void) {
 	// save level if debug enabled
 	if (CP_Input_KeyTriggered(KEY_S)) {
 		save();
+		editor_dirty = FALSE;
 		editor_saving = 1.5f;
 	}
 
@@ -371,23 +391,28 @@ void end_update_editor_utils(void) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 				wall->image = wall->pos.x <= Get_World_Limits().x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
+				editor_dirty = TRUE;
 			}
 			else if (current_type == HOLE) {
 				Hole* hole = (Hole*)current_dragging;
 				hole->pos = CP_Vector_Add(mouse_world, current_editing_offset);
+				editor_dirty = TRUE;
 
 			}
 			else if (current_type == GOLF_BALL) {
 				GolfBall* ball = (GolfBall*)current_dragging;
 				ball->pos = CP_Vector_Add(mouse_world, current_editing_offset);
+				editor_dirty = TRUE;
 			}
 			else if (current_type == ITEM) {
 				Item* item = (Item*)current_dragging;
 				item->pos = CP_Vector_Add(mouse_world, current_editing_offset);
+				editor_dirty = TRUE;
 			}
 			else if (current_type == TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
 				terrain->pos = CP_Vector_Add(mouse_world, current_editing_offset);
+				editor_dirty = TRUE;
 			}
 		}
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
@@ -427,9 +452,11 @@ void end_update_editor_utils(void) {
 				if (fabs((double)(wall->angle)) <= 3.f) {
 					wall->angle = 0.f;
 				}
+				editor_dirty = TRUE;
 			} else if (current_type == TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
 				terrain->angle = CP_Vector_AngleCW(CP_Vector_Subtract(terrain->pos, mouse_world), current_editing_offset);
+				editor_dirty = TRUE;
 			}
 		}
 	}
@@ -438,20 +465,24 @@ void end_update_editor_utils(void) {
 		Wall* wall = (Wall*)current_editing;
 		if (CP_Input_KeyTriggered(KEY_UP)) {
 			wall->rotation_rate += 1.f;
+			editor_dirty = TRUE;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DOWN)) {
 			wall->rotation_rate -= 1.f;
+			editor_dirty = TRUE;
 		}
 
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				wall->scale.x += CP_Input_MouseWheel();
 				wall->scale.x = max(1.f, wall->scale.x);
+				editor_dirty = TRUE;
 			}
 
 			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				wall->scale.y += CP_Input_MouseWheel();
 				wall->scale.y = max(1.f, wall->scale.y);
+				editor_dirty = TRUE;
 			}
 		}
 	}
@@ -462,23 +493,28 @@ void end_update_editor_utils(void) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				terrain->scale.x += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.x = max(0.1f, terrain->scale.x);
+				editor_dirty = TRUE;
 			}
 
 			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				terrain->scale.y += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.y = max(0.1f, terrain->scale.y);
+				editor_dirty = TRUE;
 			}
 		}
 	}
 }
 
 void render_editor_utils(void) {
+	CP_Vector world_limits = Get_World_Limits();
+	CP_Vector world_ratios = Get_World_Ratios();
 	CP_Settings_ResetMatrix();
 	CP_Font_Set(get_font(ARIAL_FONT_ASSET));
 	CP_Settings_Fill(Get_Color(COLOR_GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
-	CP_Font_DrawText("Editor Mode! Press P to toggle modes!", CP_System_GetWindowWidth() * 0.5f, 50.f);
+	char e[100]; sprintf_s(e, 100, "%sEditor Mode! Press P to toggle modes!", editor_dirty ? "*" : "");
+	CP_Font_DrawText(e, CP_System_GetWindowWidth() * 0.5f, 50.f);
 
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(20.f);
@@ -489,6 +525,11 @@ void render_editor_utils(void) {
 	CP_Font_DrawText(a, 5.f, CP_System_GetWindowHeight() - 60.f);
 	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
+
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_TOP);
+	char wl[100]; sprintf_s(wl, 100, "World Size: (%.2f, %.2f)", world_limits.x, world_limits.y);
+	CP_Font_DrawText(wl, CP_System_GetWindowWidth() - 5.f, 0.f);
+	CP_Font_DrawText("Ctrl -/+ to change world size", CP_System_GetWindowWidth() - 5.f, 20.f);
 
 	if (editor_saving) {
 		CP_Settings_Fill(Get_Color(COLOR_RED));
@@ -502,9 +543,6 @@ void render_editor_utils(void) {
 		return;
 
 	CP_Settings_ApplyMatrix(Get_Camera());
-
-	CP_Vector world_limits = Get_World_Limits();
-	CP_Vector world_ratios = Get_World_Ratios();
 
 	if (current_type == WALL) {
 		Wall* wall = (Wall*)current_editing;

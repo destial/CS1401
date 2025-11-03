@@ -107,15 +107,20 @@ void* gc_calloc(size_t count, size_t size) {
 }
 
 void* gc_realloc(void* ptr, size_t size) {
-	//++counter;
-	printf("r: %d, ", gccounter);
-	return realloc(ptr, size);
+	if (ptr) {
+		//++counter;
+		printf("r: %d, ", gccounter);
+		return realloc(ptr, size);
+	}
+	return NULL;
 }
 
 void gc_free(void* ptr) {
-	--gccounter;
-	printf("freed: %d\n", gccounter);
-	free(ptr);
+	if (ptr) {
+		--gccounter;
+		printf("freed: %d\n", gccounter);
+		free(ptr);
+	}
 }
 
 int gc_counter(void) {

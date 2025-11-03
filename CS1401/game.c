@@ -381,7 +381,7 @@ void game_physics_update(float dt)
 				continue;
 
 			// check collision detection
-			if (wall->pos.x <= world_limits.x * 0.5f && ball->pos.x <= world_limits.x * 0.5f)
+			if (i == 0 || (wall->pos.x <= world_limits.x * 0.5f && ball->pos.x <= world_limits.x * 0.5f))
 				Check_Wall_Collision(wall, ball);
 			else if (wall->pos.x >= world_limits.x * 0.5f && ball->pos.x >= world_limits.x * 0.5f)
 				Check_Wall_Collision(wall, ball);
