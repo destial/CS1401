@@ -28,6 +28,7 @@
     <ClCompile Include="level_manager.c" />
     <ClCompile Include="main.c" />
     <ClCompile Include="main_menu.c" />
+    <ClCompile Include="state_manager.c" />
     <ClCompile Include="utils.c" />
     <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
@@ -42,6 +43,7 @@
     <ClInclude Include="game.h" />
     <ClInclude Include="level_manager.h" />
     <ClInclude Include="main_menu.h" />
+    <ClInclude Include="state_manager.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />

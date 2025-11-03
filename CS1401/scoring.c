@@ -2,11 +2,11 @@
 #include "cprocessing.h"
 #include "utils.h"
 #include <stdio.h>
-#include "main_menu.h"
+
 #include "game.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
-#include "end_state.h"
+#include "state_manager.h"
 //void scoring_update();
 //void scoring_exit();
 /*!
@@ -184,23 +184,24 @@ void scoring_update(void) {
 
 		//click on exit
 		if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, clickbb_x, clickbb_y) == 1) {
-			CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
+			Set_Next_State(STATE_MAINMENU);
 		}
 		//click on replay
 		if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, clickbb_x, clickbb_y) == 1) {
 			//Set state to current level
-			Set_Current_Level(Get_Current_Level());
-			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+			//Set_Current_Level(Get_Current_Level());
+			Set_Next_State(STATE_GAME);
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
 			if ((Get_Current_Level() + 1) == 6) {
-				CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
+				Set_Next_State(STATE_MAINMENU);
 			}
 			else {
 				Set_Current_Level(Get_Current_Level() + 1);
-				CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+				Set_Next_State(STATE_GAME);
 			}
+			
 
 		}
 

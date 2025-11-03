@@ -9,14 +9,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include "game.h"
+#include "main_menu.h"
 #include "math.h"
 #include "utils.h"
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
 #include "editor_manager.h"
-#include "end_state.h"
-#include "main_menu.h"
+#include "state_manager.h"
 #include "cprocessing.h"
 
 // initialize global variables here
@@ -55,6 +55,7 @@ CP_BOOL playable = FALSE;
 CP_BOOL win = FALSE;
 CP_BOOL has_won = FALSE;
 CP_BOOL all_balls_stopped = TRUE;
+CP_BOOL resetting = FALSE;
 #define MIN_VEL 0.05f
 
 // load based on level
@@ -505,6 +506,8 @@ void render_ui(void) {
 void render_terrains(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Terrain* terrain_arr = Get_Terrains();
+	CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+	CP_Settings_RectMode(CP_POSITION_CENTER);
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* terrain = terrain_arr + i;
@@ -519,8 +522,6 @@ void render_terrains(void) {
 			terrain->type == SAND ? CP_Color_Create(sand.r, sand.g, sand.b, 128) :
 			terrain->type == ICE ? CP_Color_Create(ice.r, ice.g, ice.b, 128) :
 			CP_Color_Create(pit.r, pit.g, pit.b, 128));
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawRectAdvanced(
 			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
 			c.y,
@@ -577,7 +578,7 @@ void render_walls(void) {
 			CP_Settings_Save();
 
 			CP_Settings_Fill(Get_Color(COLOR_WHITE));
-			CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+			CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
 			CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_MIRROR);
@@ -662,20 +663,17 @@ void render_holes(void) {
 void render_items(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Item* item_arr = Get_Items();
+	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->collected || item->destroyed)
+		if (item == NULL || item->destroyed || (item->collected && !editor_mode) )
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(Get_Color(COLOR_WHITE));
-		CP_Settings_Stroke(Get_Color(COLOR_WHITE));
-		CP_Settings_ImageMode(CP_POSITION_CENTER);
-		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+
 		CP_Image image = NULL;
 		SpriteSheet* sprite = NULL;
-		float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 		switch (item->type) {
 		case BOOST:
 			image = get_image(BOOST_ITEM_ASSET);
@@ -702,6 +700,10 @@ void render_items(void) {
 				item->angle += 45.f * CP_System_GetDt();
 				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 			}
+			CP_Settings_Fill(Get_Color(COLOR_WHITE));
+			CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 			CP_Image_DrawAdvanced(image,
 				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
 				coords.y,
@@ -792,6 +794,11 @@ void render_shadows(void) {
 	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
 
 	Wall* wall_arr = Get_Walls();
+	CP_Settings_Fill(shadow);
+	CP_Settings_RectMode(CP_POSITION_CENTER);
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+
 	// render wall shadows
 	for (int i = 1; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
@@ -799,12 +806,10 @@ void render_shadows(void) {
 			continue;
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(shadow);
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
+		
 		CP_Graphics_DrawRectAdvanced(
-			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			c.y,
+			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+			c.y + 5.f,
 			wall->scale.x * world_ratios.x,
 			wall->scale.y * world_ratios.y,
 			wall->angle,
@@ -813,20 +818,43 @@ void render_shadows(void) {
 	}
 
 	Item* item_arr = Get_Items();
+	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 	// render item shadow
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->collected || item->destroyed)
+		if (item == NULL || item->destroyed || (item->collected && !editor_mode))
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(shadow);
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Graphics_DrawCircle(
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
-			coords.y,
-			item->diameter * world_ratios.x);
+		//CP_Settings_Fill(shadow);
+		
+		CP_Image image = NULL;
+		switch (item->type) {
+		case BOOST:
+			image = get_shadow_image(BOOST_ITEM_ASSET);
+			break;
+		case BIG:
+			image = get_shadow_image(BIG_ITEM_ASSET);
+			break;
+		case SMALL:
+			image = get_shadow_image(SMALL_ITEM_ASSET);
+			break;
+		case REVERSE:
+			image = get_shadow_image(REVERSE_ITEM_ASSET);
+			break;
+		default:
+			break;
+		}
+
+		if (image != NULL) {
+			CP_Image_DrawAdvanced(image,
+				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.y + 5.f,
+				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul,
+				shadow.a,
+				item->angle);
+		}
 	}
 
 	GolfBall* golf_arr = Get_Golfs();
@@ -837,14 +865,11 @@ void render_shadows(void) {
 			continue;
 
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(shadow);
-		CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawEllipse(
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			coords.y,
-			golf->diameter * world_ratios.x + 5.f,
-			golf->diameter * world_ratios.y);
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.y + 5.f,
+			golf->diameter * world_ratios.x,
+			golf->diameter * world_ratios.y + 5.f);
 	}
 }
 
@@ -863,7 +888,9 @@ void game_exit(void)
 	if (holes.arr)
 		FREE_MEMORY(holes.arr);
 	reset_strokes();
-	free_assets();
+	if (Get_Next_State() == STATE_GAME && !resetting) {
+		free_assets();
+	}
 	printf("Exit game\n");
 }
 
@@ -875,7 +902,7 @@ void Process_Inputs(void) {
 
 	// go to main menu if pressed escape key
 	if (CP_Input_KeyDown(KEY_ESCAPE)) {
-		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
+		Set_Next_State(STATE_MAINMENU);
 		return;
 	}
 
@@ -891,8 +918,10 @@ void Process_Inputs(void) {
 
 	// reset level
 	if (CP_Input_KeyTriggered(KEY_R) && (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL))) {
+		resetting = TRUE;
 		game_exit();
 		game_init();
+		resetting = FALSE;
 		translate = 0.f;
 		return;
 	}
@@ -1367,7 +1396,7 @@ void load(void) {
 		}
 		else {
 			// level loading failed, quit the game because heap allocation went wrong!!
-			CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
+			Set_Next_State(STATE_EXIT);
 		}
 
 		free_level(loaded_level);
@@ -1478,7 +1507,7 @@ void load(void) {
 	} else {
 
 		// level loading failed, quit the game because heap allocation went wrong!!
-		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
+		Set_Next_State(STATE_EXIT);
 	}
 
 	// set a default layout of item powerups

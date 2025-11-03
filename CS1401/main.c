@@ -1,5 +1,5 @@
 #include "cprocessing.h"
-#include "splash_screen.h"
+#include "state_manager.h"
 #ifdef _DEBUG
 #include <windows.h>
 #include <stdio.h>
@@ -118,7 +118,7 @@ int main(void)
 		i = 0;
 	}
 #endif
-	CP_Engine_SetNextGameState(splash_screen_init, splash_screen_update, splash_screen_exit);
+	Set_Next_State(STATE_SPLASH);
 	CP_Engine_Run(0);
 #ifdef _DEBUG
 	FreeConsole();
