@@ -35,6 +35,9 @@ void Set_Next_State(GameState state) {
 		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_exit);
 		break;
 	}
+}
+
+void Set_Current_State(GameState state) {
 	current_gamestate = state;
 }
 

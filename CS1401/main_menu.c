@@ -47,6 +47,7 @@ void exit_main_menu(void) {
 
 void main_menu_init(void) 
 {
+	Set_Current_State(STATE_MAINMENU);
 	printf("Init main menu\n");
 	button_font = Asset_GetFont(ARIAL_FONT_ASSET);
 	window_size_H = CP_System_GetWindowHeight();

@@ -20,6 +20,7 @@ bool splash_revert = false;
 
 void splash_screen_init(void)
 {
+	Set_Current_State(STATE_SPLASH);
 	printf("Init splash\n");
 	splash_logo = Asset_GetImage(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);

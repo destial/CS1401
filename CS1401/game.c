@@ -85,6 +85,7 @@ static Terrain* Get_Terrains() {
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
+	Set_Current_State(STATE_GAME);
 	printf("Init game\n");
 	font = Asset_GetFont(ESL_FONT_ASSET);
 	golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
