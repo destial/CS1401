@@ -1,4 +1,5 @@
 #pragma once
+#include "utils.h"
 
 /*!
 @author Nathan Ng (n.ng@digipen.edu)
@@ -21,4 +22,4 @@ void volume_bar(float mouse_x, float mouse_y);
 void settings_button(float mouse_x, float mouse_y);
 void back_buttons(float mouse_x, float mouse_y);
 void is_shadow(void);
-char get_shadow(void);
+bool get_shadow_setting(void);

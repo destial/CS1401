@@ -36,7 +36,7 @@ Button buttons[20];
 CP_Image background, setting_background;
 CP_Font button_font;
 
-char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shadowed = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
 
@@ -47,31 +47,31 @@ void exit_main_menu(void) {
 void main_menu_init(void) 
 {
 	printf("Init main menu\n");
-	button_font = get_font(ARIAL_FONT_ASSET);
+	button_font = Asset_GetFont(ARIAL_FONT_ASSET);
 	window_size_H = CP_System_GetWindowHeight();
 	window_size_W = CP_System_GetWindowWidth();
 
 	CP_Font_Set(button_font);
 
-	settings_map = load_map("user.data");
+	settings_map = Map_Load("user.data");
 	if (settings_map) {
 		printf("Loading previous user data!\n");
-		sfx_limit = get_float(settings_map, "sfx_volume", sfx_limit);
+		sfx_limit = Map_GetFloat(settings_map, "sfx_volume", sfx_limit);
 		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
-		music_limit = get_float(settings_map, "music_volume", music_limit);
+		music_limit = Map_GetFloat(settings_map, "music_volume", music_limit);
 		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
-		is_shadowed = get_int(settings_map, "is_shadowed", is_shadowed);
+		is_shadowed = Map_GetInt(settings_map, "is_shadowed", is_shadowed);
 
 	}
 	else {
 		printf("User data file not found! Creating new one!\n");
-		settings_map = add_entry_float(settings_map, "sfx_volume", sfx_limit);
-		settings_map = add_entry_float(settings_map, "music_volume", music_limit);
-		settings_map = add_entry_int(settings_map, "is_shadowed", is_shadowed);
+		settings_map = Map_AddFloat(settings_map, "sfx_volume", sfx_limit);
+		settings_map = Map_AddFloat(settings_map, "music_volume", music_limit);
+		settings_map = Map_AddInt(settings_map, "is_shadowed", is_shadowed);
 	}
 
 	//play button
-	buttons[0].button_image = get_image(BUTTON_YELLOW_ASSET);
+	buttons[0].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;
 	buttons[0].pos.y = world_height1 * 0.5f;
 	buttons[0].start_pos.x = buttons[0].pos.x;
@@ -79,7 +79,7 @@ void main_menu_init(void)
 	buttons[0].text = "PLAY";
 
 	//setting button
-	buttons[1].button_image = get_image(BUTTON_BLUE_ASSET);
+	buttons[1].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
 	buttons[1].pos.x = world_width1 * 0.5f;
 	buttons[1].pos.y = world_height1 * 0.35f;
 	buttons[1].start_pos.x = buttons[1].pos.x;
@@ -87,7 +87,7 @@ void main_menu_init(void)
 	buttons[1].text = "SETTING";
 
 	//quit button
-	buttons[2].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[2].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 	buttons[2].pos.x = world_width1 * 0.5f;
 	buttons[2].pos.y = world_height1 * 0.2f;
 	buttons[2].start_pos.x = buttons[2].pos.x;
@@ -95,7 +95,7 @@ void main_menu_init(void)
 	buttons[2].text = "QUIT";
 
 	//start of level select button
-	buttons[3].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[3].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[3].pos.x = world_width1 * 1.1f;
 	buttons[3].pos.y = world_height1 * .8f;
 	buttons[3].ending_pos.x = world_width1 * 0.1f;
@@ -103,7 +103,7 @@ void main_menu_init(void)
 	buttons[3].func = change_screen;
 	buttons[3].text = "1";
 
-	buttons[4].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[4].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[4].pos.x = world_width1 * 1.2f;
 	buttons[4].pos.y = world_height1 * .8f;
 	buttons[4].ending_pos.x = world_width1 * 0.2f;
@@ -111,7 +111,7 @@ void main_menu_init(void)
 	buttons[4].func = change_screen;
 	buttons[4].text = "2";
 
-	buttons[5].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[5].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[5].pos.x = world_width1 * 1.3f;
 	buttons[5].pos.y = world_height1 * .8f;
 	buttons[5].ending_pos.x = world_width1 * 0.3f;
@@ -119,7 +119,7 @@ void main_menu_init(void)
 	buttons[5].func = change_screen;
 	buttons[5].text = "3";
 
-	buttons[6].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[6].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[6].pos.x = world_width1 * 1.4f;
 	buttons[6].pos.y = world_height1 * .8f;
 	buttons[6].ending_pos.x = world_width1 * 0.4f;
@@ -127,7 +127,7 @@ void main_menu_init(void)
 	buttons[6].func = change_screen;
 	buttons[6].text = "4";
 
-	buttons[7].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[7].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[7].pos.x = world_width1 * 1.5f;
 	buttons[7].pos.y = world_height1 * .8f;
 	buttons[7].ending_pos.x = world_width1 * 0.5f;
@@ -137,7 +137,7 @@ void main_menu_init(void)
 	//end of level select button
 	
 	//level select back button
-	buttons[8].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[8].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[8].pos.x = world_width1 * 1.5f;
 	buttons[8].pos.y = world_height1 * .15f;
 	buttons[8].ending_pos.x = world_width1 * 0.1f;
@@ -146,19 +146,19 @@ void main_menu_init(void)
 	buttons[8].text = "<";
 
 	//start of resolution buttons
-	buttons[9].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[9].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[9].pos.x = world_width1 * 0.35f;
 	buttons[9].pos.y = world_height1 * 0.28f;
 	buttons[9].start_pos.x = buttons[9].pos.x;
 	buttons[9].text = "1280 X 720";
 
-	buttons[10].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[10].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[10].pos.x = world_width1 * 0.5f;
 	buttons[10].pos.y = world_height1 * 0.28f;
 	buttons[10].start_pos.x = buttons[10].pos.x;
 	buttons[10].text = "1600 X 900";
 
-	buttons[11].button_image = get_image(LEVEL_BUTTON_ASSET);
+	buttons[11].button_image = Asset_GetImage(LEVEL_BUTTON_ASSET);
 	buttons[11].pos.x = world_width1 * 0.65f;
 	buttons[11].pos.y = world_height1 * 0.28f;
 	buttons[11].start_pos.x = buttons[11].pos.x;
@@ -166,28 +166,29 @@ void main_menu_init(void)
 	//end of resolution button
 
 	//settings back button
-	buttons[12].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[12].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 	buttons[12].pos.x = world_width1 * 0.25f;
 	buttons[12].pos.y = world_height1 * 0.7f;
 	buttons[12].start_pos.x = buttons[12].pos.x;
 	buttons[12].text = "X";
 
-	buttons[13].button_image = is_shadowed ? get_image(LEVEL_BUTTON_ASSET) : get_image(BUTTON_GREY_ASSET);
+	buttons[13].button_image = is_shadowed ? Asset_GetImage(LEVEL_BUTTON_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
 	buttons[13].pos.x = world_width1 * 0.75f;
 	buttons[13].pos.y = world_height1 * 0.7f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
 	buttons[13].text = "Shadow";
 	buttons[13].func = is_shadow;
 
-	background = get_image(GAME_BACKGROUND_ASSET);
-	setting_background = get_image(SETTING_BACKGROUND_ASSET);
+	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
+	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 
 	//setting the button anchor to the center of the world
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_System_SetWindowSize(window_size_W, window_size_H);
 
-	CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), music_limit, 1.f, TRUE, CP_SOUND_GROUP_MUSIC);
+	CP_Sound_StopAll();
+	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
 }
 
 void main_menu_update(void) 
@@ -205,7 +206,7 @@ void main_menu_update(void)
 	if (!is_clicked) {
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
-		DrawSprite(get_sprite(TITLE_SPRITE_ASSET, 12, 5, 2.f),
+		Sprite_Draw(Asset_GetSprite(TITLE_SPRITE_ASSET, 12, 5, 2.f),
 			CP_System_GetWindowWidth() * 0.5f,
 			CP_System_GetWindowHeight() * 0.3f,
 			CP_System_GetWindowWidth() * 0.5f,
@@ -309,7 +310,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 4.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				Set_Current_Level(i - 3 + 1);
+				Game_SetLevel(i - 3 + 1);
 				buttons[i].func();
 			}
 		}
@@ -323,26 +324,28 @@ void level_select_button(float mouse_x, float mouse_y) {
 }
 
 void volume_bar(float mouse_x, float mouse_y) {
-	CP_Color sound_bar = CP_Color_Create(255, 255, 255, 255);
+	CP_Color sound_bar = Get_Color(COLOR_WHITE);
 	CP_Color sound_bar_background = CP_Color_Create(150, 150, 150, 255);
 
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 
 	//START DRAWING OF VOLUME BARS
 	//drawing of SFX volume button
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 	CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText("SFX Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.35f);
 
 	//drawing of Music volume button
-	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText("Music Volume", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
 
 	//drawing of SFX volume bar
 	CP_Settings_Fill(sound_bar_background);
+	CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.4f, 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
 	//drawing of SFX volume bar background
 	CP_Settings_Fill(sound_bar);
@@ -593,10 +596,10 @@ void change_resolution(num) {
 
 void is_shadow(void) {
 	is_shadowed = !is_shadowed;
-	buttons[13].button_image = is_shadowed ? get_image(LEVEL_BUTTON_ASSET): get_image(BUTTON_GREY_ASSET);
+	buttons[13].button_image = is_shadowed ? Asset_GetImage(LEVEL_BUTTON_ASSET): Asset_GetImage(BUTTON_GREY_ASSET);
 }
 
-char get_shadow(void) {
+bool get_shadow_setting(void) {
 	return is_shadowed;
 }
 
@@ -604,16 +607,16 @@ char get_shadow(void) {
 void main_menu_exit(void) 
 {
 	if (Get_Next_State() == STATE_MAINMENU) {
-		free_assets();
+		Assets_Free();
 	}
 	if (settings_map) {
 		printf("Saving user data!\n");
-		edit_entry_float(settings_map, "sfx_volume", sfx_limit);
-		edit_entry_float(settings_map, "music_volume", music_limit);
-		edit_entry_float(settings_map, "is_shadowed", is_shadowed);
+		Map_EditFloat(settings_map, "sfx_volume", sfx_limit);
+		Map_EditFloat(settings_map, "music_volume", music_limit);
+		Map_EditFloat(settings_map, "is_shadowed", is_shadowed);
 
-		save_map("user.data", settings_map);
-		free_map(settings_map);
+		Map_Save("user.data", settings_map);
+		Map_Free(settings_map);
 		settings_map = NULL;
 	}
 	printf("Exit main menu\n");

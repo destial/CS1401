@@ -10,7 +10,7 @@
 #include "utils.h"
 #include "math.h"
 
-static CP_BOOL colors_init = FALSE;
+static bool colors_init = false;
 static CP_Color colors[LAST_COLOR];
 
 CP_Vector World_To_Screen(float x, float y, float world_width, float world_height) {
@@ -61,7 +61,7 @@ float CP_Vector_LengthSquared(CP_Vector vect) {
 
 CP_Color Get_Color(ColorCode code) {
 	if (!colors_init) {
-		colors_init = TRUE;
+		colors_init = true;
 		colors[COLOR_BLACK] = CP_Color_Create(0, 0, 0, 255);
 		colors[COLOR_WHITE] = CP_Color_Create(255, 255, 255, 255);
 		colors[COLOR_RED] = CP_Color_Create(255, 0, 0, 255);

@@ -12,10 +12,11 @@
 #include "cprocessing.h"
 
 #define min_max(v, mn, mx) min(mx, max(mn, v))
-#define FREE_MEMORY(ptr) do { \
-	gc_free((ptr)); \
-	(ptr) = NULL; \
-}while(0) \
+#define FREE_MEMORY(ptr) if((ptr)) { gc_free((ptr)); (ptr) = NULL; }
+
+typedef char bool;
+#define true (char)1
+#define false (char)0
 
 typedef enum ColorCodeEnum {
 	COLOR_BLACK = 0,
@@ -113,11 +114,12 @@ CP_Color Get_Color(ColorCode code);
 */
 int gcd(int a, int b);
 
+// Memory management. Replace with normal allocs.
+
 void* gc_malloc(size_t size);
 void* gc_calloc(size_t count, size_t size);
 void* gc_realloc(void* ptr, size_t size);
 void gc_free(void* ptr);
-
 int gc_counter(void);
 
 #endif

@@ -11,6 +11,7 @@
 #include "game.h"
 #include "end_state.h"
 #include "state_manager.h"
+#include "utils.h"
 
 GameState current_gamestate = STATE_SPLASH;
 GameState next_gamestate = STATE_SPLASH;
@@ -25,10 +26,13 @@ void Set_Next_State(GameState state) {
 		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
 		break;
 	case STATE_GAME:
+		if (current_gamestate == STATE_GAME) {
+			Game_SetResetting(true);
+		}
 		CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
 		break;
 	case STATE_EXIT:
-		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
+		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_exit);
 		break;
 	}
 	current_gamestate = state;

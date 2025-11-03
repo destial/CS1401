@@ -6,7 +6,28 @@
 */
 
 #include "data_manager.h"
-#include "utils.h"
+
+// create a node of this map, or if NULL, a new node
+static Map* add_node(Map* map) {
+    Map* next;
+    if (map == NULL) {
+        next = gc_malloc(sizeof(Map));
+    }
+    else {
+        if (map->key == NULL) {
+            next = map;
+        }
+        else {
+            Map* last = map;
+            while (last->next) {
+                last = last->next;
+            }
+            last->next = gc_malloc(sizeof(Map));
+            next = last->next;
+        }
+    }
+    return next;
+}
 
 // sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
 char* read_content(const char* filename) {
@@ -46,7 +67,32 @@ void write_content(const char* filename, char* content) {
     fp = NULL;
 }
 
-Map* load_map(const char* filename) {
+// split the given string from (131231,14512) into a proper vector
+// sourced from https://stackoverflow.com/a/54450265
+CP_Vector parse_vector(char* line) {
+    const char* s = line;
+    CP_Vector v = CP_Vector_Set(0.f, 0.f);
+    bool x = true;
+    while (*(s += strspn(s, ",")) != '\0') {
+        size_t len = strcspn(s, ",");
+        char b[64];
+        // Instead of printing, use the nth parsed token for key sorting
+        sprintf_s(b, 64, "%.*s", (int)len, s);
+        if (x) {
+            v.x = (float)atof(b);
+            x = false;
+        }
+        else {
+            v.y = (float)atof(b);
+            break;
+        }
+
+        s += len;
+    }
+    return v;
+}
+
+Map* Map_Load(const char* filename) {
     char* contents = read_content(filename);
     if (contents == NULL || strlen(contents) == 0)
         return NULL;
@@ -102,30 +148,8 @@ Map* load_map(const char* filename) {
     return root;
 }
 
-// create a node of this map, or if NULL, a new node
-static Map* add_node(Map* map) {
-    Map* next;
-    if (map == NULL) {
-        next = gc_malloc(sizeof(Map));
-    }
-    else {
-        if (map->key == NULL) {
-            next = map;
-        }
-        else {
-            Map* last = map;
-            while (last->next) {
-                last = last->next;
-            }
-            last->next = gc_malloc(sizeof(Map));
-            next = last->next;
-        }
-    }
-    return next;
-}
-
-Map* add_entry(Map* map, const char* key, char* value) {
-    if (get_value(map, key))
+Map* Map_AddString(Map* map, const char* key, char* value) {
+    if (Map_GetString(map, key))
         return map;
 
     Map* next = add_node(map);
@@ -144,8 +168,8 @@ Map* add_entry(Map* map, const char* key, char* value) {
     return map == NULL ? next : map;
 }
 
-Map* add_entry_int(Map* map, const char* key, int value) {
-    if (get_value(map, key))
+Map* Map_AddInt(Map* map, const char* key, int value) {
+    if (Map_GetString(map, key))
         return map;
 
     Map* next = add_node(map);
@@ -166,8 +190,8 @@ Map* add_entry_int(Map* map, const char* key, int value) {
     return map == NULL ? next : map;
 }
 
-Map* add_entry_float(Map* map, const char* key, float value) {
-    if (get_value(map, key))
+Map* Map_AddFloat(Map* map, const char* key, float value) {
+    if (Map_GetString(map, key))
         return map;
 
     Map* next = add_node(map);
@@ -188,8 +212,8 @@ Map* add_entry_float(Map* map, const char* key, float value) {
     return map == NULL ? next : map;
 }
 
-Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
-    if (get_value(map, key))
+Map* Map_AddVector(Map* map, const char* key, CP_Vector value) {
+    if (Map_GetString(map, key))
         return map;
 
     Map* next = add_node(map);
@@ -210,7 +234,7 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector value) {
     return map == NULL ? next : map;
 }
 
-void edit_entry(Map* map, const char* key, char* value) {
+void Map_EditString(Map* map, const char* key, char* value) {
     // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
@@ -224,10 +248,10 @@ void edit_entry(Map* map, const char* key, char* value) {
             return; // after modified, we dont need to look anymore
         }
     }
-    add_entry(map, key, value);
+    Map_AddString(map, key, value);
 }
 
-void edit_entry_int(Map* map, const char* key, int value) {
+void Map_EditInt(Map* map, const char* key, int value) {
     // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
@@ -243,10 +267,10 @@ void edit_entry_int(Map* map, const char* key, int value) {
             return; // after modified, we dont need to look anymore
         }
     }
-    add_entry_int(map, key, value);
+    Map_AddInt(map, key, value);
 }
 
-void edit_entry_float(Map* map, const char* key, float value) {
+void Map_EditFloat(Map* map, const char* key, float value) {
     // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
@@ -262,10 +286,10 @@ void edit_entry_float(Map* map, const char* key, float value) {
             return; // after modified, we dont need to look anymore
         }
     }
-    add_entry_float(map, key, value);
+    Map_AddFloat(map, key, value);
 }
 
-void edit_entry_vector(Map* map, const char* key, CP_Vector value) {
+void Map_EditVector(Map* map, const char* key, CP_Vector value) {
     // loop through each node to find the key we are looking for
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
@@ -281,10 +305,10 @@ void edit_entry_vector(Map* map, const char* key, CP_Vector value) {
             return; // after modified, we dont need to look anymore
         }
     }
-    add_entry_vector(map, key, value);
+    Map_AddVector(map, key, value);
 }
 
-Map* remove_entry(Map* map, const char* key) {
+Map* Map_Remove(Map* map, const char* key) {
     // first one in the map
     if (strcmp(map->key, key) == 0) {
         Map* next = map->next;
@@ -311,11 +335,11 @@ Map* remove_entry(Map* map, const char* key) {
     return map;
 }
 
-CP_BOOL save_map(const char* filename, Map* map) {
+bool Map_Save(const char* filename, Map* map) {
     FILE* fp;
     fopen_s(&fp, filename, "w");
     if (!fp) {
-        return FALSE;
+        return false;
     }
 
     Map* next = map;
@@ -331,10 +355,10 @@ CP_BOOL save_map(const char* filename, Map* map) {
 
     fclose(fp);
     fp = NULL;
-    return TRUE;
+    return true;
 }
 
-char* get_value(Map* map, const char* key) {
+char* Map_GetString(Map* map, const char* key) {
     // loop through each map node and compare the key value with the given key
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
@@ -344,53 +368,28 @@ char* get_value(Map* map, const char* key) {
     return NULL;
 }
 
-int get_int(Map* map, const char* key, int def) {
-    char* value = get_value(map, key);
+int Map_GetInt(Map* map, const char* key, int def) {
+    char* value = Map_GetString(map, key);
     return value ? atoi(value) : def;
 }
 
-float get_float(Map* map, const char* key, float def) {
-    char* value = get_value(map, key);
+float Map_GetFloat(Map* map, const char* key, float def) {
+    char* value = Map_GetString(map, key);
     return value ? (float)atof(value) : def;
 }
 
-CP_Vector get_vector(Map* map, const char* key) {
-    char* value = get_value(map, key);
+CP_Vector Map_GetVector(Map* map, const char* key) {
+    char* value = Map_GetString(map, key);
     return value ? parse_vector(value) : CP_Vector_Set(0, 0);
 }
 
-// split the given string from (131231,14512) into a proper vector
-// sourced from https://stackoverflow.com/a/54450265
-CP_Vector parse_vector(char* line) {
-    const char* s = line;
-    CP_Vector v = CP_Vector_Set(0.f, 0.f);
-    CP_BOOL x = TRUE;
-    while (*(s += strspn(s, ",")) != '\0') {
-        size_t len = strcspn(s, ",");
-        char b[64];
-        // Instead of printing, use the nth parsed token for key sorting
-        sprintf_s(b, 64, "%.*s", (int)len, s);
-        if (x) {
-            v.x = (float)atof(b);
-            x = FALSE;
-        }
-        else {
-            v.y = (float)atof(b);
-            break;
-        }
-
-        s += len;
-    }
-    return v;
-}
-
 // recursively loops through the map to free up the allocations, starting from the last node
-void free_map(Map* map) {
+void Map_Free(Map* map) {
     if (map == NULL)
         return;
 
     if (map->next) {
-        free_map(map->next);
+        Map_Free(map->next);
         map->next = NULL;
     }
     if (map->key) {

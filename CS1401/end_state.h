@@ -11,6 +11,6 @@
 
 void end_state_init(void);
 void end_state_update(void);
-void end_state_end(void);
+void end_state_exit(void);
 
 #endif

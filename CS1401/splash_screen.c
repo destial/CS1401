@@ -15,12 +15,12 @@
 CP_Image splash_logo;
 float splash_alpha = 0.f;
 float splash_duration = 2.f;
-char splash_revert = 0;
+bool splash_revert = false;
 
 void splash_screen_init(void)
 {
 	printf("Init splash\n");
-	splash_logo = get_image(SPLASH_SCREEN_ASSET);
+	splash_logo = Asset_GetImage(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_Settings_AntiAlias(TRUE);
@@ -35,7 +35,7 @@ void splash_screen_update(void)
 	if (splash_revert == 0) {
 		splash_alpha += CP_System_GetDt() / splash_duration;
 		if (splash_alpha >= 1.f) {
-			splash_revert = 1;
+			splash_revert = true;
 		}
 	}
 	else {
@@ -54,10 +54,10 @@ void splash_screen_update(void)
 void splash_screen_exit(void)
 {
 	if (Get_Next_State() == STATE_SPLASH) {
-		free_assets();
+		Assets_Free();
 	}
 	else {
-		preload_assets();
+		Asset_Preload();
 	}
 	printf("Exit splash\n");
 }

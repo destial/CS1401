@@ -10,6 +10,7 @@
 #define DATA_MANAGER_H
 
 #include "cprocessing.h"
+#include "utils.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include "string.h"
@@ -26,7 +27,7 @@ typedef struct MapStruct {
 @brief Free the memory allocated for this map of the text file, also recursively goes through each next pointer
 @param map - The root map
 */
-void free_map(Map* map);
+void Map_Free(Map* map);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -34,7 +35,7 @@ void free_map(Map* map);
 @param filename - The filename
 @return The loaded map in heap, nullable. Ensure to free_map() after using!!!!
 */
-Map* load_map(const char* filename);
+Map* Map_Load(const char* filename);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -44,7 +45,7 @@ Map* load_map(const char* filename);
 @param value - The string value
 @return The root map node, if map parameter is NULL, will allocate a new map root
 */
-Map* add_entry(Map* map, const char* key, char* value);
+Map* Map_AddString(Map* map, const char* key, char* value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -54,7 +55,7 @@ Map* add_entry(Map* map, const char* key, char* value);
 @param value - The integer value
 @return The root map node, if map parameter is NULL, will allocate a new map root
 */
-Map* add_entry_int(Map* map, const char* key, int value);
+Map* Map_AddInt(Map* map, const char* key, int value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -64,7 +65,7 @@ Map* add_entry_int(Map* map, const char* key, int value);
 @param value - The float value
 @return The root map node, if map parameter is NULL, will allocate a new map root
 */
-Map* add_entry_float(Map* map, const char* key, float value);
+Map* Map_AddFloat(Map* map, const char* key, float value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -74,7 +75,7 @@ Map* add_entry_float(Map* map, const char* key, float value);
 @param value - The vector value
 @return The root map node, if map parameter is NULL, will allocate a new map root
 */
-Map* add_entry_vector(Map* map, const char* key, CP_Vector value);
+Map* Map_AddVector(Map* map, const char* key, CP_Vector value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -83,7 +84,7 @@ Map* add_entry_vector(Map* map, const char* key, CP_Vector value);
 @param key - The string key
 @param value - The string value
 */
-void edit_entry(Map* map, const char* key, char* value);
+void Map_EditString(Map* map, const char* key, char* value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -92,7 +93,7 @@ void edit_entry(Map* map, const char* key, char* value);
 @param key - The integer key
 @param value - The string value
 */
-void edit_entry_int(Map* map, const char* key, int value);
+void Map_EditInt(Map* map, const char* key, int value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -101,7 +102,7 @@ void edit_entry_int(Map* map, const char* key, int value);
 @param key - The string key
 @param value - The float value
 */
-void edit_entry_float(Map* map, const char* key, float value);
+void Map_EditFloat(Map* map, const char* key, float value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -110,7 +111,7 @@ void edit_entry_float(Map* map, const char* key, float value);
 @param key - The string key
 @param value - The vector value
 */
-void edit_entry_vector(Map* map, const char* key, CP_Vector value);
+void Map_EditVector(Map* map, const char* key, CP_Vector value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -119,7 +120,7 @@ void edit_entry_vector(Map* map, const char* key, CP_Vector value);
 @param key - The key to remove
 @return The new root map pointer if we removed the first map node, else the same root node
 */
-Map* remove_entry(Map* map, const char* key);
+Map* Map_Remove(Map* map, const char* key);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -128,7 +129,42 @@ Map* remove_entry(Map* map, const char* key);
 @param map - The loaded map
 @return TRUE if saved, FALSE if not
 */
-CP_BOOL save_map(const char* filename, Map* map);
+bool Map_Save(const char* filename, Map* map);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the string value in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+*/
+char* Map_GetString(Map* map, const char* key);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the float value in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@param def - The default value if it doesn't exist
+*/
+float Map_GetFloat(Map* map, const char* key, float def);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the integer value in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@param def - The default value if it doesn't exist
+*/
+int Map_GetInt(Map* map, const char* key, int def);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the vector value in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@return If the vector doesn't exist, it's a {0,0} vector
+*/
+CP_Vector Map_GetVector(Map* map, const char* key);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -145,41 +181,6 @@ char* read_content(const char* filename);
 @return The contents of the text file
 */
 void write_content(const char* filename, char* content);
-
-/*!
-@author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the string value in the given map based on the given string key
-@param map - The root map
-@param key - The string key
-*/
-char* get_value(Map* map, const char* key);
-
-/*!
-@author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the float value in the given map based on the given string key
-@param map - The root map
-@param key - The string key
-@param def - The default value if it doesn't exist
-*/
-float get_float(Map* map, const char* key, float def);
-
-/*!
-@author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the integer value in the given map based on the given string key
-@param map - The root map
-@param key - The string key
-@param def - The default value if it doesn't exist
-*/
-int get_int(Map* map, const char* key, int def);
-
-/*!
-@author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the vector value in the given map based on the given string key
-@param map - The root map
-@param key - The string key
-@return If the vector doesn't exist, it's a {0,0} vector
-*/
-CP_Vector get_vector(Map* map, const char* key);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

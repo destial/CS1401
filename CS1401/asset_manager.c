@@ -29,11 +29,11 @@ typedef struct AssetStruct {
 
 Asset* root_assets = NULL;
 
-void preload_assets(void) {
-    get_shadow_image(BOOST_ITEM_ASSET);
-    get_shadow_image(BIG_ITEM_ASSET);
-    get_shadow_image(SMALL_ITEM_ASSET);
-    get_shadow_image(REVERSE_ITEM_ASSET);
+void Asset_Preload(void) {
+    Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
+    Asset_Get_ShadowImage(BIG_ITEM_ASSET);
+    Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
+    Asset_Get_ShadowImage(REVERSE_ITEM_ASSET);
 }
 
 static CP_Image load_shadow(Asset* node, CP_Image image, const char* filepath) {
@@ -154,18 +154,29 @@ static CP_Sound load_audio(Asset* node, const char* filepath) {
     return node->audio;
 }
 
+static Asset* get_node(const char* key) {
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (ptr->key == NULL)
+            continue;
+
+        if (strcmp(ptr->key, key) == 0)
+            return (Asset*)ptr;
+    }
+    return NULL;
+}
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer
 @param map - The root asset map
 */
-static void free_assetmap(Asset* map) {
+static void free_asset(Asset* map) {
     if (map == NULL)
         return;
 
     // traverse to the end of the map
     if (map->next) {
-        free_assetmap(map->next);
+        free_asset(map->next);
         map->next = NULL;
     }
 
@@ -196,18 +207,7 @@ static void free_assetmap(Asset* map) {
     FREE_MEMORY(map);
 }
 
-static Asset* get_node(const char* key) {
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
-        if (ptr->key == NULL)
-            continue;
-
-        if (strcmp(ptr->key, key) == 0) 
-            return (Asset*)ptr;
-    }
-    return NULL;
-}
-
-CP_Image get_image(const char* filepath) {
+CP_Image Asset_GetImage(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = gc_malloc(sizeof(Asset));
@@ -240,14 +240,14 @@ CP_Image get_image(const char* filepath) {
     return NULL;
 }
 
-CP_Image get_shadow_image(const char* filepath) {
+CP_Image Asset_Get_ShadowImage(const char* filepath) {
     char shadow_path[512];
     sprintf_s(shadow_path, 512, "%s//shadow", filepath);
-    CP_Image root = get_image(shadow_path);
+    CP_Image root = Asset_GetImage(shadow_path);
     if (root != NULL)
         return root;
 
-    root = get_image(filepath);
+    root = Asset_GetImage(filepath);
     if (root == NULL)
         return NULL;
 
@@ -259,10 +259,8 @@ CP_Image get_shadow_image(const char* filepath) {
     CP_Color* colorArray = gc_malloc(arraySize * sizeof(CP_Color));
 
     CP_Image_GetPixelData(root, colorArray);
-    for (int i = 0; i < arraySize; ++i)
-    {
-        if (colorArray[i].a > 0)
-        {
+    for (int i = 0; i < arraySize; ++i) {
+        if (colorArray[i].a > 0) {
             colorArray[i] = Get_Color(COLOR_BLACK);
         }
     }
@@ -279,7 +277,7 @@ CP_Image get_shadow_image(const char* filepath) {
     return shadowed_image;
 }
 
-CP_Font get_font(const char* filepath) {
+CP_Font Asset_GetFont(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = gc_malloc(sizeof(Asset));
@@ -313,7 +311,7 @@ CP_Font get_font(const char* filepath) {
     return NULL;
 }
 
-CP_Sound get_audio(const char* filepath) {
+CP_Sound Asset_GetAudio(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
         root_assets = gc_malloc(sizeof(Asset));
@@ -347,7 +345,7 @@ CP_Sound get_audio(const char* filepath) {
     return NULL;
 }
 
-SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration) {
+SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float duration) {
     if (root_assets == NULL) {
         root_assets = gc_malloc(sizeof(Asset));
         if (root_assets == NULL) 
@@ -391,17 +389,18 @@ SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float durat
 
     // its not loaded yet, so we load it as an image if it exists
 	// then the next call will convert it to a sprite sheet
-    CP_Image image = get_image(filepath);
+    CP_Image image = Asset_GetImage(filepath);
     if (image)
-        return get_sprite(filepath, rows, columns, duration);
+        return Asset_GetSprite(filepath, rows, columns, duration);
 
     return NULL;
 }
 
-void free_assets(void) {
+void Assets_Free(void) {
     if (root_assets == NULL) 
         return;
 
-    free_assetmap(root_assets);
+    free_asset(root_assets);
     root_assets = NULL;
+    printf("Freeing up all assets\n");
 }
