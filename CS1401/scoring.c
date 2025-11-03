@@ -152,9 +152,9 @@ void scoring_init() {
 
 
 void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation) {
-	CP_Settings_Stroke(get_color(WHITE));
-	CP_Settings_Fill(get_color(BLACK));
-	CP_Vector coords = world_to_screen(hole.x, hole.y, world_width, world_height);
+	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	CP_Vector coords = World_To_Screen(hole.x, hole.y, world_width, world_height);
 	CP_Graphics_DrawCircle(
 		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth() * 1.f, animation),
 		coords.y, 
@@ -174,12 +174,12 @@ void scoring_update(void) {
 		//click on replay
 		if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, clickbb_x, clickbb_y) == 1) {
 			//Set state to current level
-			set_game_level(get_game_level());
+			Set_Current_Level(Get_Current_Level());
 			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
-			set_game_level(get_game_level() + 1);
+			Set_Current_Level(Get_Current_Level() + 1);
 			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
 
 		}
@@ -270,7 +270,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	CP_Vector coords = world_to_screen(sBoard.x, sBoard.y, world_width, world_height);
+	CP_Vector coords = World_To_Screen(sBoard.x, sBoard.y, world_width, world_height);
 	CP_Image_DrawAdvanced(
 		sbb_bg,
 		coords.x,
@@ -280,7 +280,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		255, 
 		0.0f);
 
-	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	char b[50];
 	char a[100];
 	//Write strokes
@@ -290,29 +290,33 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);
 
-	CP_Settings_Fill(get_color(WHITE));
+	//Write scoreboard
+	sprintf_s(a, 50, "SCOREBOARD");
+	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.3f * CP_System_GetWindowHeight());
+
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
 	//Draw level buttons
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
 	CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x - 100.0f, scorebb[2].y - 10.0f , 50, 50, 255, 0.0f);
 	sprintf_s(a, 50, "NEXT LEVEL");
-	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);
 
 	//Draw exit buttons
-	CP_Settings_Fill(get_color(WHITE));
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	/*CP_Graphics_DrawRect(exit.x,exit.y, exit.width ,exit.height);*/
 	CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
 	sprintf_s(a, 50, "EXIT");
-	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);
 
 	//Draw Replay button
-	CP_Settings_Fill(get_color(WHITE));
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
 	sprintf_s(a, 50, "REPLAY");
-	CP_Settings_Fill(get_color(BLACK));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);
 
 	//Write scoreboard

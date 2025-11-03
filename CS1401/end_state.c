@@ -5,6 +5,7 @@
 @brief Definition file for unloading the game's allocation
 */
 
+#include <stdio.h>
 #include "end_state.h"
 #include "cprocessing.h"
 #include "asset_manager.h"
@@ -16,6 +17,7 @@ float end_duration = 2.f;
 char end_revert = 0;
 
 void end_state_init(void) {
+	printf("Init end\n");
 	end_logo = get_image(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
@@ -23,7 +25,7 @@ void end_state_init(void) {
 }
 
 void end_state_update(void) {
-	CP_Graphics_ClearBackground(get_color(BLACK));
+	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
 	if (end_revert == 0) {
 		end_alpha += CP_System_GetDt() / end_duration;
 		if (end_alpha >= 1.f) {
@@ -45,4 +47,5 @@ void end_state_update(void) {
 
 void end_state_end(void) {
 	free_assets();
+	printf("Exit end\n");
 }

@@ -70,6 +70,11 @@ typedef struct TerrainStruct {
 } Terrain;
 
 /*!
+@brief Get the camera transformation matrix
+*/
+CP_Matrix Get_Camera(void);
+
+/*!
 @brief Game scene init
 */
 void game_init(void);
@@ -90,9 +95,9 @@ void game_physics_update(float dt);
 void game_render(void);
 
 /*!
-@brief Render items
+@brief Render terrains
 */
-void render_items(void);
+void render_terrains(void);
 
 /*!
 @brief Render walls
@@ -100,9 +105,14 @@ void render_items(void);
 void render_walls(void);
 
 /*!
-@brief Render terrains
+@brief Render holes
 */
-void render_terrains(void);
+void render_holes(void);
+
+/*!
+@brief Render items
+*/
+void render_items(void);
 
 /*!
 @brief Render balls
@@ -110,12 +120,12 @@ void render_terrains(void);
 void render_balls(void);
 
 /*!
-@brief Render holes
+@brief Render shadows (optional)
 */
-void render_holes(void);
+void render_shadows(void);
 
 /*!
-@brief Render ui
+@brief Render UI
 */
 void render_ui(void);
 
@@ -125,57 +135,21 @@ void render_ui(void);
 void game_exit(void);
 
 /*!
+@brief Render debug information such as FPS, mouse coords, ball positions & velocity and collision markers
+*/
+void debug_render_info(void);
+
+/*!
+@brief Process user inputs
+*/
+void Process_Inputs(void);
+
+/*!
 @brief Update wall normals and rotation
+@param wall - The wall to update
+@param dt - The delta frametime
 */
-void update_wall(Wall* wall, float dt);
-
-/*!
-@brief Check the collision between a wall and a golf ball
-@param wall - The wall to check
-@param ball - The golf ball to check
-@return TRUE if collided, FALSE if not
-*/
-CP_BOOL check_collision(Wall* wall, GolfBall* ball);
-
-/*!
-@brief Check if point is on terrain
-@param terrain - The terrain to check
-@param pos - The position in world space
-@return TRUE if on terrain, FALSE if not
-*/
-CP_BOOL check_terrain(Terrain* terrain, CP_Vector pos);
-
-/*!
-@brief Check the collision between golf balls
-@param ball_1 - The 1st golf ball
-@param ball_2 - The 2nd golf ball
-@return TRUE if collided, FALSE if not
-*/
-CP_BOOL check_collision_ball(GolfBall* ball_1, GolfBall* ball_2);
-
-/*!
-@brief Check if golfball rolled over item
-@param item - The item to check
-@param ball - The golf ball to check
-@return TRUE if over item, FALSE if not
-*/
-CP_BOOL check_item(Item* item, GolfBall* ball);
-
-/*!
-@brief Respond to the collision between a wall and a ball according to the wall's normal
-@param wall - The wall it hit
-@param ball - The golf ball that hit
-@param point - The point at which the golf ball hit the wall
-@param normal - The normal of the wall to the ball
-*/
-void collision_response(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal);
-
-/*!
-@brief Respond to the collision between a ball and a ball according to the wall's normal
-@param ball_1 - The 1st golf ball that hit
-@param ball_2 - The 2nd golf ball that hit
-*/
-void collision_response_ball(GolfBall* ball_1, GolfBall* ball_2);
+void Update_Wall(Wall* wall, float dt);
 
 /*!
 @brief Save the current level data to the text file under "Assets/Levels/level_{current_level}.lvl"
@@ -188,89 +162,137 @@ void save(void);
 void load(void);
 
 /*!
+@brief Check the collision between a wall and a golf ball
+@param wall - The wall to check
+@param ball - The golf ball to check
+@return TRUE if collided, FALSE if not
+*/
+CP_BOOL Check_Wall_Collision(Wall* wall, GolfBall* ball);
+
+/*!
+@brief Check if point is on terrain
+@param terrain - The terrain to check
+@param pos - The position in world space
+@return TRUE if on terrain, FALSE if not
+*/
+CP_BOOL Check_Terrain(Terrain* terrain, CP_Vector pos);
+
+/*!
+@brief Check the collision between golf balls
+@param ball_1 - The 1st golf ball
+@param ball_2 - The 2nd golf ball
+@return TRUE if collided, FALSE if not
+*/
+CP_BOOL Check_Ball_Collision(GolfBall* ball_1, GolfBall* ball_2);
+
+/*!
+@brief Check if golfball rolled over item
+@param item - The item to check
+@param ball - The golf ball to check
+@return TRUE if over item, FALSE if not
+*/
+CP_BOOL Check_Item(Item* item, GolfBall* ball);
+
+/*!
+@brief Respond to the collision between a wall and a ball according to the wall's normal
+@param wall - The wall it hit
+@param ball - The golf ball that hit
+@param point - The point at which the golf ball hit the wall
+@param normal - The normal of the wall to the ball
+*/
+void Collision_Response_Wall(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vector normal);
+
+/*!
+@brief Respond to the collision between a ball and a ball according to the wall's normal
+@param ball_1 - The 1st golf ball that hit
+@param ball_2 - The 2nd golf ball that hit
+*/
+void Collision_Response_Ball(GolfBall* ball_1, GolfBall* ball_2);
+
+/*!
 @brief Set the current game level. To be called before load(). Does nothing if not before game init
 @param level - The level to load from "Assets/Levels/level_{level}.lvl"
 */
-void set_game_level(char level);
+void Set_Current_Level(char level);
 
 /*!
 @brief Get the current game level that is being played on
 */
-char get_game_level(void);
-
-/*!
-@brief Render debug information such as FPS, mouse coords, ball positions & velocity and collision markers
-*/
-void debug_render_info(void);
+char Get_Current_Level(void);
 
 /*!
 @brief Get the mouse position in world space
 */
-CP_Vector get_mouse_world(void);
+CP_Vector Get_Mouse_WorldSpace(void);
 
 /*!
 @brief Get the world width and height
 */
-CP_Vector get_world_limits(void);
+CP_Vector Get_World_Limits(void);
+
+/*!
+@brief Rescale the world limits
+*/
+void Scale_World(float scale);
 
 /*!
 @brief Get the world width and height ratios according to the display width and height (e.g. displayWidth / worldWidth)
 */
-CP_Vector get_world_ratios(void);
+CP_Vector Get_World_Ratios(void);
 
 /*!
 @brief Get the terrain resistance at this position
 */
-float get_resistance(CP_Vector pos);
+float Get_Resistance_At(CP_Vector pos);
 
 /*!
 @brief Add a wall to the level
 */
-Wall* add_wall(CP_Vector pos);
+Wall* Add_Wall(CP_Vector pos);
 
 /*!
 @brief Add an item to the level
 */
-Item* add_item(CP_Vector pos, ItemType type);
+Item* Add_Item(CP_Vector pos, ItemType type);
 
 /*!
 @brief Remove a wall from the level
 */
-void remove_wall(Wall* wall);
+void Remove_Wall(Wall* wall);
 
 /*!
 @brief Remove item from the level
 */
-void remove_item(Item* item);
+void Remove_Item(Item* item);
 
 /*!
 @brief Add a wall to the level
 */
-GolfBall* add_ball(CP_Vector pos);
+GolfBall* Add_Ball(CP_Vector pos);
 
 /*!
 @brief Add an item to the level
 */
-Hole* add_hole(CP_Vector pos);
+Hole* Add_Hole(CP_Vector pos);
 
 /*!
 @brief Remove a wall from the level
 */
-void remove_ball(GolfBall* ball);
+void Remove_Ball(GolfBall* ball);
 
 /*!
 @brief Remove item from the level
 */
-void remove_hole(Hole* hole);
+void Remove_Hole(Hole* hole);
 
 /*!
 @brief Remove a terrain from the level
 */
-void remove_terrain(Terrain* terrain);
+void Remove_Terrain(Terrain* terrain);
 
 /*!
 @brief Add a terrain to the level
 */
-Terrain* add_terrain(CP_Vector pos, TerrainType type);
+Terrain* Add_Terrain(CP_Vector pos, TerrainType type);
 
 #endif

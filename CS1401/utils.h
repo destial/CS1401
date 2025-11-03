@@ -11,21 +11,27 @@
 #define UTILS_H
 #include "cprocessing.h"
 
+#define min_max(v, mn, mx) min(mx, max(mn, v))
+#define FREE_MEMORY(ptr) do { \
+	gc_free((ptr)); \
+	(ptr) = NULL; \
+}while(0) \
+
 typedef enum ColorCodeEnum {
-	BLACK = 0,
-	RED,
-	GREEN,
-	LIGHT_BLUE,
-	BLUE,
-	PURPLE,
-	VIOLET,
-	ORANGE,
-	YELLOW,
-	CYAN,
-	PINK,
-	WHITE,
-	CLEAR,
-	LAST
+	COLOR_BLACK = 0,
+	COLOR_RED,
+	COLOR_GREEN,
+	COLOR_LIGHT_BLUE,
+	COLOR_BLUE,
+	COLOR_PURPLE,
+	COLOR_VIOLET,
+	COLOR_ORANGE,
+	COLOR_YELLOW,
+	COLOR_CYAN,
+	COLOR_PINK,
+	COLOR_WHITE,
+	COLOR_CLEAR,
+	LAST_COLOR
 } ColorCode;
 
 typedef struct ObjectArrayStruct {
@@ -40,7 +46,7 @@ typedef struct ObjectArrayStruct {
 @param y - World Point Y
 @return A vector in screen coordinates
 */
-CP_Vector world_to_screen(float x, float y, float world_width, float world_height);
+CP_Vector World_To_Screen(float x, float y, float world_width, float world_height);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -49,7 +55,7 @@ CP_Vector world_to_screen(float x, float y, float world_width, float world_heigh
 @param y - Screen Point Y
 @return A vector in world coordinates
 */
-CP_Vector screen_to_world(float x, float y, float world_width, float world_height);
+CP_Vector Screen_To_World(float x, float y, float world_width, float world_height);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -98,7 +104,7 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 @brief Get a defined color
 @param code - The color code
 */
-CP_Color get_color(ColorCode code);
+CP_Color Get_Color(ColorCode code);
 
 /*!
 @brief The greatest common divisor between two integers (e.g. a / b, to find the simplest fraction)
@@ -106,5 +112,12 @@ CP_Color get_color(ColorCode code);
 @param b - The second int
 */
 int gcd(int a, int b);
+
+void* gc_malloc(size_t size);
+void* gc_calloc(size_t count, size_t size);
+void* gc_realloc(void* ptr, size_t size);
+void gc_free(void* ptr);
+
+int gc_counter(void);
 
 #endif

@@ -5,13 +5,15 @@
 @brief Definition file for implementing basic vector math that is not included in CProcessing, but useful for conversion into game coordinates
 */
 
+#include <stdio.h>
+#include <stdlib.h>
 #include "utils.h"
 #include "math.h"
 
 static CP_BOOL colors_init = FALSE;
-static CP_Color colors[LAST];
+static CP_Color colors[LAST_COLOR];
 
-CP_Vector world_to_screen(float x, float y, float world_width, float world_height) {
+CP_Vector World_To_Screen(float x, float y, float world_width, float world_height) {
 	CP_Vector a = { 
 		x * (CP_System_GetWindowWidth() / world_width),
 		CP_System_GetWindowHeight() - (y * (CP_System_GetWindowHeight() / world_height))
@@ -19,7 +21,7 @@ CP_Vector world_to_screen(float x, float y, float world_width, float world_heigh
 	return a;
 }
 
-CP_Vector screen_to_world(float x, float y, float world_width, float world_height) {
+CP_Vector Screen_To_World(float x, float y, float world_width, float world_height) {
 	CP_Vector a = { 
 		x * (world_width / CP_System_GetWindowWidth()),
 		world_height - (y * (world_height / CP_System_GetWindowHeight())) 
@@ -57,22 +59,22 @@ float CP_Vector_LengthSquared(CP_Vector vect) {
 	return CP_Math_Square(vect.x) + CP_Math_Square(vect.y);
 }
 
-CP_Color get_color(ColorCode code) {
+CP_Color Get_Color(ColorCode code) {
 	if (!colors_init) {
 		colors_init = TRUE;
-		colors[BLACK] = CP_Color_Create(0, 0, 0, 255);
-		colors[WHITE] = CP_Color_Create(255, 255, 255, 255);
-		colors[RED] = CP_Color_Create(255, 0, 0, 255);
-		colors[GREEN] = CP_Color_Create(3, 127, 81, 255);
-		colors[LIGHT_BLUE] = CP_Color_Create(173, 216, 255, 255);
-		colors[BLUE] = CP_Color_Create(0, 0, 255, 255);
-		colors[PURPLE] = CP_Color_Create(255, 0, 255, 255);
-		colors[VIOLET] = CP_Color_Create(128, 0, 255, 255);
-		colors[CYAN] = CP_Color_Create(0, 255, 255, 255);
-		colors[ORANGE] = CP_Color_Create(255, 128, 0, 255);
-		colors[YELLOW] = CP_Color_Create(255, 255, 0, 255);
-		colors[PINK] = CP_Color_Create(255, 0, 200, 255);
-		colors[CLEAR] = CP_Color_Create(0, 0, 0, 0);
+		colors[COLOR_BLACK] = CP_Color_Create(0, 0, 0, 255);
+		colors[COLOR_WHITE] = CP_Color_Create(255, 255, 255, 255);
+		colors[COLOR_RED] = CP_Color_Create(255, 0, 0, 255);
+		colors[COLOR_GREEN] = CP_Color_Create(3, 127, 81, 255);
+		colors[COLOR_LIGHT_BLUE] = CP_Color_Create(173, 216, 255, 255);
+		colors[COLOR_BLUE] = CP_Color_Create(0, 0, 255, 255);
+		colors[COLOR_PURPLE] = CP_Color_Create(255, 0, 255, 255);
+		colors[COLOR_VIOLET] = CP_Color_Create(128, 0, 255, 255);
+		colors[COLOR_CYAN] = CP_Color_Create(0, 255, 255, 255);
+		colors[COLOR_ORANGE] = CP_Color_Create(255, 128, 0, 255);
+		colors[COLOR_YELLOW] = CP_Color_Create(255, 255, 0, 255);
+		colors[COLOR_PINK] = CP_Color_Create(255, 0, 200, 255);
+		colors[COLOR_CLEAR] = CP_Color_Create(0, 0, 0, 0);
 	}
 	return colors[code];
 }
@@ -89,4 +91,33 @@ int gcd(int a, int b) {
 	}
 	// return gcd of a nd b
 	return result;
+}
+
+static int gccounter = 0;
+void* gc_malloc(size_t size) {
+	++gccounter;
+	printf("m: %d, ", gccounter);
+	return malloc(size);
+}
+
+void* gc_calloc(size_t count, size_t size) {
+	++gccounter;
+	printf("c: %d, ", gccounter);
+	return calloc(count, size);
+}
+
+void* gc_realloc(void* ptr, size_t size) {
+	//++counter;
+	printf("r: %d, ", gccounter);
+	return realloc(ptr, size);
+}
+
+void gc_free(void* ptr) {
+	--gccounter;
+	printf("freed: %d\n", gccounter);
+	free(ptr);
+}
+
+int gc_counter(void) {
+	return gccounter;
 }

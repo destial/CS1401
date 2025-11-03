@@ -5,10 +5,11 @@
 @brief Definition file for debug and level editor UI
 */
 
+#include <math.h>
+#include <stdio.h>
 #include "editor_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
-#include <math.h>
 
 typedef enum EditingType {
 	NONE = 0,
@@ -21,6 +22,7 @@ typedef enum EditingType {
 
 void* current_editing = NULL;
 void* current_dragging = NULL;
+void* current_click = NULL;
 CP_Vector current_editing_offset;
 EditingType current_type = NONE;
 float editor_saving = 0.f;
@@ -30,7 +32,7 @@ CP_BOOL check_on_wall(Wall* wall) {
 	CP_Vector wall_max = { wall->scale.x * 0.5f, wall->scale.y * 0.5f };
 
 	// mouse location in respect to wall
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 	CP_Vector r = CP_Vector_Subtract(mouse_world, wall->pos);
 
 	// rotate local position back to axis
@@ -41,19 +43,19 @@ CP_BOOL check_on_wall(Wall* wall) {
 }
 
 CP_BOOL check_on_terrain(Terrain* terrain) {
-	return check_terrain(terrain, get_mouse_world());
+	return Check_Terrain(terrain, Get_Mouse_WorldSpace());
 }
 
 CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 	return CP_Vector_Distance(pos, mouse_world) <= diameter;
 }
 
 void update_editor_walls(ObjectArray* walls) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
-	if (CP_Input_KeyTriggered(KEY_EQUAL)) {
-		Wall* wall = add_wall(mouse_world);
+	if (CP_Input_KeyTriggered(KEY_W)) {
+		Wall* wall = Add_Wall(mouse_world);
 		if (wall) {
 			current_editing = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
@@ -66,19 +68,20 @@ void update_editor_walls(ObjectArray* walls) {
 		if (wall == NULL || wall->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_wall(wall)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_wall(wall)) {
 			current_editing = wall;
+			current_click = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 			current_type = WALL;
 		}
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == wall) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_RIGHT) && current_editing == wall) {
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
 		}
 	}
 
 	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
-		remove_wall((Wall*)current_editing);
+		Remove_Wall((Wall*)current_editing);
 		current_editing = NULL;
 		current_dragging = NULL;
 		current_type = NONE;
@@ -86,10 +89,10 @@ void update_editor_walls(ObjectArray* walls) {
 }
 
 void update_editor_terrains(ObjectArray* terrains) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_8)) {
-		Terrain* terrain = add_terrain(mouse_world, ICE);
+		Terrain* terrain = Add_Terrain(mouse_world, ICE);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
@@ -98,7 +101,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 	}
 
 	if (CP_Input_KeyTriggered(KEY_9)) {
-		Terrain* terrain = add_terrain(mouse_world, SAND);
+		Terrain* terrain = Add_Terrain(mouse_world, SAND);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
@@ -107,7 +110,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 	}
 
 	if (CP_Input_KeyTriggered(KEY_0)) {
-		Terrain* terrain = add_terrain(mouse_world, PIT);
+		Terrain* terrain = Add_Terrain(mouse_world, PIT);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
@@ -120,13 +123,14 @@ void update_editor_terrains(ObjectArray* terrains) {
 		if (terrain == NULL || terrain->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_terrain(terrain)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_terrain(terrain)) {
 			current_editing = terrain;
+			current_click = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
 		}
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_2) && current_editing == terrain) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_RIGHT) && current_editing == terrain) {
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 		}
 	}
@@ -146,7 +150,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 			}
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			remove_terrain(t);
+			Remove_Terrain(t);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
@@ -155,10 +159,10 @@ void update_editor_terrains(ObjectArray* terrains) {
 }
 
 void update_editor_holes(ObjectArray* holes) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_H)) {
-		Hole* hole = add_hole(mouse_world);
+		Hole* hole = Add_Hole(mouse_world);
 		if (hole) {
 			current_editing = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
@@ -171,8 +175,9 @@ void update_editor_holes(ObjectArray* holes) {
 		if (hole == NULL || hole->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(hole->pos, hole->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(hole->pos, hole->diameter)) {
 			current_editing = hole;
+			current_click = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
 		}
@@ -181,13 +186,13 @@ void update_editor_holes(ObjectArray* holes) {
 	if (current_editing != NULL && current_type == HOLE) {
 		Hole* hole = (Hole*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				hole->diameter += CP_Input_MouseWheel();
 			}
 		}
 
 		if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			remove_hole(hole);
+			Remove_Hole(hole);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
@@ -196,10 +201,10 @@ void update_editor_holes(ObjectArray* holes) {
 }
 
 void update_editor_golfs(ObjectArray* golfs) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_B)) {
-		GolfBall* ball = add_ball(mouse_world);
+		GolfBall* ball = Add_Ball(mouse_world);
 		if (ball) {
 			current_editing = ball;
 			current_editing_offset = CP_Vector_Subtract(ball->pos, mouse_world);
@@ -212,8 +217,9 @@ void update_editor_golfs(ObjectArray* golfs) {
 		if (golf == NULL || golf->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(golf->pos, golf->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(golf->pos, golf->diameter)) {
 			current_editing = golf;
+			current_click = golf;
 			current_editing_offset = CP_Vector_Subtract(golf->pos, mouse_world);
 			current_type = GOLF_BALL;
 		}
@@ -222,13 +228,13 @@ void update_editor_golfs(ObjectArray* golfs) {
 	if (current_editing != NULL && current_type == GOLF_BALL) {
 		GolfBall* ball = (GolfBall*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				ball->diameter += CP_Input_MouseWheel();
 			}
 		}
 
 		if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			remove_ball(ball);
+			Remove_Ball(ball);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
@@ -237,11 +243,11 @@ void update_editor_golfs(ObjectArray* golfs) {
 }
 
 void update_editor_items(ObjectArray* items) {
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	for (int i = KEY_1; i < KEY_1 + ITEM_LAST - 1; ++i) {
 		if (CP_Input_KeyTriggered(i)) {
-			Item* item = add_item(mouse_world, i - KEY_1 + 1);
+			Item* item = Add_Item(mouse_world, i - KEY_1 + 1);
 			if (item) {
 				current_editing = item;
 				current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
@@ -255,8 +261,9 @@ void update_editor_items(ObjectArray* items) {
 		if (item == NULL || item->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && check_on_circle(item->pos, item->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(item->pos, item->diameter)) {
 			current_editing = item;
+			current_click = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
 			current_type = ITEM;
 		}
@@ -266,7 +273,7 @@ void update_editor_items(ObjectArray* items) {
 		Item* i = (Item*)current_editing;
 
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				i->diameter += CP_Input_MouseWheel();
 			}
 		}
@@ -286,7 +293,7 @@ void update_editor_items(ObjectArray* items) {
 			i->angle = 0.f;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			remove_item(i);
+			Remove_Item(i);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
@@ -294,7 +301,27 @@ void update_editor_items(ObjectArray* items) {
 	}
 }
 
-void update_editor_utils(void) {
+float world_rescaling = 1.f;
+
+void start_update_editor_utils(void) {
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) {
+		current_click = NULL;
+	}
+
+	if (CP_Input_KeyDown(KEY_LEFT_CONTROL) || CP_Input_KeyDown(KEY_RIGHT_CONTROL)) {
+		if (CP_Input_KeyTriggered(KEY_EQUAL)) {
+			world_rescaling -= 0.1f;
+			world_rescaling = max(0.1f, world_rescaling);
+			Scale_World(world_rescaling);
+		}
+		else if (CP_Input_KeyTriggered(KEY_MINUS)) {
+			world_rescaling += 0.1f;
+			Scale_World(world_rescaling);
+		}
+	}
+}
+
+void end_update_editor_utils(void) {
 	// save level if debug enabled
 	if (CP_Input_KeyTriggered(KEY_S)) {
 		save();
@@ -306,10 +333,14 @@ void update_editor_utils(void) {
 		editor_saving = max(0.f, editor_saving);
 	}
 
+	if (current_click == NULL) {
+		current_editing = NULL;
+	}
+
 	if (current_editing == NULL)
 		return;
 
-	if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) {
+	if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) {
 		if (current_type == WALL && check_on_wall((Wall*)current_editing)) {
 			current_dragging = current_editing;
 		}
@@ -326,20 +357,20 @@ void update_editor_utils(void) {
 			current_dragging = current_editing;
 		}
 	}
-	else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) {
+	else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) {
 		current_dragging = current_editing;
 	}
 	else {
 		current_dragging = NULL;
 	}
 
-	CP_Vector mouse_world = get_mouse_world();
+	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 	if (current_dragging != NULL) {
-		if (CP_Input_MouseDragged(MOUSE_BUTTON_1)) { // translate
+		if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) { // translate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				wall->image = wall->pos.x <= get_world_limits().x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
+				wall->image = wall->pos.x <= Get_World_Limits().x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
 			}
 			else if (current_type == HOLE) {
 				Hole* hole = (Hole*)current_dragging;
@@ -359,7 +390,7 @@ void update_editor_utils(void) {
 				terrain->pos = CP_Vector_Add(mouse_world, current_editing_offset);
 			}
 		}
-		else if (CP_Input_MouseDragged(MOUSE_BUTTON_2)) { // rotate
+		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
@@ -413,12 +444,12 @@ void update_editor_utils(void) {
 		}
 
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				wall->scale.x += CP_Input_MouseWheel();
 				wall->scale.x = max(1.f, wall->scale.x);
 			}
 
-			if (CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				wall->scale.y += CP_Input_MouseWheel();
 				wall->scale.y = max(1.f, wall->scale.y);
 			}
@@ -428,12 +459,12 @@ void update_editor_utils(void) {
 	if (current_type == TERRAIN) {
 		Terrain* terrain = (Terrain*)current_editing;
 		if (CP_Input_MouseWheel() != 0.f) {
-			if (CP_Input_MouseDown(MOUSE_BUTTON_1)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				terrain->scale.x += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.x = max(0.1f, terrain->scale.x);
 			}
 
-			if (CP_Input_MouseDown(MOUSE_BUTTON_2)) {
+			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				terrain->scale.y += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.y = max(0.1f, terrain->scale.y);
 			}
@@ -442,8 +473,9 @@ void update_editor_utils(void) {
 }
 
 void render_editor_utils(void) {
+	CP_Settings_ResetMatrix();
 	CP_Font_Set(get_font(ARIAL_FONT_ASSET));
-	CP_Settings_Fill(get_color(GREEN));
+	CP_Settings_Fill(Get_Color(COLOR_GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
 	CP_Font_DrawText("Editor Mode! Press P to toggle modes!", CP_System_GetWindowWidth() * 0.5f, 50.f);
@@ -453,13 +485,14 @@ void render_editor_utils(void) {
 	CP_Font_DrawText("Left Click: Select/Drag | Right Click: Rotate | Mouse Wheel + Left/Right Click: Scale (Walls Only)", 5.f, CP_System_GetWindowHeight() - 120.f);
 	CP_Font_DrawText("Arrow Up/Down: Increase/Decrease Rotation Speed (Walls Only)", 5.f, CP_System_GetWindowHeight() - 100.f);
 	CP_Font_DrawText("Arrow Left/Right: Change Item / Terrain Type", 5.f, CP_System_GetWindowHeight() - 80.f);
-	CP_Font_DrawText("Press '=' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'4' to add Items", 5.f, CP_System_GetWindowHeight() - 60.f);
+	char a[100]; sprintf_s(a, 100, "Press 'W' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'%d' to add Items", ITEM_LAST - 1);
+	CP_Font_DrawText(a, 5.f, CP_System_GetWindowHeight() - 60.f);
 	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
 
 	if (editor_saving) {
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Settings_TextSize(50.f);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText("Level Saved!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
@@ -468,60 +501,62 @@ void render_editor_utils(void) {
 	if (current_editing == NULL)
 		return;
 
-	CP_Vector world_limits = get_world_limits();
-	CP_Vector world_ratios = get_world_ratios();
+	CP_Settings_ApplyMatrix(Get_Camera());
+
+	CP_Vector world_limits = Get_World_Limits();
+	CP_Vector world_ratios = Get_World_Ratios();
 
 	if (current_type == WALL) {
 		Wall* wall = (Wall*)current_editing;
-		CP_Vector screen_pos = world_to_screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		CP_Vector normal = world_to_screen(wall->pos.x + wall->normal.x, wall->pos.y + wall->normal.y, world_limits.x, world_limits.y);
-		CP_Vector right = world_to_screen(wall->pos.x + wall->right.x, wall->pos.y + wall->right.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Vector screen_pos = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
+		CP_Vector normal = World_To_Screen(wall->pos.x + wall->normal.x, wall->pos.y + wall->normal.y, world_limits.x, world_limits.y);
+		CP_Vector right = World_To_Screen(wall->pos.x + wall->right.x, wall->pos.y + wall->right.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, normal.x, normal.y);
 
-		CP_Settings_Fill(get_color(BLUE));
-		CP_Settings_Stroke(get_color(BLUE));
+		CP_Settings_Fill(Get_Color(COLOR_BLUE));
+		CP_Settings_Stroke(Get_Color(COLOR_BLUE));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, right.x, right.y);
 	}
 	else if (current_type == HOLE) {
 		Hole* hole = (Hole*)current_editing;
-		CP_Vector screen_pos = world_to_screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
+		CP_Vector screen_pos = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
 
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * hole->diameter * 0.5f);
 	}
 	else if (current_type == GOLF_BALL) {
 		GolfBall* ball = (GolfBall*)current_editing;
-		CP_Vector screen_pos = world_to_screen(ball->pos.x, ball->pos.y, world_limits.x, world_limits.y);
+		CP_Vector screen_pos = World_To_Screen(ball->pos.x, ball->pos.y, world_limits.x, world_limits.y);
 
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * ball->diameter * 0.5f);
 	}
 	else if (current_type == ITEM) {
 		Item* item = (Item*)current_editing;
-		CP_Vector screen_pos = world_to_screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
+		CP_Vector screen_pos = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
 
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, screen_pos.x, screen_pos.y - world_ratios.y * item->diameter * 0.5f);
 	} 
 	else if (current_type == TERRAIN) {
 		Terrain* terrain = (Terrain*)current_editing;
-		CP_Vector screen_pos = world_to_screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
+		CP_Vector screen_pos = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
 		terrain->angle_radians = CP_Math_Radians(terrain->angle);
 		CP_Vector terrain_normal = { cosf(-terrain->angle_radians), sinf(-terrain->angle_radians) };
 		CP_Vector terrain_right = { terrain_normal.y, -terrain_normal.x };
-		CP_Vector normal = world_to_screen(terrain->pos.x + terrain_normal.x, terrain->pos.y + terrain_normal.y, world_limits.x, world_limits.y);
-		CP_Vector right = world_to_screen(terrain->pos.x + terrain_right.x, terrain->pos.y + terrain_right.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(get_color(RED));
-		CP_Settings_Stroke(get_color(RED));
+		CP_Vector normal = World_To_Screen(terrain->pos.x + terrain_normal.x, terrain->pos.y + terrain_normal.y, world_limits.x, world_limits.y);
+		CP_Vector right = World_To_Screen(terrain->pos.x + terrain_right.x, terrain->pos.y + terrain_right.y, world_limits.x, world_limits.y);
+		CP_Settings_Fill(Get_Color(COLOR_RED));
+		CP_Settings_Stroke(Get_Color(COLOR_RED));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, normal.x, normal.y);
 
-		CP_Settings_Fill(get_color(BLUE));
-		CP_Settings_Stroke(get_color(BLUE));
+		CP_Settings_Fill(Get_Color(COLOR_BLUE));
+		CP_Settings_Stroke(Get_Color(COLOR_BLUE));
 		CP_Graphics_DrawLine(screen_pos.x, screen_pos.y, right.x, right.y);
 	}
 }
