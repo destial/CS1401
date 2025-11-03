@@ -808,8 +808,8 @@ void render_shadows(void) {
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		
 		CP_Graphics_DrawRectAdvanced(
-			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			c.y,
+			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+			c.y + 5.f,
 			wall->scale.x * world_ratios.x,
 			wall->scale.y * world_ratios.y,
 			wall->angle,
@@ -848,10 +848,10 @@ void render_shadows(void) {
 
 		if (image != NULL) {
 			CP_Image_DrawAdvanced(image,
-				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-				coords.y,
-				item->diameter * world_ratios.x * 1.25f * anim_mul,
-				item->diameter * world_ratios.x * 1.25f * anim_mul,
+				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.y + 5.f,
+				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul,
 				shadow.a,
 				item->angle);
 		}
@@ -866,10 +866,10 @@ void render_shadows(void) {
 
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 		CP_Graphics_DrawEllipse(
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate) - 5.f,
-			coords.y,
-			golf->diameter * world_ratios.x + 5.f,
-			golf->diameter * world_ratios.y);
+			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.y + 5.f,
+			golf->diameter * world_ratios.x,
+			golf->diameter * world_ratios.y + 5.f);
 	}
 }
 
