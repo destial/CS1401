@@ -36,6 +36,8 @@
 #define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
 #define BLUE_PORTAL_SPRITE_ASSET "Assets/Images/blue_portal_sprite.png"
 #define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
+#define FLAME_PARTICLE_SPRITE_ASSET "Assets/Images/flame_particle_sheet.png"
+#define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
 
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_cross.png"

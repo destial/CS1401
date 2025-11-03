@@ -1,5 +1,6 @@
 #include "cprocessing.h"
 #include "state_manager.h"
+#include "particle_manager.h"
 #ifdef _DEBUG
 #include <windows.h>
 #include <stdio.h>
@@ -113,9 +114,7 @@ int main(void)
 		freopen_s(&fp, "CONOUT$", "w", stdout);
 		freopen_s(&fp, "CONIN$", "r", stdin);
 		freopen_s(&fp, "CONERR$", "w", stderr);
-		int i;
 		run_data_tests();
-		i = 0;
 	}
 #endif
 	Set_Next_State(STATE_SPLASH);

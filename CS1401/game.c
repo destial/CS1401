@@ -17,6 +17,7 @@
 #include "asset_manager.h"
 #include "editor_manager.h"
 #include "state_manager.h"
+#include "particle_manager.h"
 #include "cprocessing.h"
 
 // initialize global variables here
@@ -50,6 +51,7 @@ float current_time;
 CP_Vector camera_pos;
 CP_Matrix camera_matrix;
 float camera_scale;
+ParticleType particle_type = PARTICLE_FLAME;
 
 // reset on level loading
 float translate = 1.f;
@@ -117,6 +119,9 @@ void game_init(void)
 	camera_pos = CP_Vector_Set(0, 0);
 	
 	scoring_init();
+	if (!resetting) {
+		Particles_Preload();
+	}
 	Game_SetResetting(false);
 }
 
@@ -134,7 +139,7 @@ void game_update(void)
 	// run timestep for every lost frame if < 60fps
 	while (frame_time > 0.f) {
 		dt = min(frame_time, 1 / 60.f);
-		Game_Update_Physics(dt);
+		Game_UpdatePhysics(dt);
 		frame_time -= dt;
 	}
 
@@ -147,7 +152,7 @@ void game_update(void)
 	CP_Settings_ResetMatrix();
 }
 
-void Game_Update_Physics(float dt)
+void Game_UpdatePhysics(float dt)
 {
 	// entry animation
 	if (translate != 0.f) {
@@ -185,7 +190,6 @@ void Game_Update_Physics(float dt)
 			CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
 		}
 	}
-
 	// update golf balls
 	win = true;
 	for (int i = 0; i < golf_balls.length; ++i) {
@@ -267,7 +271,7 @@ void Game_Update_Physics(float dt)
 				}
 				float friction = r - 1;
 				if (friction != 0) {
-					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1));
+					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
 				}
 
 				golf->pos = CP_Vector_Add(golf->pos, vel);
@@ -336,6 +340,9 @@ void Game_Update_Physics(float dt)
 			}
 		}
 
+		if (CP_System_GetFrameCount() % 2 == 0)
+			Particles_Spawn(particle_type, golf->pos, 1, golf->diameter, 1.f, 0.5f, 0.25f * golf->diameter, 0.75f * golf->diameter);
+
 		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
 			if (i == j || other == NULL || other->scored || other->destroyed)
@@ -389,6 +396,8 @@ void Game_Update_Physics(float dt)
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
 	}
 
+	Particles_Update(dt);
+
 	if (win && !has_won) {
 		has_won = true;
 		CP_Sound_Play(Asset_GetAudio(VICTORY_ASSET));
@@ -424,6 +433,9 @@ void Game_Render(void)
 
 	// render items
 	Game_RenderItems();
+
+	if (playable)
+		Particles_Render(Get_World_Limits(), Get_World_Ratios());
 
 	// render golf balls
 	Game_RenderGolfs();
@@ -876,8 +888,9 @@ void game_exit(void)
 	FREE_MEMORY(holes.arr);
 	reset_strokes();
 	if (Get_Next_State() == STATE_GAME && !resetting) {
-		Assets_Free();
+		Assets_Free();	
 	}
+	Particles_Free();
 	printf("Exit game\n");
 }
 
@@ -905,6 +918,10 @@ void Process_Inputs(void) {
 	// enable debug drawing (game data, hitboxes, collision line)
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		editor_mode = !editor_mode;
+	}
+
+	if (CP_Input_KeyTriggered(KEY_S)) {
+		particle_type = !particle_type;
 	}
 
 	// reset level
@@ -1788,7 +1805,7 @@ Terrain* Game_AddTerrain(CP_Vector pos, TerrainType type) {
 		if (t == NULL)
 			continue;
 
-		// if there's an unused ball in the array, we overwrite it
+		// if there's an unused terrain in the array, we overwrite it
 		if (t->destroyed) {
 			t->pos = pos;
 			t->scale.x = 1.f;
@@ -1801,7 +1818,7 @@ Terrain* Game_AddTerrain(CP_Vector pos, TerrainType type) {
 		}
 	}
 
-	// resize the array to accomodate a new hole in memory
+	// resize the array to accomodate a new terrain in memory
 	++terrains.length;
 	terrains.arr = terrains.arr ? gc_realloc(terrains.arr, sizeof(Terrain) * terrains.length) : gc_malloc(sizeof(Terrain) * terrains.length);
 	if (terrains.arr) {

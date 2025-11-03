@@ -93,7 +93,7 @@ void Process_Inputs(void);
 /*!
 @brief Game physics processing
 */
-void Game_Update_Physics(float dt);
+void Game_UpdatePhysics(float dt);
 
 /*!
 @brief Game scene rendering
