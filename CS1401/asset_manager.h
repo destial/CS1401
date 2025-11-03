@@ -22,6 +22,7 @@
 #define WALL_LEFT_ASSET "Assets/Images/wall_left.png"
 #define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
 #define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
+#define GOLF_BALL_GOLD_ASSET "Assets/Images/golf_ball_gold.png"
 #define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
 #define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
 #define BUTTON_YELLOW_ASSET "Assets/Images/button_yellow.png"

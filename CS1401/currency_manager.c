@@ -4,7 +4,7 @@
 
 #include "currency_manager.h"
 
-static int coins = 0;
+static int coins = 100;
 
 void add_coins(int amount) {
 	coins += amount;
