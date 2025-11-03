@@ -6,6 +6,7 @@
 #include "sprite_manager.h"
 #include "data_manager.h"
 #include "state_manager.h"
+#include "particle_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -608,6 +609,7 @@ void main_menu_exit(void)
 {
 	if (Get_Next_State() == STATE_MAINMENU) {
 		Assets_Free();
+		Particles_Free();
 	}
 	if (settings_map) {
 		printf("Saving user data!\n");

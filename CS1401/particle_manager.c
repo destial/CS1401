@@ -32,6 +32,8 @@ static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
 void Particles_Preload(void) {
 	particle_types[PARTICLE_FLAME] = create_particle_data(Asset_GetImage(FLAME_PARTICLE_SPRITE_ASSET), 2, 2);
 	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 5, 5);
+	particle_types[PARTICLE_RAINBOW_SPARKLE] = create_particle_data(Asset_GetImage(RAINBOW_SPARKLE_SPRITE_ASSET), 2, 2);
+	particle_types[PARTICLE_HALO] = create_particle_data(Asset_GetImage(HALO_SPRITE_ASSET), 8, 6);
 }
 
 void Particles_Spawn(ParticleType type, CP_Vector pos, int amount, float radius, float speed, float duration, float minSize, float maxSize) {
@@ -74,6 +76,10 @@ void Particles_Update(float dt) {
 
 		// get the particle data of this type
 		ParticleData* data = &particle_types[p->type];
+		if (data == NULL) {
+			Particles_Preload();
+			data = &particle_types[p->type];
+		}
 		int frameCount = data->rows * data->columns;
 		p->pos = CP_Vector_Add(p->pos, CP_Vector_Scale(p->vel, dt));
 

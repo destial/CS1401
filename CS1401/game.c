@@ -51,7 +51,6 @@ float current_time;
 CP_Vector camera_pos;
 CP_Matrix camera_matrix;
 float camera_scale;
-ParticleType particle_type = PARTICLE_FLAME;
 
 // reset on level loading
 float translate = 1.f;
@@ -119,9 +118,6 @@ void game_init(void)
 	camera_pos = CP_Vector_Set(0, 0);
 	
 	scoring_init();
-	if (!resetting) {
-		Particles_Preload();
-	}
 	Game_SetResetting(false);
 }
 
@@ -341,7 +337,7 @@ void Game_UpdatePhysics(float dt)
 		}
 
 		if (CP_System_GetFrameCount() % 2 == 0)
-			Particles_Spawn(particle_type, golf->pos, 1, golf->diameter, 1.f, 0.5f, 0.25f * golf->diameter, 0.75f * golf->diameter);
+			Particles_Spawn(PARTICLE_RAINBOW_SPARKLE, golf->pos, 1, golf->diameter, 1.f, 0.5f, 0.25f * golf->diameter, 0.75f * golf->diameter);
 
 		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
@@ -888,7 +884,8 @@ void game_exit(void)
 	FREE_MEMORY(holes.arr);
 	reset_strokes();
 	if (Get_Next_State() == STATE_GAME && !resetting) {
-		Assets_Free();	
+		Assets_Free();
+		Particles_Free();
 	}
 	Particles_Free();
 	printf("Exit game\n");
@@ -918,10 +915,6 @@ void Process_Inputs(void) {
 	// enable debug drawing (game data, hitboxes, collision line)
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		editor_mode = !editor_mode;
-	}
-
-	if (CP_Input_KeyTriggered(KEY_S)) {
-		particle_type = !particle_type;
 	}
 
 	// reset level

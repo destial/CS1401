@@ -9,6 +9,7 @@
 #include "end_state.h"
 #include "cprocessing.h"
 #include "asset_manager.h"
+#include "particle_manager.h"
 #include "utils.h"
 
 CP_Image end_logo;
@@ -48,5 +49,6 @@ void end_state_update(void) {
 
 void end_state_exit(void) {
 	Assets_Free();
+	Particles_Free();
 	printf("Exit end\n");
 }

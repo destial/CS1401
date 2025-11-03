@@ -11,6 +11,7 @@
 #include "state_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
+#include "particle_manager.h"
 
 CP_Image splash_logo;
 float splash_alpha = 0.f;
@@ -27,6 +28,9 @@ void splash_screen_init(void)
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
 	CP_System_SetWindowTitle("GGCode - GGGolf Game");
+
+	Particles_Preload();
+	Asset_Preload();
 }
 
 void splash_screen_update(void)
@@ -55,9 +59,7 @@ void splash_screen_exit(void)
 {
 	if (Get_Next_State() == STATE_SPLASH) {
 		Assets_Free();
-	}
-	else {
-		Asset_Preload();
+		Particles_Free();
 	}
 	printf("Exit splash\n");
 }
