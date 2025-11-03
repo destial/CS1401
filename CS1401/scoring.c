@@ -67,9 +67,7 @@ star scoregs[3];
 
 CP_Color white_colour;
 
-
-
-int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y)
+static int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y)
 {
 	//area_center_x, area_center_y is the center coord of rectangle
 	//Find the left most and right most side of rectangle
@@ -99,14 +97,14 @@ int IsAreaClicked(float area_center_x, float area_center_y, float area_width, fl
 
 }
 
-float GetPulseScale(float baseScale, float amplitude, float speed) {
+static float GetPulseScale(float baseScale, float amplitude, float speed) {
 	float t = CP_System_GetDt();
 	return baseScale + amplitude * sinf(t * speed);
 }
 
 void scoring_init() {
-	float win_width = CP_System_GetWindowWidth();
-	float win_height = CP_System_GetWindowHeight();
+	float win_width = (float) CP_System_GetWindowWidth();
+	float win_height = (float) CP_System_GetWindowHeight();
 	//Initialise exit buttons
 	scorebb[0].x = 0.2f * win_width;
 	scorebb[0].y = 0.75f * win_height;
@@ -169,20 +167,14 @@ void scoring_init() {
 	scoregs[2].height = 0.15f * win_height;
 	scoregs[2].img = get_image(YELLOW_STAR);
 
-	int stroke = 0;
-	int lvl_par = 4;
-	int bogey, birdie, eagle, d_bogey, t_bogey, albatross;
-	CP_Color white_colour = CP_Color_Create(255, 255, 255, 255);
 	//reset the clicks
 	clickbb_x = 0; 
 	clickbb_y = 0;
-
-	
 };
 
 void scoring_update(void) {
-	float win_width = CP_System_GetWindowWidth();
-	float win_height = CP_System_GetWindowHeight();
+	float win_width = (float)CP_System_GetWindowWidth();
+	float win_height = (float)CP_System_GetWindowHeight();
 
 	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT))
 	{
@@ -208,10 +200,7 @@ void scoring_update(void) {
 				Set_Current_Level(Get_Current_Level() + 1);
 				Set_Next_State(STATE_GAME);
 			}
-			
-
 		}
-
 	}
 
 	//Mouse hover
@@ -224,8 +213,8 @@ void scoring_update(void) {
 
 	if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, hover_x, hover_y) == 1) {
 		//button animation
-		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
-		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width, CP_System_GetDt() * 10.0f);
@@ -234,8 +223,8 @@ void scoring_update(void) {
 	//click on replay
 	if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, hover_x, hover_y) == 1) {
 		//button animation
-		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
-		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width, CP_System_GetDt() * 10.0f);
@@ -244,8 +233,8 @@ void scoring_update(void) {
 	//click on next level
 	if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, hover_x, hover_y) == 1) {
 		//button animation
-		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
-		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width, CP_System_GetDt() * 10.0f);
@@ -339,20 +328,15 @@ void score(void) {
 	CP_Font_DrawText(w, 800, 400);
 }
 
-
-
-
-
-
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
-	float win_width = CP_System_GetWindowWidth();
-	float win_height = CP_System_GetWindowHeight();
+	float win_width = (float)CP_System_GetWindowWidth();
+	float win_height = (float)CP_System_GetWindowHeight();
 	//Load all images
 	CP_Image sbb_bg = get_image(SCOREBOARD_BG);
 	CP_Image stroke_bg = get_image(STROKE_BG);
 	CP_Image sbb_h = get_image(SCOREBOARD_HEADER);
 
-	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Vector coords = World_To_Screen(sBoard.x, sBoard.y, world_width, world_height);
@@ -400,9 +384,9 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);
 
 	//Write scoreboard
-	CP_Image_DrawAdvanced(sbb_h, 0.5 * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight(), 0.15f * win_width, 0.1f * win_height, 255, 0.0f);
+	CP_Image_DrawAdvanced(sbb_h, 0.5f * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight(), 0.15f * win_width, 0.1f * win_height, 255, 0.0f);
 	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight());
+	CP_Font_DrawText(a, 0.5f * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight());
 
 	//Drawing the grey star points based on the points they get.
 	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 0.0f);
