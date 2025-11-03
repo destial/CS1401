@@ -1,5 +1,6 @@
 #include "cprocessing.h"
 #include "main_menu.h"
+#include "game.h"
 #include "utils.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
