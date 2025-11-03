@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include "splash_screen.h"
 #include "cprocessing.h"
-#include "main_menu.h"
+#include "state_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
 
@@ -47,12 +47,17 @@ void splash_screen_update(void)
 	CP_Image_Draw(splash_logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(splash_alpha * 255.f));
 
 	if (splash_revert && splash_alpha == 0.f) {
-		CP_Engine_SetNextGameStateForced(main_menu_init, main_menu_update, main_menu_exit);
+		Set_Next_State(STATE_MAINMENU);
 	}
 }
 
 void splash_screen_exit(void)
 {
-	free_assets();
+	if (Get_Next_State() == STATE_SPLASH) {
+		free_assets();
+	}
+	else {
+		preload_assets();
+	}
 	printf("Exit splash\n");
 }

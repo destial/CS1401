@@ -6,6 +6,7 @@
 */
 
 #include <stdlib.h>
+#include <stdio.h>
 #include "asset_manager.h"
 #include "utils.h"
 
@@ -27,6 +28,38 @@ typedef struct AssetStruct {
 } Asset;
 
 Asset* root_assets = NULL;
+
+void preload_assets(void) {
+    get_shadow_image(BOOST_ITEM_ASSET);
+    get_shadow_image(BIG_ITEM_ASSET);
+    get_shadow_image(SMALL_ITEM_ASSET);
+    get_shadow_image(REVERSE_ITEM_ASSET);
+}
+
+static CP_Image load_shadow(Asset* node, CP_Image image, const char* filepath) {
+    // load the image into memory and check if it exists
+    node->image = image;
+    if (node->image == NULL) {
+        node->key = NULL;
+        node->next = NULL;
+        node->type = 0;
+        return NULL;
+    }
+
+    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
+    // allocate the memory address for the key
+    node->key = gc_malloc(l);
+    if (node->key) {
+        strcpy_s(node->key, l, filepath);
+    }
+    else {
+        node->key = filepath;
+    }
+
+    node->type = IMAGE;
+    node->next = NULL;
+    return node->image;
+}
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -205,6 +238,45 @@ CP_Image get_image(const char* filepath) {
         }
     }
     return NULL;
+}
+
+CP_Image get_shadow_image(const char* filepath) {
+    char shadow_path[512];
+    sprintf_s(shadow_path, 512, "%s//shadow", filepath);
+    CP_Image root = get_image(shadow_path);
+    if (root != NULL)
+        return root;
+
+    root = get_image(filepath);
+    if (root == NULL)
+        return NULL;
+
+    int w = CP_Image_GetWidth(root);
+    int h = CP_Image_GetHeight(root);
+    int arraySize = w * h;
+
+    // Create the array using the image size and the size of a CP_Color
+    CP_Color* colorArray = gc_malloc(arraySize * sizeof(CP_Color));
+
+    CP_Image_GetPixelData(root, colorArray);
+    for (int i = 0; i < arraySize; ++i)
+    {
+        if (colorArray[i].a > 0)
+        {
+            colorArray[i] = Get_Color(COLOR_BLACK);
+        }
+    }
+
+    CP_Image shadowed_image = CP_Image_CreateFromData(w, h, (unsigned char*) colorArray);
+    gc_free(colorArray);
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (ptr->next == NULL) {
+            ptr->next = gc_malloc(sizeof(Asset));
+            load_shadow(ptr->next, shadowed_image, shadow_path);
+            break;
+        }
+    }
+    return shadowed_image;
 }
 
 CP_Font get_font(const char* filepath) {

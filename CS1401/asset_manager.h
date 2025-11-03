@@ -46,6 +46,7 @@
 #define YELLOW_STAR "Assets/Images/star.png"
 #define SCOREBOARD_BG "Assets/Images/button_rectangle_gradient.png"
 #define STROKE_BG "Assets/Images/button_rectangle_depth_line.png"
+#define SCOREBOARD_HEADER "Assets/Images/button_rectangle_line.png"
 
 // Sounds / Music / Audio
 
@@ -65,12 +66,16 @@
 
 typedef struct AssetStruct Asset;
 
+void preload_assets(void);
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the image at this file path
 @param filepath - The image filepath
 */
 CP_Image get_image(const char* filepath);
+
+CP_Image get_shadow_image(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

@@ -7,7 +7,7 @@
 
 #include "level_manager.h"
 #include "asset_manager.h"
-#include "end_state.h"
+#include "state_manager.h"
 #include "data_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -193,7 +193,7 @@ Level* get_level(int level) {
             }
         }
         else {
-            CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_end);
+            Set_Next_State(STATE_EXIT);
         }
 
         // we are done loading the level, we can now free up the map

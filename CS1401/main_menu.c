@@ -1,11 +1,11 @@
 #include "cprocessing.h"
 #include "main_menu.h"
-#include "utils.h"
 #include "game.h"
+#include "utils.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
 #include "data_manager.h"
-#include "end_state.h"
+#include "state_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -41,7 +41,7 @@ float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
 
 void exit_main_menu(void) {
-	CP_Engine_SetNextGameState(end_state_init, end_state_update, end_state_end);
+	Set_Next_State(STATE_EXIT);
 }
 
 void main_menu_init(void) 
@@ -739,7 +739,7 @@ void shop_button(void) {
 
 //changes the Main menu screen to the game start state
 void change_screen(void) {
-	CP_Engine_SetNextGameState(game_init, game_update, game_exit);
+	Set_Next_State(STATE_GAME);
 }
 
 void change_resolution(num) {
@@ -768,7 +768,9 @@ char get_shadow(void) {
 //frees the image when exiting the application
 void main_menu_exit(void) 
 {
-	free_assets();
+	if (Get_Next_State() == STATE_MAINMENU) {
+		free_assets();
+	}
 	if (settings_map) {
 		printf("Saving user data!\n");
 		edit_entry_float(settings_map, "sfx_volume", sfx_limit);
