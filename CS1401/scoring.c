@@ -98,7 +98,7 @@ void scoring_init() {
 	float win_height = CP_System_GetWindowHeight();
 	//Initialise exit buttons
 	scorebb[0].x = 0.2f * win_width;
-	scorebb[0].y = 0.7f * win_height;
+	scorebb[0].y = 0.75f * win_height;
 	scorebb[0].width = 0.2f * win_width;
 	scorebb[0].height = 0.1f * win_height;
 	scorebb[0].button_img = get_image(BUTTON_GREY_ASSET);
@@ -106,7 +106,7 @@ void scoring_init() {
 
 	//Initialise Replay buttons
 	scorebb[1].x = 0.5f * win_width;
-	scorebb[1].y = 0.7f * win_height;
+	scorebb[1].y = 0.75f * win_height;
 	scorebb[1].width = 0.2f * win_width;
 	scorebb[1].height = 0.1f * win_height;
 	scorebb[1].button_img = get_image(BUTTON_YELLOW_ASSET);
@@ -114,18 +114,30 @@ void scoring_init() {
 
 	//Initialise Next Lvl buttons
 	scorebb[2].x = 0.8f * win_width;
-	scorebb[2].y = 0.7f * win_height;
+	scorebb[2].y = 0.75f * win_height;
 	scorebb[2].width = 0.2f * win_width;
 	scorebb[2].height = 0.1f * win_height;
 	scorebb[2].button_img = get_image(BUTTON_BLUE_ASSET);
 	scorebb[2].button_icon = get_image(DARK_PLAY_BUTTON);
 
 	//Initialise 3 stars
-	scoress[0].x = 0.5f * win_width;
-	scoress[0].y = 0.2f * win_height;
-	scoress[0].width = 0.1f * win_width;
-	scoress[0].height = 0.1f * win_height;
+	scoress[0].x = 0.3f * win_width;
+	scoress[0].y = 0.25f * win_height;
+	scoress[0].width = 0.15f * win_width;
+	scoress[0].height = 0.15f * win_height;
 	scoress[0].img = get_image(GREY_STAR);
+
+	scoress[1].x = 0.5f * win_width;
+	scoress[1].y = 0.25f * win_height;
+	scoress[1].width = 0.15f * win_width;
+	scoress[1].height = 0.15f * win_height;
+	scoress[1].img = get_image(GREY_STAR);
+
+	scoress[2].x = 0.7f * win_width;
+	scoress[2].y = 0.25f * win_height;
+	scoress[2].width = 0.15f * win_width;
+	scoress[2].height = 0.15f * win_height;
+	scoress[2].img = get_image(GREY_STAR);
 
 	int stroke = 0;
 	int lvl_par = 4;
@@ -250,8 +262,11 @@ void scoreboard_buttons(void) {
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	float win_width = CP_System_GetWindowWidth();
 	float win_height = CP_System_GetWindowHeight();
+	//Load all images
 	CP_Image sbb_bg = get_image(SCOREBOARD_BG);
 	CP_Image stroke_bg = get_image(STROKE_BG);
+	CP_Image sbb_h = get_image(SCOREBOARD_HEADER);
+
 	CP_Settings_Fill(CP_Color_Create(255, 255, 255, 255));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -270,14 +285,10 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	char a[100];
 	//Write strokes
 	sprintf_s(b, 50, "Strokes: %d", stroke);
-	CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y, 300.0f , 50.0f, 255, 0.0f);
+	CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y - 20.0f, 0.2f * win_width , 0.2f * win_height, 255, 0.0f);
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);
-
-	//Write scoreboard
-	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.3f * CP_System_GetWindowHeight());
 
 	CP_Settings_Fill(get_color(WHITE));
 
@@ -304,8 +315,15 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(get_color(BLACK));
 	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);
 
+	//Write scoreboard
+	CP_Image_DrawAdvanced(sbb_h, 0.5 * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight(), 0.15f * win_width, 0.1f * win_height, 255, 0.0f);
+	sprintf_s(a, 50, "SCOREBOARD");
+	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.09f * CP_System_GetWindowHeight());
+
 	//Drawing the grey star points based on the points they get.
 	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 0.0f);
+	CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
+	CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 0.0f);
 
 
 }
