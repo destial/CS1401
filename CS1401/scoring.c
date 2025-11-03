@@ -7,6 +7,7 @@
 #include "asset_manager.h"
 #include "sprite_manager.h"
 #include "state_manager.h"
+#include <math.h>
 //void scoring_update();
 //void scoring_exit();
 /*!
@@ -97,6 +98,12 @@ int IsAreaClicked(float area_center_x, float area_center_y, float area_width, fl
 	}
 
 }
+
+float GetPulseScale(float baseScale, float amplitude, float speed) {
+	float t = CP_System_GetDt();
+	return baseScale + amplitude * sinf(t * speed);
+}
+
 void scoring_init() {
 	float win_width = CP_System_GetWindowWidth();
 	float win_height = CP_System_GetWindowHeight();
@@ -218,20 +225,49 @@ void scoring_update(void) {
 	if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, hover_x, hover_y) == 1) {
 		//button animation
 		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width, CP_System_GetDt() * 10.0f);
+		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height, CP_System_GetDt() * 10.0f);
 	}
 	//click on replay
 	if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, hover_x, hover_y) == 1) {
 		//button animation
+		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
+	}
+	else {
+		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width, CP_System_GetDt() * 10.0f);
+		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height, CP_System_GetDt() * 10.0f);
 	}
 	//click on next level
 	if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, hover_x, hover_y) == 1) {
 		//button animation
-
+		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
+		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height * 1.2, CP_System_GetDt() * 10.0f);
+	}
+	else {
+		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width, CP_System_GetDt() * 10.0f);
+		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height, CP_System_GetDt() * 10.0f);
 	}
 
+	//Moving stars
+	float gs_width, gs_height;
+
+	gs_width = 0.15f * win_width;
+	gs_height = 0.15f * win_height;
+
+	float star_mul = (sinf(5.f * CP_System_GetSeconds()) / 20.f) + 1.f;
+
+	scoregs[0].width = gs_width * star_mul;
+	scoregs[0].height = gs_height * star_mul;
+
+	scoregs[1].width = gs_width * star_mul;
+	scoregs[1].height = gs_height * star_mul;
+
+	scoregs[2].width = gs_width * star_mul;
+	scoregs[2].height = gs_height * star_mul;
 
 }
 
@@ -304,16 +340,7 @@ void score(void) {
 }
 
 
-//Set the buttons to go back to main menu, replay level, next level
-//void scoreboard_buttons(void) {
-//	//defining the individual buttons
-//	sbButton[0].button_image = CP_Image_Load("Assets/Images/Play Button.png");
-//	sbButton[0].scale.x = 6.0f;
-//	sbButton[0].scale.y = 2.0f;
-//	sbButton[0].pos.x = 800;
-//	sbButton[0].pos.y = 500;
-//	//sbButton[0].func = change_screen;
-//}
+
 
 
 
@@ -343,7 +370,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	char a[100];
 	//Write strokes
 	sprintf_s(b, 50, "Strokes: %d", stroke);
-	CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y - 20.0f, 0.2f * win_width , 0.2f * win_height, 255, 0.0f);
+	CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y - 20.0f, 0.3f * win_width , 0.2f * win_height, 255, 0.0f);
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);
@@ -360,7 +387,6 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 
 	//Draw exit buttons
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
-	/*CP_Graphics_DrawRect(exit.x,exit.y, exit.width ,exit.height);*/
 	CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
 	sprintf_s(a, 50, "EXIT");
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
@@ -382,6 +408,9 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 0.0f);
 	CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
 	CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 0.0f);
+
+
+	//Drawing Yellow stars
 
 	if (get_strokes() > get_lvl_par()) {
 		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 0.0f);
