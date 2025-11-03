@@ -33,10 +33,10 @@ int window_size_H, window_size_W;
 int resolution_number = 0;
 
 Button buttons[20];
-CP_Image background, setting_background;
+CP_Image background, setting_background, shop_background;
 CP_Font button_font;
 
-char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0;
+char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0; is_shop_clicked = 0;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
 
@@ -179,8 +179,32 @@ void main_menu_init(void)
 	buttons[13].text = "Shadow";
 	buttons[13].func = is_shadow;
 
+
+	//Shop Button
+	buttons[14].button_image = get_image(BUTTON_BLUE_ASSET);
+	buttons[14].pos.x = world_width1 * 0.7f;
+	buttons[14].pos.y = world_height1 * 0.35f;
+	buttons[14].start_pos.x = buttons[14].pos.x;
+	buttons[14].func = shop_button;
+	buttons[14].text = "SHOP";
+
+	//Shop Back Button
+	buttons[15].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[15].pos.x = world_width1 * 0.25f;
+	buttons[15].pos.y = world_height1 * 0.7f;
+	buttons[15].start_pos.x = buttons[12].pos.x;
+	buttons[15].text = "X";
+
+	buttons[16].button_image = is_shadowed ? get_image(LEVEL_BUTTON_ASSET) : get_image(BUTTON_GREY_ASSET);
+	buttons[16].pos.x = world_width1 * 0.75f;
+	buttons[16].pos.y = world_height1 * 0.7f;
+	buttons[16].start_pos.x = buttons[13].pos.x;
+	buttons[16].text = "Shadow";
+	buttons[16].func = is_shadow;
+
 	background = get_image(GAME_BACKGROUND_ASSET);
 	setting_background = get_image(SETTING_BACKGROUND_ASSET);
+	shop_background = get_image(SETTING_BACKGROUND_ASSET);
 
 	//setting the button anchor to the center of the world
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -223,7 +247,15 @@ void main_menu_update(void)
 		volume_bar(mouse_x, mouse_y);
 	}
 
+	//SHOP PAGE
+	if (is_shop_clicked) {
+		//drawing shop background
+		CP_Image_Draw(shop_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		//shop items would go here
+	}
+
 	settings_button(mouse_x, mouse_y);
+	shops_button(mouse_x, mouse_y);
 	back_buttons(mouse_x, mouse_y);
 }
 
@@ -239,7 +271,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 
 		//Drawing the button
 		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
-
+		
 		//Drawing Text
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
@@ -272,6 +304,46 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		else {
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].start_pos.x, CP_System_GetDt() * 4);
 		}
+	}
+
+	//defining the position of the button
+	CP_Vector coords = World_To_Screen(buttons[14].pos.x, buttons[14].pos.y, world_width1, world_height1);
+	CP_Vector local_scale = {
+		buttons[14].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[14].scale.y * CP_System_GetWindowHeight() / world_height1
+	};
+	CP_Image_DrawAdvanced(buttons[14].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+
+	//Drawing Text
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(buttons[14].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText(buttons[14].text, coords.x, coords.y);
+
+	if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5 && !is_overlayed)
+	{
+		buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 9.0f, CP_System_GetDt() * 5);
+		buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 4.0f, CP_System_GetDt() * 5);
+		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 2.0f, CP_System_GetDt() * 5);
+
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+		{
+			if (buttons[14].func) {
+				buttons[14].func();
+			}
+		}
+	}
+	else {
+		buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 7.0f, CP_System_GetDt() * 5);
+		buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 1.3f, CP_System_GetDt() * 5);
+	}
+
+	if (is_clicked == 1) {
+		buttons[14].pos.x = CP_Math_LerpFloat(buttons[14].pos.x, -15.0f, CP_System_GetDt() * 4);
+	}
+	else {
+		buttons[14].pos.x = CP_Math_LerpFloat(buttons[14].pos.x, buttons[14].start_pos.x, CP_System_GetDt() * 4);
 	}
 }
 
@@ -480,6 +552,52 @@ void settings_button(float mouse_x, float mouse_y) {
 	}
 }
 
+void shops_button(float mouse_x, float mouse_y) {
+	for (int i = 15; i < 17; i++) {
+		//defining the position of the button
+		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
+		CP_Vector local_scale = {
+			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
+			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
+		};
+
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+		//Drawing the button
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
+
+		//telling what the button should do
+		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
+		{
+			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
+			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+			{
+				change_resolution(i - 9);
+			}
+		}
+		else {
+			if (is_setting_clicked) {
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
+			}
+			else {
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.0f, CP_System_GetDt() * 5);
+			}
+
+		}
+	}
+}
+
 void back_buttons(float mouse_x, float mouse_y) {
 	//BACK BUTTON FOR LEVEL SELECT
 	CP_Vector coords_back_level = World_To_Screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
@@ -561,7 +679,49 @@ void back_buttons(float mouse_x, float mouse_y) {
 		buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 0.0f, CP_System_GetDt() * 5);
 		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 0.0f, CP_System_GetDt() * 5);
 	}
+
+	//BACK BUTTON FOR SHOP PAGE
+	CP_Vector coords_back_setting = World_To_Screen(buttons[12].pos.x, buttons[12].pos.y, world_width1, world_height1);
+	CP_Vector local_scale_setting = {
+		buttons[16].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[16].scale.y * CP_System_GetWindowHeight() / world_height1
+	};
+
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	//Drawing the button
+	CP_Image_DrawAdvanced(buttons[16].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
+
+
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(buttons[16].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText(buttons[16].text, coords_back_setting.x, coords_back_setting.y);
+
+	//telling what the button should do
+	if (mouse_x >= coords_back_setting.x - local_scale_setting.x * .5f && mouse_y >= coords_back_setting.y - local_scale_setting.y * .5f && mouse_x <= coords_back_setting.x + local_scale_setting.x * .5 && mouse_y <= coords_back_setting.y + local_scale_setting.y * .5)
+	{
+		if (is_shop_clicked == 1) {
+			buttons[16].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 3.0f, CP_System_GetDt() * 5);
+			buttons[16].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[16].text_size = CP_Math_LerpFloat(buttons[12].text_size, 2.0f, CP_System_GetDt() * 5);
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
+			{
+				shop_button();
+			}
+		}
+	}
+	if (is_shop_clicked) {
+		buttons[16].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 2.0f, CP_System_GetDt() * 5);
+		buttons[16].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 2.0f, CP_System_GetDt() * 5);
+		buttons[16].text_size = CP_Math_LerpFloat(buttons[12].text_size, 1.3f, CP_System_GetDt() * 5);
+	}
+	else {
+		buttons[16].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 0.0f, CP_System_GetDt() * 5);
+		buttons[16].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 0.0f, CP_System_GetDt() * 5);
+		buttons[16].text_size = CP_Math_LerpFloat(buttons[12].text_size, 0.0f, CP_System_GetDt() * 5);
+	}
 }
+
 
 void play_button(void) {
 	is_clicked = !is_clicked;
@@ -569,6 +729,11 @@ void play_button(void) {
 
 void setting_button(void) {
 	is_setting_clicked = !is_setting_clicked;
+	is_overlayed = !is_overlayed;
+}
+
+void shop_button(void) {
+	is_shop_clicked = !is_shop_clicked;
 	is_overlayed = !is_overlayed;
 }
 
