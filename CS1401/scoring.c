@@ -37,6 +37,7 @@ typedef struct Button {
 Button sbButton[10];
 
 float clickbb_x, clickbb_y;
+float hover_x, hover_y;
 
 typedef struct Buttonbb {
 	CP_Image button_img;
@@ -59,6 +60,7 @@ typedef struct Star {
 
 bb scorebb[3];
 star scoress[3];
+star scoregs[3];
 
 CP_Color white_colour;
 
@@ -139,6 +141,25 @@ void scoring_init() {
 	scoress[2].height = 0.15f * win_height;
 	scoress[2].img = get_image(GREY_STAR);
 
+	//Initialise 3 Gold stars YELLOW_STAR
+	scoregs[0].x = 0.3f * win_width;
+	scoregs[0].y = 0.25f * win_height;
+	scoregs[0].width = 0.15f * win_width;
+	scoregs[0].height = 0.15f * win_height;
+	scoregs[0].img = get_image(YELLOW_STAR);
+
+	scoregs[1].x = 0.5f * win_width;
+	scoregs[1].y = 0.25f * win_height;
+	scoregs[1].width = 0.15f * win_width;
+	scoregs[1].height = 0.15f * win_height;
+	scoregs[1].img = get_image(YELLOW_STAR);
+
+	scoregs[2].x = 0.7f * win_width;
+	scoregs[2].y = 0.25f * win_height;
+	scoregs[2].width = 0.15f * win_width;
+	scoregs[2].height = 0.15f * win_height;
+	scoregs[2].img = get_image(YELLOW_STAR);
+
 	int stroke = 0;
 	int lvl_par = 4;
 	int bogey, birdie, eagle, d_bogey, t_bogey, albatross;
@@ -149,17 +170,6 @@ void scoring_init() {
 
 	
 };
-
-
-void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation) {
-	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Vector coords = World_To_Screen(hole.x, hole.y, world_width, world_height);
-	CP_Graphics_DrawCircle(
-		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth() * 1.f, animation),
-		coords.y, 
-		diameter * CP_System_GetWindowWidth() / world_width);
-}
 
 void scoring_update(void) {
 	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT))
@@ -186,6 +196,23 @@ void scoring_update(void) {
 
 	}
 
+	//Mouse hover
+	hover_x = CP_Input_GetMouseX();
+
+	//Button Animation
+
+
+}
+
+
+void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation) {
+	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	CP_Vector coords = World_To_Screen(hole.x, hole.y, world_width, world_height);
+	CP_Graphics_DrawCircle(
+		CP_Math_LerpFloat(coords.x, CP_System_GetWindowWidth() * 1.f, animation),
+		coords.y, 
+		diameter * CP_System_GetWindowWidth() / world_width);
 }
 
 void scoreboard_exit(void) {
@@ -247,15 +274,15 @@ void score(void) {
 
 
 //Set the buttons to go back to main menu, replay level, next level
-void scoreboard_buttons(void) {
-	//defining the individual buttons
-	sbButton[0].button_image = CP_Image_Load("Assets/Images/Play Button.png");
-	sbButton[0].scale.x = 6.0f;
-	sbButton[0].scale.y = 2.0f;
-	sbButton[0].pos.x = 800;
-	sbButton[0].pos.y = 500;
-	//sbButton[0].func = change_screen;
-}
+//void scoreboard_buttons(void) {
+//	//defining the individual buttons
+//	sbButton[0].button_image = CP_Image_Load("Assets/Images/Play Button.png");
+//	sbButton[0].scale.x = 6.0f;
+//	sbButton[0].scale.y = 2.0f;
+//	sbButton[0].pos.x = 800;
+//	sbButton[0].pos.y = 500;
+//	//sbButton[0].func = change_screen;
+//}
 
 
 
@@ -289,10 +316,6 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_TextAlignment(coords.x, coords.y);
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);
-
-	//Write scoreboard
-	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, 0.5 * CP_System_GetWindowWidth(), 0.3f * CP_System_GetWindowHeight());
 
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
@@ -329,8 +352,22 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
 	CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 0.0f);
 
+	if (get_strokes() > get_lvl_par()) {
+		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 0.0f);
+	}
+	else if (get_strokes() == get_lvl_par()) {
+		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
+	}
+	else if (get_strokes() < get_lvl_par()) {
+		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scoregs[2].img, scoregs[2].x, scoregs[2].y, scoregs[2].width, scoregs[2].height, 255, 0.0f);
+	}
 
 }
+
+
 
 
 void set_lvl_par(int par) {
