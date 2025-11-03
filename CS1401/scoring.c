@@ -46,6 +46,8 @@ typedef struct Buttonbb {
 	float y;
 	float width;
 	float height;
+	float scale;
+
 } bb;
 
 typedef struct Star {
@@ -172,6 +174,9 @@ void scoring_init() {
 };
 
 void scoring_update(void) {
+	float win_width = CP_System_GetWindowWidth();
+	float win_height = CP_System_GetWindowHeight();
+
 	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT))
 	{
 		clickbb_x = CP_Input_GetMouseX();
@@ -189,8 +194,13 @@ void scoring_update(void) {
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
-			Set_Current_Level(Get_Current_Level() + 1);
-			CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+			if ((Get_Current_Level() + 1) == 6) {
+				CP_Engine_SetNextGameState(main_menu_init, main_menu_update, main_menu_exit);
+			}
+			else {
+				Set_Current_Level(Get_Current_Level() + 1);
+				CP_Engine_SetNextGameStateForced(game_init, game_update, game_exit);
+			}
 
 		}
 
@@ -198,8 +208,28 @@ void scoring_update(void) {
 
 	//Mouse hover
 	hover_x = CP_Input_GetMouseX();
-
+	hover_y = CP_Input_GetMouseY();
 	//Button Animation
+	float sbb_width, sbb_height;
+	sbb_width = 0.2f * win_width;
+	sbb_height = 0.1f * win_height;
+
+	if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, hover_x, hover_y) == 1) {
+		//button animation
+		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2, CP_System_GetDt() * 10.0f);
+	}
+	else {
+		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width, CP_System_GetDt() * 10.0f);
+	}
+	//click on replay
+	if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, hover_x, hover_y) == 1) {
+		//button animation
+	}
+	//click on next level
+	if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, hover_x, hover_y) == 1) {
+		//button animation
+
+	}
 
 
 }
