@@ -46,6 +46,7 @@ float resistance = 1.25f;
 float power = 1.f;
 char current_level = 1;
 float current_time;
+ParticleType particle_type = PARTICLE_FLAME;
 
 // camera
 CP_Vector camera_pos;
@@ -337,9 +338,14 @@ void Game_UpdatePhysics(float dt)
 			}
 		}
 
-		if (CP_System_GetFrameCount() % 2 == 0)
-			Particles_Spawn(PARTICLE_RAINBOW_SPARKLE, golf->pos, 1, golf->diameter, 1.f, 0.5f, 0.25f * golf->diameter, 0.75f * golf->diameter);
-
+		if (CP_System_GetFrameCount() % 2 == 0) {
+			int amount = 1;
+			float radius = particle_type == PARTICLE_STAR ? golf->diameter * 0.1f : golf->diameter * 0.5f;
+			float speed = particle_type == PARTICLE_STAR ? 0.f : 1.f;
+			float maxSize = particle_type == PARTICLE_STAR ? 0.25f * golf->diameter : 0.75f * golf->diameter;
+			float duration = particle_type == PARTICLE_STAR ? 1.f : 0.5f;
+			Particles_Spawn(particle_type, golf->pos, amount, radius, speed, duration, 0.25f * golf->diameter, maxSize);
+		}
 		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
 			if (i == j || other == NULL || other->scored || other->destroyed)
@@ -916,6 +922,12 @@ void Process_Inputs(void) {
 	// enable debug drawing (game data, hitboxes, collision line)
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		editor_mode = !editor_mode;
+	}
+
+	if (CP_Input_KeyTriggered(KEY_F)) {
+		if (++particle_type == PARTICLE_LAST) {
+			particle_type = 0;
+		}
 	}
 
 	// reset level

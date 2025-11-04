@@ -49,7 +49,7 @@ bool Check_On_Terrain(Terrain* terrain) {
 
 bool Check_On_Circle(CP_Vector pos, float diameter) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
-	return CP_Vector_Distance(pos, mouse_world) <= diameter;
+	return CP_Vector_Distance(pos, mouse_world) <= diameter * 0.5f;
 }
 
 void Editor_Update_Walls(ObjectArray* walls) {

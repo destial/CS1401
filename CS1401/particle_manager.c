@@ -18,10 +18,9 @@ static void set_particle(Particle* p, ParticleType type, CP_Vector pos, float ra
 	p->current_column = 0;
 	p->current_row = 0;
 	p->elapsed_dur = 0.f;
-	p->pos = CP_Vector_Set(CP_Random_RangeFloat(-0.5f, 0.5f) * radius, CP_Random_RangeFloat(-0.5f, 0.5f) * radius);
-	p->pos = CP_Vector_Add(p->pos, pos);
-	p->vel = CP_Vector_Set(CP_Random_RangeFloat(-0.5f, 0.5f), CP_Random_RangeFloat(-0.5f, 0.5f));
-	p->vel = CP_Vector_Scale(CP_Vector_Normalize(p->vel), speed);
+	p->vel = CP_Vector_Set(CP_Random_RangeFloat(-0.5f, 0.5f) * radius, CP_Random_RangeFloat(-0.5f, 0.5f) * radius);
+	p->pos = CP_Vector_Add(p->vel, pos);
+	p->vel = speed == 0.f ? CP_Vector_Zero() : CP_Vector_Scale(CP_Vector_Normalize(p->vel), speed);
 	p->scale = CP_Random_RangeFloat(minSize, maxSize);
 }
 
@@ -34,6 +33,7 @@ void Particles_Preload(void) {
 	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 5, 5);
 	particle_types[PARTICLE_RAINBOW_SPARKLE] = create_particle_data(Asset_GetImage(RAINBOW_SPARKLE_SPRITE_ASSET), 2, 2);
 	particle_types[PARTICLE_HALO] = create_particle_data(Asset_GetImage(HALO_SPRITE_ASSET), 8, 6);
+	particle_types[PARTICLE_STAR] = create_particle_data(Asset_GetImage(YELLOW_STAR), 1, 1);
 }
 
 void Particles_Spawn(ParticleType type, CP_Vector pos, int amount, float radius, float speed, float duration, float minSize, float maxSize) {
