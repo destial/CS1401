@@ -7,6 +7,7 @@
 #include "data_manager.h"
 #include "state_manager.h"
 #include "particle_manager.h"
+#include "level_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -19,14 +20,14 @@
 */
 
 //setting button
-typedef struct Button {
+typedef struct ButtonStr {
 	CP_Vector pos;
 	CP_Vector ending_pos, start_pos;
 	CP_Vector scale;
 	CP_Image button_image;
 	char* text;
-	float text_size;
 	FunctionPtr func;
+	float text_size;
 } Button;
 
 float world_width1 = 48, world_height1 = 27;
@@ -280,7 +281,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 
 void level_select_button(float mouse_x, float mouse_y) {
 	//LEVEL SELECT BUTTONS
-	for (int i = 3; i < 8; i++) {
+	for (int i = 3; i < 3 + TOTAL_LEVELS; i++) {
 		//defining the position of the button
 		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {

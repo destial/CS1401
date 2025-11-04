@@ -15,24 +15,15 @@
 #define TOTAL_LEVELS 5
 
 typedef struct LevelStruct {
-    float world_width, world_height, middle_wall_angle;
-
-    int golf_balls_size;
+    float world_width, world_height;
     float* golf_balls; // [0 = x, 1 = y, 2 = diameter]
-
-    int holes_size;
     float* holes; // [0 = x, 1 = y, 2 = diameter]
-    
-    int walls_size;
     float* walls; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = rotation rate]
-
-    int items_size;
     float* items; // [0 = x, 1 = y, 2 = diameter, 3 = angle, 4 = type]
-
-    int terrains_size;
     float* terrains; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = type]
-
-    int par;
+    int golf_balls_size, holes_size, walls_size, items_size, terrains_size;
+    float middle_wall_angle;
+    char par;
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)

@@ -30,19 +30,17 @@ typedef enum TerrainTypeEnum {
 
 typedef struct WallStruct {
 	CP_Vector pos, scale, normal, right; // wall position, scale, normal, right (world space)
-	CP_Color color; // wall color if no base image
+	CP_Vector _collision_point, _wall_to_ball; // debug only values
 	CP_Image image; // wall image
-	float angle, angle_radians, rotation_rate; // wall rotation angle & rate
-	bool destroyed; // if this wall is disabled (for object pooling)
-
-	// debug only values
-	CP_Vector _collision_point, _wall_to_ball;
+	CP_Color color; // wall color if no base image
+	float angle, rotation_rate; // wall rotation angle & rate
+	bool destroyed : 2; // if this wall is disabled (for object pooling)
 } Wall;
 
 typedef struct GolfBallStruct {
 	CP_Vector pos, vel, prev_pos, stroke_pos; // golfball position, velocity, prev pos & last stroke pos (world space)
 	float diameter, angle; // golfball diameter (world space) & rotation angle
-	bool dragging, halt, scored, scoring, destroyed, teleported;
+	bool dragging : 1, halt : 1, scored : 1, scoring : 1, destroyed : 2, teleported : 2;
 	// dragging  player currently striking
 	// halt = if one ball is currently striking, halt the other ball from moving
 	// scored = if this ball has scored
@@ -54,7 +52,7 @@ typedef struct ItemStruct {
 	CP_Vector pos; // item position (world space)
 	float diameter, angle; // item diameter (world space) & rotation angle
 	ItemType type; // item type
-	bool collected, destroyed; // if item has collected or destroyed (for object pooling)
+	bool collected : 2, destroyed : 2; // if item has collected or destroyed (for object pooling)
 } Item;
 
 typedef struct HoleStruct {

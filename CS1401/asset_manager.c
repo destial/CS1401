@@ -18,13 +18,16 @@ typedef enum AssetType {
 } AssetType;
 
 typedef struct AssetStruct { 
-    AssetType type;
     char* key;
-    CP_Image image;
-    CP_Font font;
-    CP_Sound audio;
-    SpriteSheet* sprite;
+    union {
+        CP_Image image;
+        CP_Font font;
+        CP_Sound audio;
+        SpriteSheet* sprite;
+        void* value;
+    };
     Asset* next;
+    AssetType type;
 } Asset;
 
 Asset* root_assets = NULL;
@@ -256,7 +259,7 @@ CP_Image Asset_Get_ShadowImage(const char* filepath) {
     int arraySize = w * h;
 
     // Create the array using the image size and the size of a CP_Color
-    CP_Color* colorArray = gc_malloc(arraySize * sizeof(CP_Color));
+    CP_Color* colorArray = gc_calloc(arraySize, sizeof(CP_Color));
 
     CP_Image_GetPixelData(root, colorArray);
     for (int i = 0; i < arraySize; ++i) {

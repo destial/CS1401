@@ -615,7 +615,7 @@ void Game_RenderWalls(void) {
 			char n[100]; sprintf_s(n, 100, "Normal: (%.2f, %.2f) (Deg: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
 			CP_Font_DrawText(n, c.x, c.y + 100);
 
-			char r[100]; sprintf_s(r, 100, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, wall->angle_radians);
+			char r[100]; sprintf_s(r, 100, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, CP_Math_Radians(wall->angle));
 			CP_Font_DrawText(r, c.x, c.y + 120);
 
 			char rr[100]; sprintf_s(rr, 100, "Rot Rate: %.2f", wall->rotation_rate);
@@ -623,14 +623,14 @@ void Game_RenderWalls(void) {
 
 			if (!editor_mode) {
 				// draw the closest point after rotating it back to original
-				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -wall->angle_radians);
+				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -CP_Math_Radians(wall->angle));
 				CP_Vector c = World_To_Screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
 				CP_Settings_Fill(Get_Color(COLOR_RED));
 				CP_Settings_Stroke(Get_Color(COLOR_RED));
 				CP_Graphics_DrawPoint(c.x, c.y);
 
 				// draw the collision normal
-				CP_Vector col_normal = CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians);
+				CP_Vector col_normal = CP_Vector_Rotate(wall->_wall_to_ball, -CP_Math_Radians(wall->angle));
 				CP_Vector coords = World_To_Screen(wall->pos.x + closest_point.x + col_normal.x, wall->pos.y + closest_point.y + col_normal.y, world_limits.x, world_limits.y);
 				CP_Settings_Fill(Get_Color(COLOR_PURPLE));
 				CP_Settings_Stroke(Get_Color(COLOR_PURPLE));
@@ -992,9 +992,8 @@ void Game_UpdateWall(Wall* wall, float dt) {
 	}
 
 	// update wall normal based on wall angle rotation
-	wall->angle_radians = CP_Math_Radians(wall->angle);
-	wall->normal.x = cosf(-wall->angle_radians);
-	wall->normal.y = sinf(-wall->angle_radians);
+	wall->normal.x = cosf(-CP_Math_Radians(wall->angle));
+	wall->normal.y = sinf(-CP_Math_Radians(wall->angle));
 
 	wall->right.x = wall->normal.y;
 	wall->right.y = -wall->normal.x;
@@ -1009,7 +1008,7 @@ bool Check_Wall_Collision(Wall* wall, GolfBall* ball) {
 	CP_Vector r = CP_Vector_Subtract(ball->pos, wall->pos);
 
 	// rotate local position back to axis
-	CP_Vector local_golf_pos = CP_Vector_Rotate(r, wall->angle_radians);
+	CP_Vector local_golf_pos = CP_Vector_Rotate(r, CP_Math_Radians(wall->angle));
 
 	// AABB collision testing
 	CP_Vector closest_point = { local_golf_pos.x, local_golf_pos.y };
@@ -1052,7 +1051,7 @@ bool Check_Wall_Collision(Wall* wall, GolfBall* ball) {
 		ball->pos = ball->prev_pos;
 
 		// do the appropriate collision response if detected
-		Collision_Response_Wall(wall, ball, wall->_collision_point, CP_Vector_Rotate(wall->_wall_to_ball, -wall->angle_radians));
+		Collision_Response_Wall(wall, ball, wall->_collision_point, CP_Vector_Rotate(wall->_wall_to_ball, -CP_Math_Radians(wall->angle)));
 	}
 	return collision;
 }

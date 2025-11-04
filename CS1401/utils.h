@@ -14,9 +14,9 @@
 #define min_max(v, mn, mx) min(mx, max(mn, v))
 #define FREE_MEMORY(ptr) if((ptr)) { gc_free((ptr)); (ptr) = NULL; }
 
-typedef char bool;
-#define true (char)1
-#define false (char)0
+typedef unsigned char bool;
+#define true (unsigned char)1
+#define false (unsigned char)0
 
 typedef enum ColorCodeEnum {
 	COLOR_BLACK = 0,

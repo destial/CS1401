@@ -37,7 +37,7 @@ bool Check_On_Wall(Wall* wall) {
 	CP_Vector r = CP_Vector_Subtract(mouse_world, wall->pos);
 
 	// rotate local position back to axis
-	CP_Vector local_mouse_pos = CP_Vector_Rotate(r, wall->angle_radians);
+	CP_Vector local_mouse_pos = CP_Vector_Rotate(r, CP_Math_Radians(wall->angle));
 
 	return (local_mouse_pos.x >= wall_min.x && local_mouse_pos.x <= wall_max.x &&
 		local_mouse_pos.y >= wall_min.y && local_mouse_pos.y <= wall_max.y);
