@@ -29,8 +29,8 @@ typedef struct ParticleDataStruct {
 typedef struct ParticleStruct {
 	ParticleType type; // the type of this particle
 	CP_Vector pos, vel; // the pos and velocity of this particle
-	float elapsed_dur, duration, scale; // the lifespan & scale of this particle
-	unsigned char current_row, current_column; // the current frame row & column
+	float elapsed_dur, duration, scale, og_scale; // the lifespan & scale of this particle
+	unsigned int current_row, current_column; // the current frame row & column
 } Particle;
 
 /*!

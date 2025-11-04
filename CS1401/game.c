@@ -427,9 +427,8 @@ void Game_Render(void)
 	Game_RenderHoles();
 
 	// render shadows
-	if (get_shadow_setting()) {
+	if (get_shadow_setting())
 		Game_RenderShadows();
-	}
 
 	// render walls
 	Game_RenderWalls();
@@ -437,7 +436,7 @@ void Game_Render(void)
 	// render items
 	Game_RenderItems();
 
-	if (playable)
+	if (playable && get_shadow_setting()) 
 		Particles_Render(Get_World_Limits(), Get_World_Ratios());
 
 	// render golf balls
@@ -503,6 +502,11 @@ void Game_RenderUI(void) {
 	}
 
 	// render debug text on top of everything
+	CP_Settings_Fill(Get_Color(COLOR_GREEN));
+	CP_Settings_TextSize(20.f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
+	CP_Font_DrawText(fps, 0, 20);
 	if (debug_enabled) {
 		Game_RenderDebug();
 	}
@@ -1226,12 +1230,6 @@ float Get_Resistance_At(CP_Vector pos) {
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void Game_RenderDebug(void) {
-	CP_Settings_Fill(Get_Color(COLOR_GREEN));
-	CP_Settings_TextSize(20.f);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
-	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
-	CP_Font_DrawText(fps, 0, 20);
-
 	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
 	CP_Font_DrawText(m, 0, 40);
 

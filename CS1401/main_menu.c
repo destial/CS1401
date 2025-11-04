@@ -179,7 +179,7 @@ void main_menu_init(void)
 	buttons[13].pos.x = world_width1 * 0.75f;
 	buttons[13].pos.y = world_height1 * 0.7f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
-	buttons[13].text = "Shadow";
+	buttons[13].text = "High Details";
 	buttons[13].func = is_shadow;
 
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);

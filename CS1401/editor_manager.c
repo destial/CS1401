@@ -143,15 +143,13 @@ void Editor_Update_Terrains(ObjectArray* terrains) {
 	if (current_editing != NULL && current_type == TERRAIN) {
 		Terrain* t = (Terrain*)current_editing;
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
-			++t->type;
-			if (t->type == TERRAIN_LAST) {
+			if (++t->type == TERRAIN_LAST) {
 				t->type = 0;
 			}
 			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
-			--t->type;
-			if (t->type == -1) {
+			if (--t->type == -1) {
 				t->type = TERRAIN_LAST - 1;
 			}
 			editor_dirty = true;
@@ -293,16 +291,14 @@ void Editor_Update_Items(ObjectArray* items) {
 		}
 
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
-			++i->type;
-			if (i->type == ITEM_LAST) {
+			if (++i->type == ITEM_LAST) {
 				i->type = NO_ITEM_TYPE + 1;
 			}
 			i->angle = 0.f;
 			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
-			--i->type;
-			if (i->type == NO_ITEM_TYPE) {
+			if (--i->type == NO_ITEM_TYPE) {
 				i->type = ITEM_LAST - 1;
 			}
 			i->angle = 0.f;

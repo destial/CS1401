@@ -22,6 +22,7 @@ static void set_particle(Particle* p, ParticleType type, CP_Vector pos, float ra
 	p->pos = CP_Vector_Add(p->vel, pos);
 	p->vel = speed == 0.f ? CP_Vector_Zero() : CP_Vector_Scale(CP_Vector_Normalize(p->vel), speed);
 	p->scale = CP_Random_RangeFloat(minSize, maxSize);
+	p->og_scale = p->scale;
 }
 
 static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
@@ -81,10 +82,12 @@ void Particles_Update(float dt) {
 			data = &particle_types[p->type];
 		}
 		int frameCount = data->rows * data->columns;
+		float edt = p->duration / (float)frameCount;
 		p->pos = CP_Vector_Add(p->pos, CP_Vector_Scale(p->vel, dt));
+		p->scale -= (p->og_scale / (float)frameCount) * dt;
 
 		// update frame
-		if ((p->elapsed_dur += dt) > p->duration / frameCount) {
+		if ((p->elapsed_dur += dt) > edt) {
 			p->elapsed_dur = 0.f;
 			if (++p->current_column >= data->columns) {
 				p->current_column = 0;
