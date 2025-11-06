@@ -8,6 +8,7 @@
 #include "state_manager.h"
 #include "particle_manager.h"
 #include "level_manager.h"
+#include "currency_manager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,12 +39,8 @@ Button buttons[20];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-<<<<<<< HEAD
 char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0, is_shop_clicked = 0, is_buy_clicked = 0;
-=======
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shadowed = false;
->>>>>>> 0b3d04d262199aa2750ded5341927c33aeba95fc
-float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
 
 void exit_main_menu(void) {
@@ -186,8 +183,6 @@ void main_menu_init(void)
 	buttons[13].text = "High Details";
 	buttons[13].func = is_shadow;
 
-<<<<<<< HEAD
-
 	//Shop Button
 	buttons[14].button_image = get_image(BUTTON_BLUE_ASSET);
 	buttons[14].pos.x = world_width1 * 0.7f;
@@ -205,27 +200,31 @@ void main_menu_init(void)
 
 	//Shop Buy Button
 	buttons[16].button_image = get_image(BUTTON_BLUE_ASSET);
-	buttons[16].pos.x = world_width1 * 0.7f;
-	buttons[16].pos.y = world_height1 * 0.35f;
+	buttons[16].pos.x = world_width1 * 0.2f;
+	buttons[16].pos.y = world_height1 * 0.3f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
 	buttons[16].text = "BUY";
 
-	//Shop Equip Button
-	buttons[17].button_image = get_image(BUTTON_YELLOW_ASSET);
-	buttons[17].pos.x = world_width1 * 0.7f;
+	buttons[17].button_image = get_image(BUTTON_BLUE_ASSET);
+	buttons[17].pos.x = world_width1 * 0.3f;
 	buttons[17].pos.y = world_height1 * 0.35f;
 	buttons[17].start_pos.x = buttons[17].pos.x;
-	buttons[17].text = "EQUIP";
+	buttons[17].text = "BUY";
+
+	//Shop Equip Button
+	buttons[18].button_image = get_image(BUTTON_YELLOW_ASSET);
+	buttons[18].pos.x = world_width1 * 0.7f;
+	buttons[18].pos.y = world_height1 * 0.35f;
+	buttons[18].start_pos.x = buttons[18].pos.x;
+	buttons[18].text = "EQUIP";
 
 	background = get_image(GAME_BACKGROUND_ASSET);
 	setting_background = get_image(SETTING_BACKGROUND_ASSET);
 	shop_background = get_image(SETTING_BACKGROUND_ASSET);
 	golf_ball_default_image = get_image(GOLF_BALL_ASSET);
 	golf_ball_gold_image = get_image(GOLF_BALL_GOLD_ASSET);
-=======
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
->>>>>>> 0b3d04d262199aa2750ded5341927c33aeba95fc
 
 	//setting the button anchor to the center of the world
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -613,7 +612,7 @@ void shops_button(float mouse_x, float mouse_y)
 			buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-
+				buy_button();
 			}
 		}
 		else {
@@ -774,7 +773,16 @@ void shop_button(void) {
 
 void buy_button(void) {
 	is_buy_clicked = !is_buy_clicked;
-	is_overlayed = !is_overlayed;
+	switch (is_buy_clicked) {
+		case true:
+			
+			break;
+		
+		case false:
+			
+			break;
+	}
+
 }
 
 //changes the Main menu screen to the game start state
