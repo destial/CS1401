@@ -1,4 +1,6 @@
 #pragma once
+#ifndef MAIN_MENU_H
+#define MAIN_MENU_H
 #include "utils.h"
 
 /*!
@@ -25,3 +27,5 @@ void shops_button(float mouse_x, float mouse_y);
 void back_buttons(float mouse_x, float mouse_y);
 void is_shadow(void);
 bool get_shadow_setting(void);
+
+#endif

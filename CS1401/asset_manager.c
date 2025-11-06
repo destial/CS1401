@@ -11,20 +11,24 @@
 #include "utils.h"
 
 typedef enum AssetType {
-    IMAGE = 1,
-    FONT,
-    AUDIO,
-    SPRITE
+    ASSET_TYPELESS = 0,
+    ASSET_IMAGE,
+    ASSET_FONT,
+    ASSET_AUDIO,
+    ASSET_SPRITE,
+    ASSET_LAST
 } AssetType;
 
 typedef struct AssetStruct { 
     char* key;
+    // each pointer holds 8 bytes, so we can just use union "polymorphism"
+    // to minimize the size of the struct
     union {
         CP_Image image;
         CP_Font font;
         CP_Sound audio;
         SpriteSheet* sprite;
-        void* value;
+        void* value; // this is here for funsies, in case we want to store anything else
     };
     Asset* next;
     AssetType type;
@@ -33,6 +37,8 @@ typedef struct AssetStruct {
 Asset* root_assets = NULL;
 
 void Asset_Preload(void) {
+    // only the item assets have a shadow image
+    // and its very costly to create them, so we preload
     Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
     Asset_Get_ShadowImage(BIG_ITEM_ASSET);
     Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
@@ -59,7 +65,7 @@ static CP_Image load_shadow(Asset* node, CP_Image image, const char* filepath) {
         node->key = filepath;
     }
 
-    node->type = IMAGE;
+    node->type = ASSET_IMAGE;
     node->next = NULL;
     return node->image;
 }
@@ -90,7 +96,7 @@ static CP_Image load_image(Asset* node, const char* filepath) {
         node->key = filepath;
     }
 
-    node->type = IMAGE;
+    node->type = ASSET_IMAGE;
     node->next = NULL;
     return node->image;
 }
@@ -121,7 +127,7 @@ static CP_Font load_font(Asset* node, const char* filepath) {
         node->key = filepath;
     }
     
-    node->type = FONT;
+    node->type = ASSET_FONT;
     node->next = NULL;
     return node->font;
 }
@@ -152,7 +158,7 @@ static CP_Sound load_audio(Asset* node, const char* filepath) {
         node->key = filepath;
     }
 
-    node->type = AUDIO;
+    node->type = ASSET_AUDIO;
     node->next = NULL;
     return node->audio;
 }
@@ -184,19 +190,19 @@ static void free_asset(Asset* map) {
     }
 
     // free up the loaded assets respectively
-    if (map->type == IMAGE && map->image != NULL) {
+    if (map->type == ASSET_IMAGE && map->image != NULL) {
         CP_Image_Free(map->image);
         map->image = NULL;
     }
-    else if (map->type == FONT && map->font != NULL) {
+    else if (map->type == ASSET_FONT && map->font != NULL) {
         CP_Font_Free(map->font);
         map->font = NULL;
     }
-    else if (map->type == AUDIO && map->audio != NULL) {
+    else if (map->type == ASSET_AUDIO && map->audio != NULL) {
         CP_Sound_Free(map->audio);
         map->audio = NULL;
     }
-    else if (map->type == SPRITE && map->sprite != NULL) {
+    else if (map->type == ASSET_SPRITE && map->sprite != NULL) {
         CP_Image_Free(map->sprite->root_image);
         map->sprite->root_image = NULL;
         FREE_MEMORY(map->sprite);
@@ -223,7 +229,7 @@ CP_Image Asset_GetImage(const char* filepath) {
     
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, filepath) == 0 && ptr->type == IMAGE) {
+        if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_IMAGE) {
 			return ptr->image;
         }
         if (ptr->next == NULL) {
@@ -244,35 +250,41 @@ CP_Image Asset_GetImage(const char* filepath) {
 }
 
 CP_Image Asset_Get_ShadowImage(const char* filepath) {
+    
     char shadow_path[512];
     sprintf_s(shadow_path, 512, "%s//shadow", filepath);
-    CP_Image root = Asset_GetImage(shadow_path);
+    CP_Image root = Asset_GetImage(shadow_path); // get the already created shadow image if exists
     if (root != NULL)
         return root;
-
+    
+    // get the original image to shadow
     root = Asset_GetImage(filepath);
     if (root == NULL)
         return NULL;
 
+    // get dimensions of the image
     int w = CP_Image_GetWidth(root);
     int h = CP_Image_GetHeight(root);
     int arraySize = w * h;
 
-    // Create the array using the image size and the size of a CP_Color
+    // create the array using the image size and the size of a CP_Color
     CP_Color* colorArray = gc_calloc(arraySize, sizeof(CP_Color));
-
+    
+    // load the pixel data into the color array
     CP_Image_GetPixelData(root, colorArray);
     for (int i = 0; i < arraySize; ++i) {
-        if (colorArray[i].a > 0) {
+        if (colorArray[i].a > 0) { // set any non-transparent pixel as black
             colorArray[i] = Get_Color(COLOR_BLACK);
         }
     }
 
+    // create a shadow image from the color array
     CP_Image shadowed_image = CP_Image_CreateFromData(w, h, (unsigned char*) colorArray);
-    gc_free(colorArray);
+    gc_free(colorArray); // after creating this image, we can free up the color array buffer
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->next == NULL) {
             ptr->next = gc_malloc(sizeof(Asset));
+            // load this image into this new node
             load_shadow(ptr->next, shadowed_image, shadow_path);
             break;
         }
@@ -294,7 +306,7 @@ CP_Font Asset_GetFont(const char* filepath) {
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, filepath) == 0 && ptr->type == FONT) {
+        if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_FONT) {
             return ptr->font;
         }
         if (ptr->next == NULL) {
@@ -328,7 +340,7 @@ CP_Sound Asset_GetAudio(const char* filepath) {
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
-        if (strcmp(ptr->key, filepath) == 0 && ptr->type == AUDIO) {
+        if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_AUDIO) {
             return ptr->audio;
         }
         if (ptr->next == NULL) {
@@ -361,17 +373,18 @@ SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float 
 
 	// check if this sprite sheet already exists
     Asset* node = get_node(filepath);
-    if (node != NULL && node->type == SPRITE) {
+    if (node != NULL && node->type == ASSET_SPRITE) {
         return node->sprite;
     }
 
 	// the current filepath is not a sprite yet, so check if it's an image first
 	// then we convert it to a sprite sheet
-    if (node != NULL && node->type == IMAGE) {
+    if (node != NULL && node->type == ASSET_IMAGE) {
         SpriteSheet* sheet = gc_malloc(sizeof(SpriteSheet));
         if (sheet == NULL) 
             return NULL;
         
+        // initialize the sprite sheet values
         sheet->root_image = node->image;
         sheet->current_row = 0;
         sheet->current_column = 0;
@@ -386,7 +399,7 @@ SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float 
 		sheet->sub_w = sheet->img_w / columns;
 
         node->sprite = sheet;
-        node->type = SPRITE;
+        node->type = ASSET_SPRITE;
         return sheet;
     }
 
@@ -403,6 +416,7 @@ void Assets_Free(void) {
     if (root_assets == NULL) 
         return;
 
+    // recursive freeing
     free_asset(root_assets);
     root_assets = NULL;
     printf("Freeing up all assets\n");

@@ -12,19 +12,19 @@
 #include "utils.h"
 
 typedef enum ItemTypeEnum {
-	NO_ITEM_TYPE = 0,
-	BOOST,
-	BIG,
-	SMALL,
-	REVERSE,
-	PORTAL,
+	ITEM_TYPELESS = 0,
+	ITEM_BOOST,
+	ITEM_GROW,
+	ITEM_SHRINK,
+	ITEM_REVERSE,
+	ITEM_PORTAL,
 	ITEM_LAST
 } ItemType;
 
 typedef enum TerrainTypeEnum {
-	SAND = 0,
-	ICE,
-	PIT,
+	TERRAIN_SAND = 0,
+	TERRAIN_ICE,
+	TERRAIN_PIT,
 	TERRAIN_LAST
 } TerrainType;
 

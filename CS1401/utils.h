@@ -114,8 +114,7 @@ CP_Color Get_Color(ColorCode code);
 */
 int gcd(int a, int b);
 
-// Memory management. Replace with normal allocs.
-
+// Memory management. Replace your std allocs with this for proper memory debugging
 void* gc_malloc(size_t size);
 void* gc_calloc(size_t count, size_t size);
 void* gc_realloc(void* ptr, size_t size);

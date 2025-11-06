@@ -14,19 +14,17 @@ static bool colors_init = false;
 static CP_Color colors[LAST_COLOR];
 
 CP_Vector World_To_Screen(float x, float y, float world_width, float world_height) {
-	CP_Vector a = { 
+	return (CP_Vector) { 
 		x * (CP_System_GetWindowWidth() / world_width),
 		CP_System_GetWindowHeight() - (y * (CP_System_GetWindowHeight() / world_height))
 	};
-	return a;
 }
 
 CP_Vector Screen_To_World(float x, float y, float world_width, float world_height) {
-	CP_Vector a = { 
+	return (CP_Vector) { 
 		x * (world_width / CP_System_GetWindowWidth()),
 		world_height - (y * (world_height / CP_System_GetWindowHeight())) 
 	};
-	return a;
 }
 
 CP_Vector CP_Vector_Project(CP_Vector a, CP_Vector b) {
@@ -36,19 +34,15 @@ CP_Vector CP_Vector_Project(CP_Vector a, CP_Vector b) {
 }
 
 CP_Vector CP_Vector_Rotate(CP_Vector vect, float radians) {
-	CP_Vector rotated = {
+	return (CP_Vector) {
 		vect.x * cosf(radians) - vect.y * sinf(radians),
 		vect.x * sinf(radians) + vect.y * cosf(radians)
 	};
-	return rotated;
 }
 
 CP_Vector CP_Vector_Max(CP_Vector vect, float length) {
 	float current = CP_Vector_Length(vect);
-	if (current < length) {
-		return vect;
-	}
-	return CP_Vector_Scale(vect, length / current);
+	return current < length ? vect : CP_Vector_Scale(vect, length / current);
 }
 
 CP_BOOL CP_Vector_IsZero(CP_Vector vect) {
@@ -80,19 +74,20 @@ CP_Color Get_Color(ColorCode code) {
 }
 
 int gcd(int a, int b) {
-	// Find Minimum of a and b
+	// find min of a and b
 	int result = min(a, b);
 	while (result > 0) {
-		// Check if both a and b are divisible by result
+		// if both a and b are divisible by result
 		if (a % result == 0 && b % result == 0) {
 			break;
 		}
 		--result;
 	}
-	// return gcd of a nd b
+	// return gcd of a and b
 	return result;
 }
 
+// memory garbage collection counter (for memory leak test purposes)
 static int gccounter = 0;
 void* gc_malloc(size_t size) {
 	++gccounter;
@@ -108,7 +103,7 @@ void* gc_calloc(size_t count, size_t size) {
 
 void* gc_realloc(void* ptr, size_t size) {
 	if (ptr) {
-		//++counter;
+		// no need to ++counter here cuz ptr shld alr be allocated by malloc or calloc
 		printf("r: %d, ", gccounter);
 		return realloc(ptr, size);
 	}

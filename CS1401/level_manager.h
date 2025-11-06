@@ -14,7 +14,7 @@
 
 #define TOTAL_LEVELS 5
 
-typedef struct LevelStruct {
+typedef struct LevelStruct { // ordered in this way to minimize struct size
     float world_width, world_height;
     float* golf_balls; // [0 = x, 1 = y, 2 = diameter]
     float* holes; // [0 = x, 1 = y, 2 = diameter]

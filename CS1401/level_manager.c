@@ -91,7 +91,7 @@ Level* Level_Load(int level) {
                 }
             }
 
-            // some versions of the level file dont include the par, so make sure to check
+            // some versions of the level file dont include the par, so we default to 3
             lvl->par = Map_GetInt(root, "par", 3);
 
             lvl->middle_wall_angle = Map_GetFloat(root, "middle_wall_angle", 0.f);

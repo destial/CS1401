@@ -12,6 +12,7 @@
 ObjectArray particles;
 ParticleData particle_types[PARTICLE_LAST];
 
+// set the particle values at this particle pointer
 static void set_particle(Particle* p, ParticleType type, CP_Vector pos, float radius, float speed, float duration, float minSize, float maxSize) {
 	p->type = type;
 	p->duration = duration;
@@ -25,6 +26,7 @@ static void set_particle(Particle* p, ParticleType type, CP_Vector pos, float ra
 	p->og_scale = p->scale;
 }
 
+// create the always const particle data, this is only used internally and not exposed to the outside (!!!)
 static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
 	return (ParticleData){root,CP_Image_GetHeight(root),CP_Image_GetWidth(root),CP_Image_GetHeight(root)/rows,CP_Image_GetWidth(root)/columns,rows,columns};
 }
@@ -75,7 +77,7 @@ void Particles_Update(float dt) {
 		if (p->elapsed_dur < 0.f)
 			continue;
 
-		// get the particle data of this type
+		// get the particle data information of this type
 		ParticleData* data = &particle_types[p->type];
 		if (data == NULL) {
 			Particles_Preload();
@@ -83,10 +85,12 @@ void Particles_Update(float dt) {
 		}
 		int frameCount = data->rows * data->columns;
 		float edt = p->duration / (float)frameCount;
+
+		// move the particles and fade them away after time
 		p->pos = CP_Vector_Add(p->pos, CP_Vector_Scale(p->vel, dt));
 		p->scale -= (p->og_scale / (float)frameCount) * dt;
 
-		// update frame
+		// update the current frame
 		if ((p->elapsed_dur += dt) > edt) {
 			p->elapsed_dur = 0.f;
 			if (++p->current_column >= data->columns) {
@@ -106,6 +110,7 @@ void Particles_Render(CP_Vector world_limits, CP_Vector world_ratios) {
 		if (p->elapsed_dur < 0.f)
 			continue;
 
+		// get the particle data information of this type
 		ParticleData* data = &particle_types[p->type];
 		CP_Vector coords = World_To_Screen(p->pos.x, p->pos.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(Get_Color(COLOR_WHITE));
@@ -113,7 +118,7 @@ void Particles_Render(CP_Vector world_limits, CP_Vector world_ratios) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		
-		// render similar to sprite sheet but individual time frame
+		// render similar to sprite sheet but per particle time frame
 		int u0 = p->current_column * data->sub_w;
 		int v0 = p->current_row * data->sub_h;
 		CP_Image_DrawSubImageAdvanced(data->root_image, 

@@ -39,8 +39,11 @@ Button buttons[20];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
+
 char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0, is_shop_clicked = 0, is_buy_clicked = 0;
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shadowed = false;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false;
+float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
 
 void exit_main_menu(void) {
@@ -184,7 +187,7 @@ void main_menu_init(void)
 	buttons[13].func = is_shadow;
 
 	//Shop Button
-	buttons[14].button_image = get_image(BUTTON_BLUE_ASSET);
+	buttons[14].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
 	buttons[14].pos.x = world_width1 * 0.7f;
 	buttons[14].pos.y = world_height1 * 0.35f;
 	buttons[14].start_pos.x = buttons[14].pos.x;
@@ -192,7 +195,7 @@ void main_menu_init(void)
 	buttons[14].text = "SHOP";
 
 	//Shop Back Button
-	buttons[15].button_image = get_image(BUTTON_GREY_ASSET);
+	buttons[15].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 	buttons[15].pos.x = world_width1 * 0.25f;
 	buttons[15].pos.y = world_height1 * 0.7f;
 	buttons[15].start_pos.x = buttons[15].pos.x;
@@ -205,8 +208,9 @@ void main_menu_init(void)
 	buttons[16].start_pos.x = buttons[16].pos.x;
 	buttons[16].text = "BUY";
 
-	buttons[17].button_image = get_image(BUTTON_BLUE_ASSET);
-	buttons[17].pos.x = world_width1 * 0.3f;
+	//Shop Equip Button
+	buttons[17].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[17].pos.x = world_width1 * 0.7f;
 	buttons[17].pos.y = world_height1 * 0.35f;
 	buttons[17].start_pos.x = buttons[17].pos.x;
 	buttons[17].text = "BUY";
