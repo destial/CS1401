@@ -13,29 +13,29 @@
 #include <stdlib.h>
 #include "string.h"
 
-Level* get_level(int level) {
+Level* Level_Load(int level) {
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
 
-    Map* root = load_map(level_path);
+    Map* root = Map_Load(level_path);
     // make sure this file actually exists
     if (root != NULL) {
         // create the level to load and set all the values *** all must have values!!!
         Level* lvl = gc_malloc(sizeof(Level));
         if (lvl) {
-            lvl->world_width = get_float(root, "width", 48.f);
-            lvl->world_height = get_float(root, "height", 27.f);
+            lvl->world_width = Map_GetFloat(root, "width", 48.f);
+            lvl->world_height = Map_GetFloat(root, "height", 27.f);
 
-            lvl->walls_size = get_int(root, "walls_amount", 1);
+            lvl->walls_size = Map_GetInt(root, "walls_amount", 1);
             lvl->walls = lvl->walls_size ? gc_calloc((size_t)lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;
 
-            char* old_format = get_value(root, "golf_1");
+            char* old_format = Map_GetString(root, "golf_1");
             if (old_format) {
                 lvl->golf_balls_size = 2;
                 lvl->golf_balls = gc_calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
-                CP_Vector ball_1 = get_vector(root, "golf_1");
-                CP_Vector ball_2 = get_vector(root, "golf_2");
+                CP_Vector ball_1 = Map_GetVector(root, "golf_1");
+                CP_Vector ball_2 = Map_GetVector(root, "golf_2");
                 lvl->golf_balls[0] = ball_1.x;
                 lvl->golf_balls[1] = ball_1.y;
                 lvl->golf_balls[2] = 1.f;
@@ -44,8 +44,8 @@ Level* get_level(int level) {
                 lvl->golf_balls[4] = ball_2.y;
                 lvl->golf_balls[5] = 1.f;
 
-                CP_Vector hole_1 = get_vector(root, "hole_1");
-                CP_Vector hole_2 = get_vector(root, "hole_2");
+                CP_Vector hole_1 = Map_GetVector(root, "hole_1");
+                CP_Vector hole_2 = Map_GetVector(root, "hole_2");
 
                 lvl->holes_size = 2;
                 lvl->holes = gc_calloc(lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
@@ -58,43 +58,43 @@ Level* get_level(int level) {
                 lvl->holes[5] = 1.5f;
             }
             else {
-                lvl->golf_balls_size = get_int(root, "golf_amount", 1);
+                lvl->golf_balls_size = Map_GetInt(root, "golf_amount", 1);
                 lvl->golf_balls = gc_calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int ball_index = 0;
                 for (int i = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
                     char ball_pos[32];
                     sprintf_s(ball_pos, 32, "golf_%d_pos", ball_index);
-                    CP_Vector pos = get_vector(root, ball_pos);
+                    CP_Vector pos = Map_GetVector(root, ball_pos);
                     lvl->golf_balls[i + 0] = pos.x;
                     lvl->golf_balls[i + 1] = pos.y;
 
                     char ball_diameter[32];
                     sprintf_s(ball_diameter, 32, "golf_%d_diameter", ball_index);
-                    lvl->golf_balls[i + 2] = get_float(root, ball_diameter, 1.f);
+                    lvl->golf_balls[i + 2] = Map_GetFloat(root, ball_diameter, 1.f);
                 }
 
-                lvl->holes_size = get_int(root, "holes_amount", 1);
+                lvl->holes_size = Map_GetInt(root, "holes_amount", 1);
                 lvl->holes = gc_calloc((size_t)lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
 
                 int hole_index = 0;
                 for (int i = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
                     char hole_pos[32];
                     sprintf_s(hole_pos, 32, "hole_%d_pos", hole_index);
-                    CP_Vector pos = get_vector(root, hole_pos);
+                    CP_Vector pos = Map_GetVector(root, hole_pos);
                     lvl->holes[i + 0] = pos.x;
                     lvl->holes[i + 1] = pos.y;
 
                     char hole_diameter[32];
                     sprintf_s(hole_diameter, 32, "hole_%d_diameter", hole_index);
-                    lvl->holes[i + 2] = get_float(root, hole_diameter, 1.5f);
+                    lvl->holes[i + 2] = Map_GetFloat(root, hole_diameter, 1.5f);
                 }
             }
 
             // some versions of the level file dont include the par, so make sure to check
-            lvl->par = get_int(root, "par", 3);
+            lvl->par = Map_GetInt(root, "par", 3);
 
-            lvl->middle_wall_angle = get_float(root, "middle_wall_angle", 0.f);
+            lvl->middle_wall_angle = Map_GetFloat(root, "middle_wall_angle", 0.f);
 
             // set the walls position, scaling, angle and rotation rates
             // check if any of them exists first, if not use default values
@@ -104,32 +104,32 @@ Level* get_level(int level) {
                 // set wall position if exists
                 char wall_pos[32];
                 sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
-                CP_Vector pos = get_vector(root, wall_pos);
+                CP_Vector pos = Map_GetVector(root, wall_pos);
                 lvl->walls[i + 0] = pos.x;
                 lvl->walls[i + 1] = pos.y;
 
                 // set wall scale if exists
                 char wall_scale[32];
                 sprintf_s(wall_scale, 32, "wall_%d_scale", wall_index);
-                CP_Vector scale = get_vector(root, wall_scale);
+                CP_Vector scale = Map_GetVector(root, wall_scale);
                 lvl->walls[i + 2] = scale.x;
                 lvl->walls[i + 3] = scale.y;
 
                 // set wall angle if exists
                 char wall_angle[32];
                 sprintf_s(wall_angle, 32, "wall_%d_angle", wall_index);
-                char* line_angle = get_value(root, wall_angle);
+                char* line_angle = Map_GetString(root, wall_angle);
                 lvl->walls[i + 4] = line_angle ? (float)atof(line_angle) : 0.f;
 
                 // set wall rotation rate if exists
                 char wall_rot[32];
                 sprintf_s(wall_rot, 32, "wall_%d_rot_rate", wall_index);
-                char* line_rot = get_value(root, wall_rot);
+                char* line_rot = Map_GetString(root, wall_rot);
                 lvl->walls[i + 5] = line_rot ? (float)atof(line_rot) : 0.f;
             }
 
             // load items in level
-            lvl->items_size = get_int(root, "items_amount", 0);
+            lvl->items_size = Map_GetInt(root, "items_amount", 0);
             if (lvl->items_size) {
                 lvl->items = gc_calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
 
@@ -137,21 +137,21 @@ Level* get_level(int level) {
                 for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
                     char item_pos[32];
                     sprintf_s(item_pos, 32, "item_%d_pos", item_index);
-                    CP_Vector pos = get_vector(root, item_pos);
+                    CP_Vector pos = Map_GetVector(root, item_pos);
                     lvl->items[i + 0] = pos.x;
                     lvl->items[i + 1] = pos.y;
 
                     char item_diameter[32];
                     sprintf_s(item_diameter, 32, "item_%d_diameter", item_index);
-                    lvl->items[i + 2] = get_float(root, item_diameter, 0.f);
+                    lvl->items[i + 2] = Map_GetFloat(root, item_diameter, 0.f);
 
                     char item_angle[32];
                     sprintf_s(item_angle, 32, "item_%d_angle", item_index);
-                    lvl->items[i + 3] = get_float(root, item_angle, 0.f);
+                    lvl->items[i + 3] = Map_GetFloat(root, item_angle, 0.f);
 
                     char item_type[32];
                     sprintf_s(item_type, 32, "item_%d_type", item_index);
-                    lvl->items[i + 4] = (float) get_int(root, item_type, 0);
+                    lvl->items[i + 4] = (float) Map_GetInt(root, item_type, 0);
                 }
             }
             else {
@@ -160,7 +160,7 @@ Level* get_level(int level) {
             }
 
             // load terrains in level
-            lvl->terrains_size = get_int(root, "terrains_amount", 0);
+            lvl->terrains_size = Map_GetInt(root, "terrains_amount", 0);
             if (lvl->terrains_size) {
                 lvl->terrains = gc_calloc((size_t)lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
 
@@ -168,23 +168,23 @@ Level* get_level(int level) {
                 for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
                     char terrain_pos[32];
                     sprintf_s(terrain_pos, 32, "terrain_%d_pos", terrain_index);
-                    CP_Vector pos = get_vector(root, terrain_pos);
+                    CP_Vector pos = Map_GetVector(root, terrain_pos);
                     lvl->terrains[i + 0] = pos.x;
                     lvl->terrains[i + 1] = pos.y;
 
                     char terrain_scale[32];
                     sprintf_s(terrain_scale, 32, "terrain_%d_scale", terrain_index);
-                    CP_Vector scale = get_vector(root, terrain_scale);
+                    CP_Vector scale = Map_GetVector(root, terrain_scale);
                     lvl->terrains[i + 2] = scale.x;
                     lvl->terrains[i + 3] = scale.y;
 
                     char terrain_angle[32];
                     sprintf_s(terrain_angle, 32, "terrain_%d_angle", terrain_index);
-                    lvl->terrains[i + 4] = get_float(root, terrain_angle, 0.f);
+                    lvl->terrains[i + 4] = Map_GetFloat(root, terrain_angle, 0.f);
 
                     char terrain_type[32];
                     sprintf_s(terrain_type, 32, "terrain_%d_type", terrain_index);
-                    lvl->terrains[i + 5] = (float) get_int(root, terrain_type, 0);
+                    lvl->terrains[i + 5] = (float) Map_GetInt(root, terrain_type, 0);
                 }
             }
             else {
@@ -197,7 +197,7 @@ Level* get_level(int level) {
         }
 
         // we are done loading the level, we can now free up the map
-        free_map(root);
+        Map_Free(root);
         root = NULL;
         return lvl;
     }
@@ -206,7 +206,7 @@ Level* get_level(int level) {
     return NULL;
 }
 
-void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par) {
+void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par) {
     // save the world limits, golf balls, holes and middle wall first
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
@@ -314,21 +314,11 @@ void save_level(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     fp = NULL;
 }
 
-void free_level(Level* level) {
-    if (level->walls) {
-        FREE_MEMORY(level->walls);
-    }
-    if (level->items) {
-        FREE_MEMORY(level->items);
-    }
-    if (level->terrains) {
-        FREE_MEMORY(level->terrains);
-    }
-    if (level->golf_balls) {
-        FREE_MEMORY(level->golf_balls);
-    }
-    if (level->holes) {
-        FREE_MEMORY(level->holes);
-    }
+void Level_Free(Level* level) {
+    FREE_MEMORY(level->walls);
+    FREE_MEMORY(level->items);
+    FREE_MEMORY(level->terrains);
+    FREE_MEMORY(level->golf_balls);
+    FREE_MEMORY(level->holes);
     FREE_MEMORY(level);
 }

@@ -7,12 +7,12 @@
 
 #include "sprite_manager.h"
 
-void DrawSprite(SpriteSheet* sheet, float x, float y, float w, float h, int alpha) {
+void Sprite_Draw(SpriteSheet* sheet, float x, float y, float w, float h, int alpha) {
 	// just renders with 0 degrees of rotation
-	DrawSpriteAdvanced(sheet, x, y, w, h, alpha, 0);
+	Sprite_DrawAdvanced(sheet, x, y, w, h, alpha, 0);
 }
 
-void DrawSpriteAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, int alpha, float degrees) {
+void Sprite_DrawAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, int alpha, float degrees) {
 
 	// texture coordinates starting point
 	int u0 = sheet->current_column * sheet->sub_w;

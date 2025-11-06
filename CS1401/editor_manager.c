@@ -26,9 +26,9 @@ void* current_click = NULL;
 CP_Vector current_editing_offset;
 EditingType current_type = NONE;
 float editor_saving = 0.f;
-CP_BOOL editor_dirty = FALSE;
+bool editor_dirty = false;
 
-CP_BOOL check_on_wall(Wall* wall) {
+bool Check_On_Wall(Wall* wall) {
 	CP_Vector wall_min = { -wall->scale.x * 0.5f, -wall->scale.y * 0.5f };
 	CP_Vector wall_max = { wall->scale.x * 0.5f, wall->scale.y * 0.5f };
 
@@ -37,26 +37,26 @@ CP_BOOL check_on_wall(Wall* wall) {
 	CP_Vector r = CP_Vector_Subtract(mouse_world, wall->pos);
 
 	// rotate local position back to axis
-	CP_Vector local_mouse_pos = CP_Vector_Rotate(r, wall->angle_radians);
+	CP_Vector local_mouse_pos = CP_Vector_Rotate(r, CP_Math_Radians(wall->angle));
 
 	return (local_mouse_pos.x >= wall_min.x && local_mouse_pos.x <= wall_max.x &&
 		local_mouse_pos.y >= wall_min.y && local_mouse_pos.y <= wall_max.y);
 }
 
-CP_BOOL check_on_terrain(Terrain* terrain) {
+bool Check_On_Terrain(Terrain* terrain) {
 	return Check_Terrain(terrain, Get_Mouse_WorldSpace());
 }
 
-CP_BOOL check_on_circle(CP_Vector pos, float diameter) {
+bool Check_On_Circle(CP_Vector pos, float diameter) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
-	return CP_Vector_Distance(pos, mouse_world) <= diameter;
+	return CP_Vector_Distance(pos, mouse_world) <= diameter * 0.5f;
 }
 
-void update_editor_walls(ObjectArray* walls) {
+void Editor_Update_Walls(ObjectArray* walls) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_W)) {
-		Wall* wall = Add_Wall(mouse_world);
+		Wall* wall = Game_AddWall(mouse_world);
 		if (wall) {
 			current_editing = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
@@ -69,7 +69,7 @@ void update_editor_walls(ObjectArray* walls) {
 		if (wall == NULL || wall->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_wall(wall)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Wall(wall)) {
 			current_editing = wall;
 			current_click = wall;
 			current_editing_offset = CP_Vector_Subtract(wall->pos, mouse_world);
@@ -82,44 +82,44 @@ void update_editor_walls(ObjectArray* walls) {
 	}
 
 	if (CP_Input_KeyTriggered(KEY_DELETE) && current_editing != NULL && current_type == WALL) {
-		Remove_Wall((Wall*)current_editing);
+		Game_RemoveWall((Wall*)current_editing);
 		current_editing = NULL;
 		current_dragging = NULL;
 		current_type = NONE;
-		editor_dirty = TRUE;
+		editor_dirty = true;
 	}
 }
 
-void update_editor_terrains(ObjectArray* terrains) {
+void Editor_Update_Terrains(ObjectArray* terrains) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_8)) {
-		Terrain* terrain = Add_Terrain(mouse_world, ICE);
+		Terrain* terrain = Game_AddTerrain(mouse_world, ICE);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 
 	if (CP_Input_KeyTriggered(KEY_9)) {
-		Terrain* terrain = Add_Terrain(mouse_world, SAND);
+		Terrain* terrain = Game_AddTerrain(mouse_world, SAND);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 
 	if (CP_Input_KeyTriggered(KEY_0)) {
-		Terrain* terrain = Add_Terrain(mouse_world, PIT);
+		Terrain* terrain = Game_AddTerrain(mouse_world, PIT);
 		if (terrain) {
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
 			current_type = TERRAIN;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 
@@ -128,7 +128,7 @@ void update_editor_terrains(ObjectArray* terrains) {
 		if (terrain == NULL || terrain->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_terrain(terrain)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Terrain(terrain)) {
 			current_editing = terrain;
 			current_click = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
@@ -143,39 +143,37 @@ void update_editor_terrains(ObjectArray* terrains) {
 	if (current_editing != NULL && current_type == TERRAIN) {
 		Terrain* t = (Terrain*)current_editing;
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
-			++t->type;
-			if (t->type == TERRAIN_LAST) {
+			if (++t->type == TERRAIN_LAST) {
 				t->type = 0;
 			}
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
-			--t->type;
-			if (t->type == -1) {
+			if (--t->type == -1) {
 				t->type = TERRAIN_LAST - 1;
 			}
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			Remove_Terrain(t);
+			Game_RemoveTerrain(t);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 }
 
-void update_editor_holes(ObjectArray* holes) {
+void Editor_Update_Holes(ObjectArray* holes) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_H)) {
-		Hole* hole = Add_Hole(mouse_world);
+		Hole* hole = Game_AddHole(mouse_world);
 		if (hole) {
 			current_editing = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
 			current_type = HOLE;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 
@@ -184,7 +182,7 @@ void update_editor_holes(ObjectArray* holes) {
 		if (hole == NULL || hole->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(hole->pos, hole->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Circle(hole->pos, hole->diameter)) {
 			current_editing = hole;
 			current_click = hole;
 			current_editing_offset = CP_Vector_Subtract(hole->pos, mouse_world);
@@ -201,25 +199,25 @@ void update_editor_holes(ObjectArray* holes) {
 		}
 
 		if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			Remove_Hole(hole);
+			Game_RemoveHole(hole);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 }
 
-void update_editor_golfs(ObjectArray* golfs) {
+void Editor_Update_Golfballs(ObjectArray* golfs) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	if (CP_Input_KeyTriggered(KEY_B)) {
-		GolfBall* ball = Add_Ball(mouse_world);
+		GolfBall* ball = Game_AddGolf(mouse_world);
 		if (ball) {
 			current_editing = ball;
 			current_editing_offset = CP_Vector_Subtract(ball->pos, mouse_world);
 			current_type = GOLF_BALL;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 
@@ -228,7 +226,7 @@ void update_editor_golfs(ObjectArray* golfs) {
 		if (golf == NULL || golf->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(golf->pos, golf->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Circle(golf->pos, golf->diameter)) {
 			current_editing = golf;
 			current_click = golf;
 			current_editing_offset = CP_Vector_Subtract(golf->pos, mouse_world);
@@ -241,26 +239,26 @@ void update_editor_golfs(ObjectArray* golfs) {
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				ball->diameter += CP_Input_MouseWheel();
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 
 		if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			Remove_Ball(ball);
+			Game_RemoveGolf(ball);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 }
 
-void update_editor_items(ObjectArray* items) {
+void Editor_Update_Items(ObjectArray* items) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
 	for (int i = KEY_1; i < KEY_1 + ITEM_LAST - 1; ++i) {
 		if (CP_Input_KeyTriggered(i)) {
-			Item* item = Add_Item(mouse_world, i - KEY_1 + 1);
+			Item* item = Game_AddItem(mouse_world, i - KEY_1 + 1);
 			if (item) {
 				current_editing = item;
 				current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
@@ -274,7 +272,7 @@ void update_editor_items(ObjectArray* items) {
 		if (item == NULL || item->destroyed)
 			continue;
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && check_on_circle(item->pos, item->diameter)) {
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Circle(item->pos, item->diameter)) {
 			current_editing = item;
 			current_click = item;
 			current_editing_offset = CP_Vector_Subtract(item->pos, mouse_world);
@@ -288,39 +286,37 @@ void update_editor_items(ObjectArray* items) {
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				i->diameter += CP_Input_MouseWheel();
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 
 		if (CP_Input_KeyTriggered(KEY_RIGHT)) {
-			++i->type;
-			if (i->type == ITEM_LAST) {
+			if (++i->type == ITEM_LAST) {
 				i->type = NO_ITEM_TYPE + 1;
 			}
 			i->angle = 0.f;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
-			--i->type;
-			if (i->type == NO_ITEM_TYPE) {
+			if (--i->type == NO_ITEM_TYPE) {
 				i->type = ITEM_LAST - 1;
 			}
 			i->angle = 0.f;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {
-			Remove_Item(i);
+			Game_RemoveItem(i);
 			current_editing = NULL;
 			current_dragging = NULL;
 			current_type = NONE;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 }
 
 float world_rescaling = 1.f;
 
-void start_update_editor_utils(void) {
+void Editor_Update_Start(void) {
 	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) {
 		current_click = NULL;
 	}
@@ -330,21 +326,21 @@ void start_update_editor_utils(void) {
 			world_rescaling -= 0.1f;
 			world_rescaling = max(0.1f, world_rescaling);
 			Scale_World(world_rescaling);
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_MINUS)) {
 			world_rescaling += 0.1f;
 			Scale_World(world_rescaling);
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 	}
 }
 
-void end_update_editor_utils(void) {
+void Editor_Update_End(void) {
 	// save level if debug enabled
 	if (CP_Input_KeyTriggered(KEY_S)) {
-		save();
-		editor_dirty = FALSE;
+		Game_Save();
+		editor_dirty = false;
 		editor_saving = 1.5f;
 	}
 
@@ -361,19 +357,19 @@ void end_update_editor_utils(void) {
 		return;
 
 	if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) {
-		if (current_type == WALL && check_on_wall((Wall*)current_editing)) {
+		if (current_type == WALL && Check_On_Wall((Wall*)current_editing)) {
 			current_dragging = current_editing;
 		}
-		else if (current_type == HOLE && check_on_circle(((Hole*)current_editing)->pos, ((Hole*)current_editing)->diameter)) {
+		else if (current_type == HOLE && Check_On_Circle(((Hole*)current_editing)->pos, ((Hole*)current_editing)->diameter)) {
 			current_dragging = current_editing;
 		}
-		else if (current_type == GOLF_BALL && check_on_circle(((GolfBall*)current_editing)->pos, ((GolfBall*)current_editing)->diameter)) {
+		else if (current_type == GOLF_BALL && Check_On_Circle(((GolfBall*)current_editing)->pos, ((GolfBall*)current_editing)->diameter)) {
 			current_dragging = current_editing;
 		}
-		else if (current_type == ITEM && check_on_circle(((Item*)current_editing)->pos, ((Item*)current_editing)->diameter)) {
+		else if (current_type == ITEM && Check_On_Circle(((Item*)current_editing)->pos, ((Item*)current_editing)->diameter)) {
 			current_dragging = current_editing;
 		} 
-		else if (current_type == TERRAIN && check_on_terrain((Terrain*)current_editing)) {
+		else if (current_type == TERRAIN && Check_On_Terrain((Terrain*)current_editing)) {
 			current_dragging = current_editing;
 		}
 	}
@@ -390,29 +386,29 @@ void end_update_editor_utils(void) {
 			if (current_type == WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				wall->image = wall->pos.x <= Get_World_Limits().x * 0.5f ? get_image(WALL_LEFT_ASSET) : get_image(WALL_RIGHT_ASSET);
-				editor_dirty = TRUE;
+				wall->image = wall->pos.x <= Get_World_Limits().x * 0.5f ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
+				editor_dirty = true;
 			}
 			else if (current_type == HOLE) {
 				Hole* hole = (Hole*)current_dragging;
 				hole->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 
 			}
 			else if (current_type == GOLF_BALL) {
 				GolfBall* ball = (GolfBall*)current_dragging;
 				ball->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 			else if (current_type == ITEM) {
 				Item* item = (Item*)current_dragging;
 				item->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 			else if (current_type == TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
 				terrain->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
@@ -452,11 +448,11 @@ void end_update_editor_utils(void) {
 				if (fabs((double)(wall->angle)) <= 3.f) {
 					wall->angle = 0.f;
 				}
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			} else if (current_type == TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
 				terrain->angle = CP_Vector_AngleCW(CP_Vector_Subtract(terrain->pos, mouse_world), current_editing_offset);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 	}
@@ -465,24 +461,24 @@ void end_update_editor_utils(void) {
 		Wall* wall = (Wall*)current_editing;
 		if (CP_Input_KeyTriggered(KEY_UP)) {
 			wall->rotation_rate += 1.f;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DOWN)) {
 			wall->rotation_rate -= 1.f;
-			editor_dirty = TRUE;
+			editor_dirty = true;
 		}
 
 		if (CP_Input_MouseWheel() != 0.f) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				wall->scale.x += CP_Input_MouseWheel();
 				wall->scale.x = max(1.f, wall->scale.x);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 
 			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				wall->scale.y += CP_Input_MouseWheel();
 				wall->scale.y = max(1.f, wall->scale.y);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 	}
@@ -493,23 +489,23 @@ void end_update_editor_utils(void) {
 			if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
 				terrain->scale.x += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.x = max(0.1f, terrain->scale.x);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 
 			if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
 				terrain->scale.y += CP_Input_MouseWheel() * 0.1f;
 				terrain->scale.y = max(0.1f, terrain->scale.y);
-				editor_dirty = TRUE;
+				editor_dirty = true;
 			}
 		}
 	}
 }
 
-void render_editor_utils(void) {
+void Editor_Render(void) {
 	CP_Vector world_limits = Get_World_Limits();
 	CP_Vector world_ratios = Get_World_Ratios();
 	CP_Settings_ResetMatrix();
-	CP_Font_Set(get_font(ARIAL_FONT_ASSET));
+	CP_Font_Set(Asset_GetFont(ARIAL_FONT_ASSET));
 	CP_Settings_Fill(Get_Color(COLOR_GREEN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);

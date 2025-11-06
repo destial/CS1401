@@ -11,22 +11,27 @@
 #include "state_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
+#include "particle_manager.h"
 
 CP_Image splash_logo;
 float splash_alpha = 0.f;
 float splash_duration = 2.f;
-char splash_revert = 0;
+bool splash_revert = false;
 
 void splash_screen_init(void)
 {
+	Set_Current_State(STATE_SPLASH);
 	printf("Init splash\n");
-	splash_logo = get_image(SPLASH_SCREEN_ASSET);
+	splash_logo = Asset_GetImage(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_Settings_AntiAlias(TRUE);
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
 	CP_System_SetWindowTitle("GGCode - GGGolf Game");
+
+	Particles_Preload();
+	Asset_Preload();
 }
 
 void splash_screen_update(void)
@@ -35,7 +40,7 @@ void splash_screen_update(void)
 	if (splash_revert == 0) {
 		splash_alpha += CP_System_GetDt() / splash_duration;
 		if (splash_alpha >= 1.f) {
-			splash_revert = 1;
+			splash_revert = true;
 		}
 	}
 	else {
@@ -54,10 +59,8 @@ void splash_screen_update(void)
 void splash_screen_exit(void)
 {
 	if (Get_Next_State() == STATE_SPLASH) {
-		free_assets();
-	}
-	else {
-		preload_assets();
+		Assets_Free();
+		Particles_Free();
 	}
 	printf("Exit splash\n");
 }

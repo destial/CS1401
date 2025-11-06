@@ -26,7 +26,7 @@ typedef struct SpriteSheetStruct {
 @param h - Height of the sprite in screen space
 @param alpha - Transparency of sprite
 */
-void DrawSprite(SpriteSheet* spritesheet, float x, float y, float w, float h, int alpha);
+void Sprite_Draw(SpriteSheet* spritesheet, float x, float y, float w, float h, int alpha);
 
 /*!
 @brief Draw a sprite to the screen
@@ -38,6 +38,6 @@ void DrawSprite(SpriteSheet* spritesheet, float x, float y, float w, float h, in
 @param alpha - Transparency of sprite
 @param degrees - Rotation of sprite
 */
-void DrawSpriteAdvanced(SpriteSheet* spritesheet, float x, float y, float w, float h, int alpha, float degrees);
+void Sprite_DrawAdvanced(SpriteSheet* spritesheet, float x, float y, float w, float h, int alpha, float degrees);
 
 #endif

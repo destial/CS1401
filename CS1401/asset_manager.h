@@ -37,6 +37,10 @@
 #define REVERSE_ITEM_ASSET "Assets/Images/reverse_item.png"
 #define BLUE_PORTAL_SPRITE_ASSET "Assets/Images/blue_portal_sprite.png"
 #define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
+#define FLAME_PARTICLE_SPRITE_ASSET "Assets/Images/flame_particle_sheet.png"
+#define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
+#define RAINBOW_SPARKLE_SPRITE_ASSET "Assets/Images/rainbow_sparkle_sheet.png"
+#define HALO_SPRITE_ASSET "Assets/Images/halo_sheet.png"
 
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_cross.png"
@@ -67,30 +71,39 @@
 
 typedef struct AssetStruct Asset;
 
-void preload_assets(void);
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Preload some assets to reduce loading time
+*/
+void Asset_Preload(void);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the image at this file path
 @param filepath - The image filepath
 */
-CP_Image get_image(const char* filepath);
+CP_Image Asset_GetImage(const char* filepath);
 
-CP_Image get_shadow_image(const char* filepath);
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the shadow backdrop image at this filepath
+@param filepath - The image filepath
+*/
+CP_Image Asset_Get_ShadowImage(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the font at this file path
 @param filepath - The font filepath
 */
-CP_Font get_font(const char* filepath);
+CP_Font Asset_GetFont(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu
 @brief Get the audio from this file path
 @param filepath - The audio filepath
 */
-CP_Sound get_audio(const char* filepath);
+CP_Sound Asset_GetAudio(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu
@@ -100,12 +113,12 @@ CP_Sound get_audio(const char* filepath);
 @param columns - The number of columns in the spritesheet
 @param duration - The duration of the entire animation in seconds
 */
-SpriteSheet* get_sprite(const char* filepath, int rows, int columns, float duration);
+SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float duration);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free up all the loaded assets from the asset map. Do not call this in main()!
 */
-void free_assets(void);
+void Assets_Free(void);
 
 #endif
