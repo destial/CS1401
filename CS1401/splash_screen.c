@@ -1,10 +1,3 @@
-/*!
-@author Rance Andres (andresrancerowell.g@digipen.edu)
-@date 11 September 2025
-@course CSD1401
-@brief Definition file for the splash screen when the game starts up
-*/
-
 #include <stdio.h>
 #include "splash_screen.h"
 #include "cprocessing.h"

@@ -9,29 +9,25 @@
 
 // create a node of this map, or if NULL, a new node
 static Map* add_node(Map* map) {
-    Map* next;
-    if (map == NULL) {
-        next = gc_malloc(sizeof(Map));
+    if (map == NULL) { // if the root map is NULL, we create a new root map
+        return gc_malloc(sizeof(Map));
     }
-    else {
-        if (map->key == NULL) {
-            next = map;
-        }
-        else {
-            Map* last = map;
-            while (last->next) {
-                last = last->next;
-            }
-            last->next = gc_malloc(sizeof(Map));
-            next = last->next;
-        }
+
+    if (map->key == NULL) { // if this node has no value stored, we use this instead
+        return map;
     }
-    return next;
+
+    Map* last = map;
+    while (last->next) { // go to the back of this map
+        last = last->next;
+    }
+    last->next = gc_malloc(sizeof(Map)); // create the new node in at the back
+    return last->next;
 }
 
 // sourced from: https://stackoverflow.com/questions/3381080/reading-all-content-from-a-text-file-c
 char* read_content(const char* filename) {
-    FILE* fp;
+    FILE* fp; // safe open
     fopen_s(&fp, filename, "r");
     if (!fp) {
         return NULL;
@@ -57,7 +53,7 @@ char* read_content(const char* filename) {
 }
 
 void write_content(const char* filename, char* content) {
-    FILE* fp;
+    FILE* fp; // safe open
     fopen_s(&fp, filename, "w");
     if (!fp) {
         return;
@@ -76,15 +72,15 @@ CP_Vector parse_vector(char* line) {
     while (*(s += strspn(s, ",")) != '\0') {
         size_t len = strcspn(s, ",");
         char b[64];
-        // Instead of printing, use the nth parsed token for key sorting
+        // instead of printing, use the nth parsed token for key sorting
         sprintf_s(b, 64, "%.*s", (int)len, s);
-        if (x) {
+        if (x) { // the first one is always the x value
             v.x = (float)atof(b);
             x = false;
         }
-        else {
+        else { // the next one is always the y value
             v.y = (float)atof(b);
-            break;
+            break; // we only need x & y, so break after reading the y
         }
 
         s += len;
@@ -97,8 +93,9 @@ Map* Map_Load(const char* filename) {
     if (contents == NULL || strlen(contents) == 0)
         return NULL;
 
-    const char outerdel[] = "\n";
-    const char innerdel[] = "=";
+    // define the delimiters for parsing
+    const char outerdel[] = "\n"; // each line
+    const char innerdel[] = "="; // each key value pair
 
     // allocate the root of this level map
     Map* root = gc_malloc(sizeof(Map));
@@ -149,6 +146,7 @@ Map* Map_Load(const char* filename) {
 }
 
 Map* Map_AddString(Map* map, const char* key, char* value) {
+    // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
@@ -169,6 +167,7 @@ Map* Map_AddString(Map* map, const char* key, char* value) {
 }
 
 Map* Map_AddInt(Map* map, const char* key, int value) {
+    // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
@@ -180,8 +179,7 @@ Map* Map_AddInt(Map* map, const char* key, int value) {
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
-    char v[64];
-    sprintf_s(v, 64, "%d", value);
+    char v[64]; sprintf_s(v, 64, "%d", value);
     size_t val_len = strlen(v) + 1;
     next->value = gc_calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, v);
@@ -191,6 +189,7 @@ Map* Map_AddInt(Map* map, const char* key, int value) {
 }
 
 Map* Map_AddFloat(Map* map, const char* key, float value) {
+    // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
@@ -202,8 +201,7 @@ Map* Map_AddFloat(Map* map, const char* key, float value) {
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
-    char v[64];
-    sprintf_s(v, 64, "%f", value);
+    char v[64]; sprintf_s(v, 64, "%f", value);
     size_t val_len = strlen(v) + 1;
     next->value = gc_calloc(val_len, sizeof(char));
     strcpy_s(next->value, val_len, v);
@@ -213,6 +211,7 @@ Map* Map_AddFloat(Map* map, const char* key, float value) {
 }
 
 Map* Map_AddVector(Map* map, const char* key, CP_Vector value) {
+    // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
@@ -224,8 +223,7 @@ Map* Map_AddVector(Map* map, const char* key, CP_Vector value) {
     strcpy_s(next->key, key_len, key);
 
     // set the value (right side)
-    char v[128];
-    sprintf_s(v, 128, "%f,%f", value.x, value.y);
+    char v[128]; sprintf_s(v, 128, "%f,%f", value.x, value.y);
     size_t val_len = strlen(v) + 1;
     next->value = gc_malloc(val_len * sizeof(char));
     strcpy_s(next->value, val_len, v);
@@ -259,8 +257,7 @@ void Map_EditInt(Map* map, const char* key, int value) {
             gc_free(ptr->value);
 
             // set the new value
-            char v[64];
-            sprintf_s(v, 64, "%d", value);
+            char v[64]; sprintf_s(v, 64, "%d", value);
             size_t val_len = strlen(v) + 1;
             ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
@@ -278,8 +275,7 @@ void Map_EditFloat(Map* map, const char* key, float value) {
             gc_free(ptr->value);
 
             // set the new value
-            char v[64];
-            sprintf_s(v, 64, "%f", value);
+            char v[64]; sprintf_s(v, 64, "%f", value);
             size_t val_len = strlen(v) + 1;
             ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
@@ -297,8 +293,7 @@ void Map_EditVector(Map* map, const char* key, CP_Vector value) {
             gc_free(ptr->value);
 
             // set the new value
-            char v[128];
-            sprintf_s(v, 128, "%f,%f", value.x, value.y);
+            char v[128]; sprintf_s(v, 128, "%f,%f", value.x, value.y);
             size_t val_len = strlen(v) + 1;
             ptr->value = gc_calloc(val_len, sizeof(char));
             strcpy_s(ptr->value, val_len, v);
@@ -320,11 +315,12 @@ Map* Map_Remove(Map* map, const char* key) {
     for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
         // inside the map
         if (ptr->next) {
-            if (strcmp(ptr->next->key, key) == 0) {
+            if (strcmp(ptr->next->key, key) == 0) { // if match, we bridge the previous and the next one
                 Map* todel = ptr->next;
                 Map* after = todel->next;
                 ptr->next = after;
 
+                // ensure to free up the memory allocated for each node
                 FREE_MEMORY(todel->key);
                 FREE_MEMORY(todel->value);
                 FREE_MEMORY(todel);
@@ -336,15 +332,16 @@ Map* Map_Remove(Map* map, const char* key) {
 }
 
 bool Map_Save(const char* filename, Map* map) {
-    FILE* fp;
+    FILE* fp; // safe open
     fopen_s(&fp, filename, "w");
     if (!fp) {
         return false;
     }
 
+    // add each node to the map
     Map* next = map;
     while (next) {
-        fputs(next->key, fp);
+        fputs(next->key, fp); // key value pair (e.g. key=value)
         fputc('=', fp);
         fputs(next->value, fp);
         if (next->next) {
@@ -389,6 +386,7 @@ void Map_Free(Map* map) {
         return;
 
     if (map->next) {
+        // if it has a next, recursive call the next node
         Map_Free(map->next);
         map->next = NULL;
     }
