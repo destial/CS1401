@@ -39,9 +39,6 @@ Button buttons[20];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-
-char is_clicked = 0, is_setting_clicked = 0, is_overlayed = 0, is_shadowed = 0, is_shop_clicked = 0, is_buy_clicked = 0;
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shadowed = false;
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 Map* settings_map = NULL;
@@ -202,7 +199,7 @@ void main_menu_init(void)
 	buttons[15].text = "X";
 
 	//Shop Buy Button
-	buttons[16].button_image = get_image(BUTTON_BLUE_ASSET);
+	buttons[16].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
 	buttons[16].pos.x = world_width1 * 0.2f;
 	buttons[16].pos.y = world_height1 * 0.3f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
@@ -216,17 +213,17 @@ void main_menu_init(void)
 	buttons[17].text = "BUY";
 
 	//Shop Equip Button
-	buttons[18].button_image = get_image(BUTTON_YELLOW_ASSET);
+	buttons[18].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[18].pos.x = world_width1 * 0.7f;
 	buttons[18].pos.y = world_height1 * 0.35f;
 	buttons[18].start_pos.x = buttons[18].pos.x;
 	buttons[18].text = "EQUIP";
 
-	background = get_image(GAME_BACKGROUND_ASSET);
-	setting_background = get_image(SETTING_BACKGROUND_ASSET);
-	shop_background = get_image(SETTING_BACKGROUND_ASSET);
-	golf_ball_default_image = get_image(GOLF_BALL_ASSET);
-	golf_ball_gold_image = get_image(GOLF_BALL_GOLD_ASSET);
+	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
+	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
+	shop_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
+	golf_ball_default_image = Asset_GetImage(GOLF_BALL_ASSET);
+	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 

@@ -25,6 +25,7 @@ void volume_bar(float mouse_x, float mouse_y);
 void settings_button(float mouse_x, float mouse_y);
 void shops_button(float mouse_x, float mouse_y);
 void back_buttons(float mouse_x, float mouse_y);
+void buy_button(void);
 void is_shadow(void);
 bool get_shadow_setting(void);
 
