@@ -39,13 +39,14 @@ Asset* root_assets = NULL;
 void Asset_Preload(void) {
     // only the item assets have a shadow image
     // and its very costly to create them, so we preload
-    Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
-    Asset_Get_ShadowImage(BIG_ITEM_ASSET);
-    Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
-    Asset_Get_ShadowImage(REVERSE_ITEM_ASSET);
+    CP_Color shadow = CP_Color_Create(0, 0, 0, 255);
+    Asset_GetBlendedImage(BOOST_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(BIG_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(SMALL_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(REVERSE_ITEM_ASSET, shadow, BLEND_SET);
 }
 
-static CP_Image load_shadow(Asset* node, CP_Image image, const char* filepath) {
+static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath) {
     // load the image into memory and check if it exists
     node->image = image;
     if (node->image == NULL) {
@@ -207,9 +208,13 @@ static void free_asset(Asset* map) {
         map->sprite->root_image = NULL;
         FREE_MEMORY(map->sprite);
     }
+    else if (map->type == ASSET_TYPELESS && map->value != NULL) {
+        FREE_MEMORY(map->value);
+    }
 
     // free up the key memory address (we used malloc here)
     if (map->key) {
+        printf("Freeing up %s\n", map->key);
         FREE_MEMORY(map->key);
     }
 
@@ -249,15 +254,14 @@ CP_Image Asset_GetImage(const char* filepath) {
     return NULL;
 }
 
-CP_Image Asset_Get_ShadowImage(const char* filepath) {
-    
-    char shadow_path[512];
-    sprintf_s(shadow_path, 512, "%s//shadow", filepath);
-    CP_Image root = Asset_GetImage(shadow_path); // get the already created shadow image if exists
+CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendMode mode) {
+    char colored_path[128];
+    sprintf_s(colored_path, 128, "%s//%02x%02x%02x%02x", filepath, (int)color.r, (int)color.g, (int)color.b, (int)color.a);
+    CP_Image root = Asset_GetImage(colored_path); // get the already created recolored image if exists
     if (root != NULL)
         return root;
-    
-    // get the original image to shadow
+
+    // get the original image to recolor
     root = Asset_GetImage(filepath);
     if (root == NULL)
         return NULL;
@@ -269,27 +273,56 @@ CP_Image Asset_Get_ShadowImage(const char* filepath) {
 
     // create the array using the image size and the size of a CP_Color
     CP_Color* colorArray = gc_calloc(arraySize, sizeof(CP_Color));
-    
+
     // load the pixel data into the color array
     CP_Image_GetPixelData(root, colorArray);
     for (int i = 0; i < arraySize; ++i) {
-        if (colorArray[i].a > 0) { // set any non-transparent pixel as black
-            colorArray[i] = Get_Color(COLOR_BLACK);
+        switch (mode) {
+            case BLEND_MULTIPLY:
+                if (colorArray[i].a > 0) { // multiply any non-transparent pixel color
+                    colorArray[i].r = (unsigned char) (((colorArray[i].r / 255.f) * (color.r / 255.f)) * 255.f);
+                    colorArray[i].g = (unsigned char) (((colorArray[i].g / 255.f) * (color.g / 255.f)) * 255.f);
+                    colorArray[i].b = (unsigned char) (((colorArray[i].b / 255.f) * (color.b / 255.f)) * 255.f);
+                    colorArray[i].a = (unsigned char) (((colorArray[i].a / 255.f) * (color.a / 255.f)) * 255.f);
+                }
+                break;
+            case BLEND_ADD: // add any non-transparent pixel colors together, not including alpha
+                if (colorArray[i].a > 0) {
+                    colorArray[i].r = min(255, (int)colorArray[i].r + (int)color.r);
+                    colorArray[i].g = min(255, (int)colorArray[i].g + (int)color.g);
+                    colorArray[i].b = min(255, (int)colorArray[i].b + (int)color.b);
+
+                }
+                break;
+            case BLEND_ADD_ALPHA: // add any non-transparent pixel colors together
+                if (colorArray[i].a > 0) {
+                    colorArray[i].r = min(255, (int)colorArray[i].r + (int)color.r);
+                    colorArray[i].g = min(255, (int)colorArray[i].g + (int)color.g);
+                    colorArray[i].b = min(255, (int)colorArray[i].b + (int)color.b);
+                    colorArray[i].a = min(255, (int)colorArray[i].a + (int)color.a);
+                }
+                break;
+            case BLEND_SET:
+                if (colorArray[i].a > 0) { // set any non-transparent pixel color
+                    colorArray[i] = color;
+                }
+                break;
+            default: break;
         }
     }
 
     // create a shadow image from the color array
-    CP_Image shadowed_image = CP_Image_CreateFromData(w, h, (unsigned char*) colorArray);
+    CP_Image recolored_image = CP_Image_CreateFromData(w, h, (unsigned char*)colorArray);
     gc_free(colorArray); // after creating this image, we can free up the color array buffer
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->next == NULL) {
             ptr->next = gc_malloc(sizeof(Asset));
             // load this image into this new node
-            load_shadow(ptr->next, shadowed_image, shadow_path);
+            set_node_image(ptr->next, recolored_image, colored_path);
             break;
         }
     }
-    return shadowed_image;
+    return recolored_image;
 }
 
 CP_Font Asset_GetFont(const char* filepath) {
@@ -419,5 +452,5 @@ void Assets_Free(void) {
     // recursive freeing
     free_asset(root_assets);
     root_assets = NULL;
-    printf("Freeing up all assets\n");
+    printf("Freed up all assets\n");
 }

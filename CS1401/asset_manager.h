@@ -71,6 +71,13 @@
 
 typedef struct AssetStruct Asset;
 
+typedef enum AssetBlendEnum {
+	BLEND_ADD,
+	BLEND_ADD_ALPHA,
+	BLEND_MULTIPLY,
+	BLEND_SET
+} AssetBlendMode;
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Preload some assets to reduce loading time
@@ -86,10 +93,12 @@ CP_Image Asset_GetImage(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the shadow backdrop image at this filepath
+@brief Blend the image at this filepath with the given color parameter
 @param filepath - The image filepath
+@param color - The color to blend each pixel by
+@param method - The blend mode to use for each pixel
 */
-CP_Image Asset_Get_ShadowImage(const char* filepath);
+CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendMode mode);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

@@ -113,11 +113,10 @@ void game_init(void)
 	all_balls_stopped = true;
 	editor_mode = false;
 
-	//Play_Music(get_audio(GOLF_HIT_WALL_ASSET));
-	//CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_MUSIC), 1.f, true, CP_SOUND_GROUP_MUSIC);
-
 	// fix timestep
 	current_time = CP_System_GetSeconds();
+
+	// camera matrix transformation
 	camera_matrix = CP_Matrix_Identity();
 	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
@@ -342,8 +341,8 @@ void Game_UpdatePhysics(float dt)
 			}
 		}
 
-		// spawn the particles every half a second
-		if ((particle_counter += dt) >= 0.5f) {
+		// spawn the particles every 0.1s
+		if ((particle_counter += dt) >= 0.1f) {
 			int amount = 1;
 			float radius = particle_type == PARTICLE_STAR ? golf->diameter * 0.1f : golf->diameter * 0.5f;
 			float speed = particle_type == PARTICLE_STAR ? 0.f : 1.f;
@@ -847,16 +846,16 @@ void Game_RenderShadows(void) {
 		CP_Image image = NULL;
 		switch (item->type) {
 		case ITEM_BOOST:
-			image = Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
+			image = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_GROW:
-			image = Asset_Get_ShadowImage(BIG_ITEM_ASSET);
+			image = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_SHRINK:
-			image = Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
+			image = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_REVERSE:
-			image = Asset_Get_ShadowImage(REVERSE_ITEM_ASSET);
+			image = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		default:
 			break;
@@ -898,11 +897,10 @@ void game_exit(void)
 	FREE_MEMORY(golf_balls.arr);
 	FREE_MEMORY(holes.arr);
 	reset_strokes();
+	Particles_Free();
 	if (Get_Next_State() == STATE_GAME && !resetting) {
 		Assets_Free();
-		Particles_Free();
 	}
-	Particles_Free();
 	printf("Exit game\n");
 }
 
