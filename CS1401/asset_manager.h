@@ -71,6 +71,12 @@
 
 typedef struct AssetStruct Asset;
 
+typedef enum AssetRecolorEnum {
+	RECOLOR_ADD,
+	RECOLOR_MULTIPLY,
+	RECOLOR_SET
+} AssetRecolorMethod;
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Preload some assets to reduce loading time
@@ -86,10 +92,12 @@ CP_Image Asset_GetImage(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Get the shadow backdrop image at this filepath
+@brief Recolor the image at this filepath, recoloring the pixel color by the given color parameter
 @param filepath - The image filepath
+@param color - The color to recolor each pixel by
+@param method - The method to use when recoloring the pixel
 */
-CP_Image Asset_Get_ShadowImage(const char* filepath);
+CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolorMethod method);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

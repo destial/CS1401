@@ -39,13 +39,14 @@ Asset* root_assets = NULL;
 void Asset_Preload(void) {
     // only the item assets have a shadow image
     // and its very costly to create them, so we preload
-    Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
-    Asset_Get_ShadowImage(BIG_ITEM_ASSET);
-    Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
-    Asset_Get_ShadowImage(REVERSE_ITEM_ASSET);
+    CP_Color shadow = CP_Color_Create(0, 0, 0, 255);
+    Asset_GetRecolorImage(BOOST_ITEM_ASSET, shadow, RECOLOR_SET);
+    Asset_GetRecolorImage(BIG_ITEM_ASSET, shadow, RECOLOR_SET);
+    Asset_GetRecolorImage(SMALL_ITEM_ASSET, shadow, RECOLOR_SET);
+    Asset_GetRecolorImage(REVERSE_ITEM_ASSET, shadow, RECOLOR_SET);
 }
 
-static CP_Image load_shadow(Asset* node, CP_Image image, const char* filepath) {
+static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath) {
     // load the image into memory and check if it exists
     node->image = image;
     if (node->image == NULL) {
@@ -249,15 +250,14 @@ CP_Image Asset_GetImage(const char* filepath) {
     return NULL;
 }
 
-CP_Image Asset_Get_ShadowImage(const char* filepath) {
-    
-    char shadow_path[512];
-    sprintf_s(shadow_path, 512, "%s//shadow", filepath);
-    CP_Image root = Asset_GetImage(shadow_path); // get the already created shadow image if exists
+CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolorMethod method) {
+    char colored_path[512];
+    sprintf_s(colored_path, 512, "%s//%c%c%c%c", filepath, color.r, color.g, color.b, color.a);
+    CP_Image root = Asset_GetImage(colored_path); // get the already created recolored image if exists
     if (root != NULL)
         return root;
-    
-    // get the original image to shadow
+
+    // get the original image to recolor
     root = Asset_GetImage(filepath);
     if (root == NULL)
         return NULL;
@@ -269,27 +269,48 @@ CP_Image Asset_Get_ShadowImage(const char* filepath) {
 
     // create the array using the image size and the size of a CP_Color
     CP_Color* colorArray = gc_calloc(arraySize, sizeof(CP_Color));
-    
+
     // load the pixel data into the color array
     CP_Image_GetPixelData(root, colorArray);
     for (int i = 0; i < arraySize; ++i) {
-        if (colorArray[i].a > 0) { // set any non-transparent pixel as black
-            colorArray[i] = Get_Color(COLOR_BLACK);
+        switch (method) {
+            case RECOLOR_MULTIPLY:
+                if (colorArray[i].a > 0) { // multiply any non-transparent pixel color
+                    colorArray[i].r = (unsigned char)((float)(colorArray[i].r / 255) * (float)(color.r / 255)) * 255;
+                    colorArray[i].g = (unsigned char)((float)(colorArray[i].g / 255) * (float)(color.g / 255)) * 255;
+                    colorArray[i].b = (unsigned char)((float)(colorArray[i].b / 255) * (float)(color.b / 255)) * 255;
+                    colorArray[i].a = (unsigned char)((float)(colorArray[i].a / 255) * (float)(color.a / 255)) * 255;
+                }
+                break;
+            case RECOLOR_ADD: // add any non-transparent pixel colors together
+                if (colorArray[i].a > 0) {
+                    colorArray[i].r += color.r;
+                    colorArray[i].g += color.g;
+                    colorArray[i].b += color.b;
+                    colorArray[i].a += color.a;
+                }
+                break;
+            case RECOLOR_SET:
+                if (colorArray[i].a > 0) { // set any non-transparent pixel color
+                    colorArray[i] = color;
+                }
+                break;
+            default: break;
         }
     }
 
     // create a shadow image from the color array
-    CP_Image shadowed_image = CP_Image_CreateFromData(w, h, (unsigned char*) colorArray);
+    CP_Image recolored_image = CP_Image_CreateFromData(w, h, (unsigned char*)colorArray);
     gc_free(colorArray); // after creating this image, we can free up the color array buffer
     for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->next == NULL) {
             ptr->next = gc_malloc(sizeof(Asset));
             // load this image into this new node
-            load_shadow(ptr->next, shadowed_image, shadow_path);
+            set_node_image(ptr->next, recolored_image, colored_path);
             break;
         }
     }
-    return shadowed_image;
+    return recolored_image;
 }
 
 CP_Font Asset_GetFont(const char* filepath) {

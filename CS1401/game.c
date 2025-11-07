@@ -342,8 +342,8 @@ void Game_UpdatePhysics(float dt)
 			}
 		}
 
-		// spawn the particles every half a second
-		if ((particle_counter += dt) >= 0.5f) {
+		// spawn the particles every 0.1s
+		if ((particle_counter += dt) >= 0.1f) {
 			int amount = 1;
 			float radius = particle_type == PARTICLE_STAR ? golf->diameter * 0.1f : golf->diameter * 0.5f;
 			float speed = particle_type == PARTICLE_STAR ? 0.f : 1.f;
@@ -847,16 +847,16 @@ void Game_RenderShadows(void) {
 		CP_Image image = NULL;
 		switch (item->type) {
 		case ITEM_BOOST:
-			image = Asset_Get_ShadowImage(BOOST_ITEM_ASSET);
+			image = Asset_GetRecolorImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
 			break;
 		case ITEM_GROW:
-			image = Asset_Get_ShadowImage(BIG_ITEM_ASSET);
+			image = Asset_GetRecolorImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
 			break;
 		case ITEM_SHRINK:
-			image = Asset_Get_ShadowImage(SMALL_ITEM_ASSET);
+			image = Asset_GetRecolorImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
 			break;
 		case ITEM_REVERSE:
-			image = Asset_Get_ShadowImage(REVERSE_ITEM_ASSET);
+			image = Asset_GetRecolorImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
 			break;
 		default:
 			break;
