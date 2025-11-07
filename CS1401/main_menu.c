@@ -200,8 +200,8 @@ void main_menu_init(void)
 
 	//Shop Buy Button
 	buttons[16].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
-	buttons[16].pos.x = world_width1 * 0.2f;
-	buttons[16].pos.y = world_height1 * 0.3f;
+	buttons[16].pos.x = world_width1 * 0.3f;
+	buttons[16].pos.y = world_height1 * 0.32f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
 	buttons[16].text = "BUY";
 
@@ -617,7 +617,7 @@ void shops_button(float mouse_x, float mouse_y)
 			}
 		}
 		else {
-			if (is_buy_clicked) {
+			if (is_shop_clicked) {
 				buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 6.0f, CP_System_GetDt() * 5);
 				buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 2.0f, CP_System_GetDt() * 5);
 				buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 0.95f, CP_System_GetDt() * 5);
@@ -774,9 +774,11 @@ void shop_button(void) {
 
 void buy_button(void) {
 	is_buy_clicked = !is_buy_clicked;
+	
 	switch (is_buy_clicked) {
 		case true:
-			
+			buttons[16].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+			buttons[16].text = "EQUIP";
 			break;
 		
 		case false:
