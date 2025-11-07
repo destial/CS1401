@@ -113,11 +113,10 @@ void game_init(void)
 	all_balls_stopped = true;
 	editor_mode = false;
 
-	//Play_Music(get_audio(GOLF_HIT_WALL_ASSET));
-	//CP_Sound_PlayAdvanced(get_audio(BACKGROUND_MUSIC_ASSET), CP_Sound_GetGroupVolume(CP_SOUND_GROUP_MUSIC), 1.f, true, CP_SOUND_GROUP_MUSIC);
-
 	// fix timestep
 	current_time = CP_System_GetSeconds();
+
+	// camera matrix transformation
 	camera_matrix = CP_Matrix_Identity();
 	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
@@ -898,11 +897,10 @@ void game_exit(void)
 	FREE_MEMORY(golf_balls.arr);
 	FREE_MEMORY(holes.arr);
 	reset_strokes();
+	Particles_Free();
 	if (Get_Next_State() == STATE_GAME && !resetting) {
 		Assets_Free();
-		Particles_Free();
 	}
-	Particles_Free();
 	printf("Exit game\n");
 }
 

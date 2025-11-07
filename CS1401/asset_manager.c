@@ -208,9 +208,13 @@ static void free_asset(Asset* map) {
         map->sprite->root_image = NULL;
         FREE_MEMORY(map->sprite);
     }
+    else if (map->type == ASSET_TYPELESS && map->value != NULL) {
+        FREE_MEMORY(map->value);
+    }
 
     // free up the key memory address (we used malloc here)
     if (map->key) {
+        printf("Freeing up %s\n", map->key);
         FREE_MEMORY(map->key);
     }
 
@@ -251,8 +255,8 @@ CP_Image Asset_GetImage(const char* filepath) {
 }
 
 CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolorMethod method) {
-    char colored_path[512];
-    sprintf_s(colored_path, 512, "%s//%c%c%c%c", filepath, color.r, color.g, color.b, color.a);
+    char colored_path[128];
+    sprintf_s(colored_path, 128, "%s//%02x%02x%02x%02x", filepath, (int)color.r, (int)color.g, (int)color.b, (int)color.a);
     CP_Image root = Asset_GetImage(colored_path); // get the already created recolored image if exists
     if (root != NULL)
         return root;
@@ -276,10 +280,10 @@ CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolo
         switch (method) {
             case RECOLOR_MULTIPLY:
                 if (colorArray[i].a > 0) { // multiply any non-transparent pixel color
-                    colorArray[i].r = (unsigned char)((float)(colorArray[i].r / 255) * (float)(color.r / 255)) * 255;
-                    colorArray[i].g = (unsigned char)((float)(colorArray[i].g / 255) * (float)(color.g / 255)) * 255;
-                    colorArray[i].b = (unsigned char)((float)(colorArray[i].b / 255) * (float)(color.b / 255)) * 255;
-                    colorArray[i].a = (unsigned char)((float)(colorArray[i].a / 255) * (float)(color.a / 255)) * 255;
+                    colorArray[i].r = (unsigned char) (((colorArray[i].r / 255.f) * (color.r / 255.f)) * 255.f);
+                    colorArray[i].g = (unsigned char) (((colorArray[i].g / 255.f) * (color.g / 255.f)) * 255.f);
+                    colorArray[i].b = (unsigned char) (((colorArray[i].b / 255.f) * (color.b / 255.f)) * 255.f);
+                    colorArray[i].a = (unsigned char) (((colorArray[i].a / 255.f) * (color.a / 255.f)) * 255.f);
                 }
                 break;
             case RECOLOR_ADD: // add any non-transparent pixel colors together
