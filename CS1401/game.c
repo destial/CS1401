@@ -846,16 +846,16 @@ void Game_RenderShadows(void) {
 		CP_Image image = NULL;
 		switch (item->type) {
 		case ITEM_BOOST:
-			image = Asset_GetRecolorImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
+			image = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_GROW:
-			image = Asset_GetRecolorImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
+			image = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_SHRINK:
-			image = Asset_GetRecolorImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
+			image = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		case ITEM_REVERSE:
-			image = Asset_GetRecolorImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), RECOLOR_SET);
+			image = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
 		default:
 			break;

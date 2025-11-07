@@ -40,10 +40,10 @@ void Asset_Preload(void) {
     // only the item assets have a shadow image
     // and its very costly to create them, so we preload
     CP_Color shadow = CP_Color_Create(0, 0, 0, 255);
-    Asset_GetRecolorImage(BOOST_ITEM_ASSET, shadow, RECOLOR_SET);
-    Asset_GetRecolorImage(BIG_ITEM_ASSET, shadow, RECOLOR_SET);
-    Asset_GetRecolorImage(SMALL_ITEM_ASSET, shadow, RECOLOR_SET);
-    Asset_GetRecolorImage(REVERSE_ITEM_ASSET, shadow, RECOLOR_SET);
+    Asset_GetBlendedImage(BOOST_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(BIG_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(SMALL_ITEM_ASSET, shadow, BLEND_SET);
+    Asset_GetBlendedImage(REVERSE_ITEM_ASSET, shadow, BLEND_SET);
 }
 
 static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath) {
@@ -254,7 +254,7 @@ CP_Image Asset_GetImage(const char* filepath) {
     return NULL;
 }
 
-CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolorMethod method) {
+CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendMode mode) {
     char colored_path[128];
     sprintf_s(colored_path, 128, "%s//%02x%02x%02x%02x", filepath, (int)color.r, (int)color.g, (int)color.b, (int)color.a);
     CP_Image root = Asset_GetImage(colored_path); // get the already created recolored image if exists
@@ -277,8 +277,8 @@ CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolo
     // load the pixel data into the color array
     CP_Image_GetPixelData(root, colorArray);
     for (int i = 0; i < arraySize; ++i) {
-        switch (method) {
-            case RECOLOR_MULTIPLY:
+        switch (mode) {
+            case BLEND_MULTIPLY:
                 if (colorArray[i].a > 0) { // multiply any non-transparent pixel color
                     colorArray[i].r = (unsigned char) (((colorArray[i].r / 255.f) * (color.r / 255.f)) * 255.f);
                     colorArray[i].g = (unsigned char) (((colorArray[i].g / 255.f) * (color.g / 255.f)) * 255.f);
@@ -286,15 +286,23 @@ CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolo
                     colorArray[i].a = (unsigned char) (((colorArray[i].a / 255.f) * (color.a / 255.f)) * 255.f);
                 }
                 break;
-            case RECOLOR_ADD: // add any non-transparent pixel colors together
+            case BLEND_ADD: // add any non-transparent pixel colors together, not including alpha
                 if (colorArray[i].a > 0) {
-                    colorArray[i].r += color.r;
-                    colorArray[i].g += color.g;
-                    colorArray[i].b += color.b;
-                    colorArray[i].a += color.a;
+                    colorArray[i].r = min(255, (int)colorArray[i].r + (int)color.r);
+                    colorArray[i].g = min(255, (int)colorArray[i].g + (int)color.g);
+                    colorArray[i].b = min(255, (int)colorArray[i].b + (int)color.b);
+
                 }
                 break;
-            case RECOLOR_SET:
+            case BLEND_ADD_ALPHA: // add any non-transparent pixel colors together
+                if (colorArray[i].a > 0) {
+                    colorArray[i].r = min(255, (int)colorArray[i].r + (int)color.r);
+                    colorArray[i].g = min(255, (int)colorArray[i].g + (int)color.g);
+                    colorArray[i].b = min(255, (int)colorArray[i].b + (int)color.b);
+                    colorArray[i].a = min(255, (int)colorArray[i].a + (int)color.a);
+                }
+                break;
+            case BLEND_SET:
                 if (colorArray[i].a > 0) { // set any non-transparent pixel color
                     colorArray[i] = color;
                 }
@@ -444,5 +452,5 @@ void Assets_Free(void) {
     // recursive freeing
     free_asset(root_assets);
     root_assets = NULL;
-    printf("Freeing up all assets\n");
+    printf("Freed up all assets\n");
 }

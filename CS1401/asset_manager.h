@@ -71,11 +71,12 @@
 
 typedef struct AssetStruct Asset;
 
-typedef enum AssetRecolorEnum {
-	RECOLOR_ADD,
-	RECOLOR_MULTIPLY,
-	RECOLOR_SET
-} AssetRecolorMethod;
+typedef enum AssetBlendEnum {
+	BLEND_ADD,
+	BLEND_ADD_ALPHA,
+	BLEND_MULTIPLY,
+	BLEND_SET
+} AssetBlendMode;
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -92,12 +93,12 @@ CP_Image Asset_GetImage(const char* filepath);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Recolor the image at this filepath, recoloring the pixel color by the given color parameter
+@brief Blend the image at this filepath with the given color parameter
 @param filepath - The image filepath
-@param color - The color to recolor each pixel by
-@param method - The method to use when recoloring the pixel
+@param color - The color to blend each pixel by
+@param method - The blend mode to use for each pixel
 */
-CP_Image Asset_GetRecolorImage(const char* filepath, CP_Color color, AssetRecolorMethod method);
+CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendMode mode);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
