@@ -67,6 +67,8 @@ star scoregs[3];
 
 CP_Color white_colour;
 
+CP_Font sb_button_font;
+
 static int IsAreaClicked(float area_center_x, float area_center_y, float area_width, float area_height, float click_x, float click_y)
 {
 	//area_center_x, area_center_y is the center coord of rectangle
@@ -170,6 +172,10 @@ void scoring_init() {
 	//reset the clicks
 	clickbb_x = 0; 
 	clickbb_y = 0;
+
+	sb_button_font = Asset_GetFont(ARIAL_FONT_ASSET);
+
+	CP_Font_Set(sb_button_font);
 };
 
 void scoring_update(void) {
