@@ -28,5 +28,6 @@ void back_buttons(float mouse_x, float mouse_y);
 void buy_button(void);
 void is_shadow(void);
 bool get_shadow_setting(void);
+void draw_logo_image(void);
 
 #endif
