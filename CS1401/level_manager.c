@@ -257,7 +257,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
 
     // save the walls now
     int wall_index = 0;
-    for (int i = 1; i < walls->length; ++i) {
+    for (int i = 5; i < walls->length; ++i) {
         Wall* wall = (Wall*)walls->arr + i;
         if (wall == NULL || wall->destroyed || wall->scale.x <= 0.f || wall->scale.y <= 0.f)
             continue;

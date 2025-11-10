@@ -32,6 +32,8 @@ typedef enum ColorCodeEnum {
 	COLOR_PINK,
 	COLOR_WHITE,
 	COLOR_CLEAR,
+	COLOR_GRAY,
+	COLOR_CARMINE,
 	LAST_COLOR
 } ColorCode;
 
