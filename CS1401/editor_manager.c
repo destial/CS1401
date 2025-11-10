@@ -67,7 +67,7 @@ void Editor_Update_Walls(ObjectArray* walls) {
 		}
 	}
 
-	for (int i = 0; i < walls->length; i++) {
+	for (int i = 5; i < walls->length; i++) {
 		Wall* wall = (Wall*)walls->arr + i;
 		if (wall == NULL || wall->destroyed)
 			continue;
@@ -434,39 +434,13 @@ void Editor_Update_End(void) {
 			if (current_type == EDIT_WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
-
-				// angle snapping
-				if (fabs((double)(45.f - wall->angle)) <= 3.f) {
-					wall->angle = 45.f;
+				for (float a = 0.f; a <= 360.f; a += 45.f) {
+					// angle snapping
+					if (fabs((double)(a - wall->angle)) <= 3.f) {
+						wall->angle = a;
+					}
 				}
 
-				if (fabs((double)(90.f - wall->angle)) <= 3.f) {
-					wall->angle = 90.f;
-				}
-
-				if (fabs((double)(135.f - wall->angle)) <= 3.f) {
-					wall->angle = 135.f;
-				}
-
-				if (fabs((double)(180.f - wall->angle)) <= 3.f) {
-					wall->angle = 180.f;
-				}
-
-				if (fabs((double)(225.f - wall->angle)) <= 3.f) {
-					wall->angle = 225.f;
-				}
-
-				if (fabs((double)(270.f - wall->angle)) <= 3.f) {
-					wall->angle = 270.f;
-				}
-
-				if (fabs((double)(315.f - wall->angle)) <= 3.f) {
-					wall->angle = 315.f;
-				}
-
-				if (fabs((double)(wall->angle)) <= 3.f) {
-					wall->angle = 0.f;
-				}
 				editor_dirty = true;
 			} else if (current_type == EDIT_TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
@@ -530,7 +504,7 @@ void Editor_Render(void) {
 	CP_Settings_TextSize(50.f);
 	// editor dirty here to make sure that any changes need to be saved
 	char e[100]; sprintf_s(e, 100, "%sEditor Mode! Press P to toggle modes!", editor_dirty ? "*" : "");
-	CP_Font_DrawText(e, CP_System_GetWindowWidth() * 0.5f, 50.f);
+	CP_Font_DrawText(e, CP_System_GetWindowWidth() * 0.5f, 20.f);
 
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(20.f);

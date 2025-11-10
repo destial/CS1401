@@ -75,6 +75,11 @@ CP_Color Get_Color(ColorCode code) {
 	return colors[code];
 }
 
+CP_Color Get_ColorAlpha(ColorCode code, int alpha) {
+	CP_Color c = Get_Color(code);
+	return (CP_Color) {c.r, c.g, c.b, alpha};
+}
+
 int gcd(int a, int b) {
 	// find min of a and b
 	int result = min(a, b);

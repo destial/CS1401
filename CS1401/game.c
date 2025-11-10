@@ -152,7 +152,7 @@ void game_init(void)
 {
 	Set_Current_State(STATE_GAME);
 	printf("Init game\n");
-	font = Asset_GetFont(ESL_FONT_ASSET);
+	font = Asset_GetFont(ARIAL_FONT_ASSET);
 	golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
 	background_image = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	CP_Settings_TextSize(20.f);
@@ -162,6 +162,8 @@ void game_init(void)
 	items.arr = NULL;
 	walls.arr = NULL;
 	terrains.arr = NULL;
+	holes.arr = NULL;
+	golf_balls.arr = NULL;
 
 	// load the current level file set from current_level variable
 	Game_Load();
@@ -519,8 +521,10 @@ void Game_Render(void)
 	Game_RenderUI();
 
 	if (editor_mode) {
-		Editor_Render();		
+		Editor_Render();
 	}
+
+	CP_Image_Draw(background_image, 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int) (255.f * translate));
 }
 
 void Game_RenderUI(void) {
@@ -613,9 +617,9 @@ void Game_RenderTerrains(void) {
 	Terrain* terrain_arr = Get_Terrains();
 	CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 	CP_Settings_RectMode(CP_POSITION_CENTER);
-	CP_Color sand = Get_Color(COLOR_ORANGE);
-	CP_Color ice = Get_Color(COLOR_LIGHT_BLUE);
-	CP_Color pit = Get_Color(COLOR_RED);
+	CP_Color sand = Get_ColorAlpha(COLOR_ORANGE, 128);
+	CP_Color ice = Get_ColorAlpha(COLOR_LIGHT_BLUE, 128);
+	CP_Color pit = Get_ColorAlpha(COLOR_RED, 128);
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* terrain = terrain_arr + i;
@@ -624,15 +628,12 @@ void Game_RenderTerrains(void) {
 
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
 		
-		CP_Settings_Fill(
-			terrain->type == TERRAIN_SAND ? CP_Color_Create(sand.r, sand.g, sand.b, (int)(128.f * (1.f - translate))) :
-			terrain->type == TERRAIN_ICE ? CP_Color_Create(ice.r, ice.g, ice.b, (int)(128.f * (1.f - translate))) :
-			CP_Color_Create(pit.r, pit.g, pit.b, (int)(128.f * (1.f - translate))));
+		CP_Settings_Fill(terrain->type == TERRAIN_SAND ? sand : terrain->type == TERRAIN_ICE ? ice : pit);
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y,
-			terrain->scale.x * world_ratios.x,
-			terrain->scale.y * world_ratios.y,
+			terrain->scale.x * world_ratios.x * (1.f - translate),
+			terrain->scale.y * world_ratios.y * (1.f - translate),
 			terrain->angle,
 			2.f
 		);
@@ -668,15 +669,14 @@ void Game_RenderWalls(void) {
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		if (wall->image == NULL) { // theres no image for this wall (most likely the middle wall)
-			CP_Color a = CP_Color_Create(wall->color.r, wall->color.g, wall->color.b, (int)(255.f * (1.f - translate)));
-			CP_Settings_Fill(a);
+			CP_Settings_Fill(wall->color);
 			CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(
 				c.x,
 				c.y,
-				wall->scale.x * world_ratios.x,
-				wall->scale.y * world_ratios.y,
+				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - translate) : 1.f),
+				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - translate) : 1.f),
 				wall->angle,
 				0.f
 			);
@@ -696,10 +696,10 @@ void Game_RenderWalls(void) {
 			CP_Image_DrawSubImageAdvanced(wall->image,
 				c.x,
 				c.y,
-				wall->scale.x * world_ratios.x,
-				wall->scale.y * world_ratios.y,
+				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - translate) : 1.f),
+				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - translate) : 1.f),
 				0.f, 0.f, w * (wall->scale.x / d), h * (wall->scale.y / d),
-				(int)(255.f * (1.f - translate)), wall->angle
+				255, wall->angle
 			);
 
 			CP_Settings_Restore();
@@ -744,8 +744,6 @@ void Game_RenderWalls(void) {
 void Game_RenderHoles(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Hole* hole_arr = Get_Holes();
-	CP_Color outline = CP_Color_Create(Get_Color(COLOR_WHITE).r, Get_Color(COLOR_WHITE).b, Get_Color(COLOR_WHITE).g, (int) (255.f * (1.f - translate)));
-	CP_Color fill = CP_Color_Create(Get_Color(COLOR_BLACK).r, Get_Color(COLOR_BLACK).b, Get_Color(COLOR_BLACK).g, (int)(255.f * (1.f - translate)));
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
 		if (hole == NULL || hole->destroyed)
@@ -753,12 +751,12 @@ void Game_RenderHoles(void) {
 
 		CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
 		
-		CP_Settings_Stroke(outline);
-		CP_Settings_Fill(fill);
+		CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Graphics_DrawCircle(
 			coords.x,
 			coords.y,
-			hole->diameter * world_ratios.x);
+			hole->diameter * world_ratios.x * (1.f - translate));
 
 		if (debug_enabled) {
 			CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
@@ -818,9 +816,9 @@ void Game_RenderItems(void) {
 			CP_Image_DrawAdvanced(image,
 				coords.x,
 				coords.y,
-				item->diameter * world_ratios.x * anim_mul,
-				item->diameter * world_ratios.x * anim_mul,
-				255 * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				255,
 				item->angle);
 		}
 
@@ -828,9 +826,9 @@ void Game_RenderItems(void) {
 			Sprite_Draw(sprite,
 				coords.x,
 				coords.y,
-				item->diameter * world_ratios.x * anim_mul,
-				item->diameter * world_ratios.x * anim_mul,
-				255 * (1.f - translate));
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				255);
 		}
 
 		if (debug_enabled) {
@@ -868,9 +866,9 @@ void Game_RenderGolfs(void) {
 		CP_Image_DrawAdvanced(golf_ball_image,
 			coords.x,
 			coords.y,
-			golf->diameter * world_ratios.x,
-			golf->diameter * world_ratios.x,
-			(int)(255.f * (1.f - translate)),
+			golf->diameter * world_ratios.x * (1.f - translate),
+			golf->diameter * world_ratios.x * (1.f - translate),
+			255,
 			golf->angle);
 
 		if (swinging) {
@@ -920,10 +918,10 @@ void Game_RenderShadows(void) {
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		
 		CP_Graphics_DrawRectAdvanced(
-			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+			c.x,
 			c.y + 5.f,
-			wall->scale.x * world_ratios.x,
-			wall->scale.y * world_ratios.y,
+			wall->scale.x * world_ratios.x * i > 4 ? (1.f - translate) : 1.f,
+			wall->scale.y * world_ratios.y * i > 4 ? (1.f - translate) : 1.f,
 			wall->angle,
 			0.f
 		);
@@ -960,10 +958,10 @@ void Game_RenderShadows(void) {
 
 		if (image != NULL) {
 			CP_Image_DrawAdvanced(image,
-				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.x,
 				coords.y + 5.f,
-				item->diameter * world_ratios.x * anim_mul,
-				item->diameter * world_ratios.x * anim_mul,
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
 				shadow.a,
 				item->angle);
 		}
@@ -978,10 +976,10 @@ void Game_RenderShadows(void) {
 
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 		CP_Graphics_DrawEllipse(
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.x,
 			coords.y + 5.f,
-			golf->diameter * world_ratios.x,
-			golf->diameter * world_ratios.y + 5.f);
+			golf->diameter * world_ratios.x * (1.f - translate),
+			(golf->diameter * world_ratios.y + 5.f) * (1.f - translate));
 	}
 }
 

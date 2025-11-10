@@ -106,8 +106,17 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 /*!
 @brief Get a defined color
 @param code - The color code
+@return A defined color in memory
 */
 CP_Color Get_Color(ColorCode code);
+
+/*!
+@brief Get a defined color with a varied alpha
+@param code - The color code
+@param alpha - The alpha level
+@return A copy of the defined color with the desired alpha level
+*/
+CP_Color Get_ColorAlpha(ColorCode code, int alpha);
 
 /*!
 @brief The greatest common divisor between two integers (e.g. a / b, to find the simplest fraction)

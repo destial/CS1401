@@ -46,10 +46,10 @@ void Asset_Preload(void) {
     Asset_GetBlendedImage(REVERSE_ITEM_ASSET, shadow, BLEND_SET);
 }
 
-static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath) {
+static void* set_node(Asset* node, AssetType type, void* value, const char* filepath) {
     // load the image into memory and check if it exists
-    node->image = image;
-    if (node->image == NULL) {
+    node->value = value;
+    if (node->value == NULL) {
         node->key = NULL;
         node->next = NULL;
         node->type = 0;
@@ -66,7 +66,7 @@ static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath
         node->key = filepath;
     }
 
-    node->type = ASSET_IMAGE;
+    node->type = type;
     node->next = NULL;
     return node->image;
 }
@@ -78,28 +78,7 @@ static CP_Image set_node_image(Asset* node, CP_Image image, const char* filepath
 @param filepath - The filepath of the image file
 */
 static CP_Image load_image(Asset* node, const char* filepath) {
-    // load the image into memory and check if it exists
-    node->image = CP_Image_Load(filepath);
-    if (node->image == NULL) {
-        node->key = NULL;
-        node->next = NULL;
-        node->type = 0;
-        return NULL;
-    }
-
-    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
-    // allocate the memory address for the key
-    node->key = gc_malloc(l);
-    if (node->key) {
-        strcpy_s(node->key, l, filepath);
-    }
-    else {
-        node->key = filepath;
-    }
-
-    node->type = ASSET_IMAGE;
-    node->next = NULL;
-    return node->image;
+    return (CP_Image) set_node(node, ASSET_IMAGE, CP_Image_Load(filepath), filepath);
 }
 
 /*!
@@ -109,28 +88,7 @@ static CP_Image load_image(Asset* node, const char* filepath) {
 @param filepath - The filepath of the font file
 */
 static CP_Font load_font(Asset* node, const char* filepath) {
-    // load the font into memory and check if it exists
-    node->font = CP_Font_Load(filepath);
-    if (node->font == NULL) {
-        node->key = NULL;
-        node->next = NULL;
-        node->type = 0;
-        return NULL;
-    }
-
-    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
-    // allocate the memory address for the key
-    node->key = gc_malloc(l);
-    if (node->key) {
-        strcpy_s(node->key, l, filepath);
-    }
-    else {
-        node->key = filepath;
-    }
-    
-    node->type = ASSET_FONT;
-    node->next = NULL;
-    return node->font;
+    return (CP_Font) set_node(node, ASSET_FONT, CP_Font_Load(filepath), filepath);
 }
 
 /*!
@@ -140,28 +98,7 @@ static CP_Font load_font(Asset* node, const char* filepath) {
 @param filepath - The filepath of the audio file
 */
 static CP_Sound load_audio(Asset* node, const char* filepath) {
-    // load the font into memory and check if it exists
-    node->audio = CP_Sound_Load(filepath);
-    if (node->audio == NULL) {
-        node->key = NULL;
-        node->next = NULL;
-        node->type = 0;
-        return NULL;
-    }
-
-    size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
-    // allocate the memory address for the key
-    node->key = gc_malloc(l);
-    if (node->key) {
-        strcpy_s(node->key, l, filepath);
-    }
-    else {
-        node->key = filepath;
-    }
-
-    node->type = ASSET_AUDIO;
-    node->next = NULL;
-    return node->audio;
+    return (CP_Sound) set_node(node, ASSET_AUDIO, CP_Sound_Load(filepath), filepath);
 }
 
 static Asset* get_node(const char* key) {
@@ -318,7 +255,7 @@ CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendM
         if (ptr->next == NULL) {
             ptr->next = gc_malloc(sizeof(Asset));
             // load this image into this new node
-            set_node_image(ptr->next, recolored_image, colored_path);
+            set_node(ptr->next, ASSET_IMAGE, recolored_image, colored_path);
             break;
         }
     }
