@@ -23,6 +23,8 @@
 // initialize global variables here
 CP_Font font;
 CP_Image golf_ball_image, background_image;
+CP_Sound hit_sound;
+void* item_image_cache[ITEM_LAST];
 
 // mouse positions in screen and world space
 CP_Vector mouse = { 0, 0 }, mouse_world = { 0, 0 };
@@ -155,6 +157,13 @@ void game_init(void)
 	font = Asset_GetFont(ARIAL_FONT_ASSET);
 	golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
 	background_image = Asset_GetImage(GAME_BACKGROUND_ASSET);
+	hit_sound = Asset_GetAudio(GOLF_HIT_WALL_ASSET);
+	item_image_cache[ITEM_BOOST - 1] = Asset_GetImage(BOOST_ITEM_ASSET);
+	item_image_cache[ITEM_GROW - 1] = Asset_GetImage(BIG_ITEM_ASSET);
+	item_image_cache[ITEM_SHRINK - 1] = Asset_GetImage(SMALL_ITEM_ASSET);
+	item_image_cache[ITEM_REVERSE - 1] = Asset_GetImage(REVERSE_ITEM_ASSET);
+	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -254,7 +263,7 @@ void Game_UpdatePhysics(float dt)
 		if (swinging == 0.f) {
 			current = NULL;
 			add_stroke();
-			CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+			CP_Sound_Play(hit_sound);
 			turn_now = 0.f;
 		}
 	}
@@ -372,7 +381,7 @@ void Game_UpdatePhysics(float dt)
 				golf->pos.x = world_limits.x - golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
-				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(hit_sound);
 			}
 
 			// bound the ball at the left border
@@ -380,7 +389,7 @@ void Game_UpdatePhysics(float dt)
 				golf->pos.x = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
-				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(hit_sound);
 			}
 
 			// bound the ball at the top border
@@ -388,7 +397,7 @@ void Game_UpdatePhysics(float dt)
 				golf->pos.y = world_limits.y - golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
-				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(hit_sound);
 			}
 
 			// bound the ball at the bottom border
@@ -396,7 +405,7 @@ void Game_UpdatePhysics(float dt)
 				golf->pos.y = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
-				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+				CP_Sound_Play(hit_sound);
 			}
 
 			// rotate the ball based on its x-axis velocity
@@ -523,8 +532,6 @@ void Game_Render(void)
 	if (editor_mode) {
 		Editor_Render();
 	}
-
-	CP_Image_Draw(background_image, 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int) (255.f * translate));
 }
 
 void Game_RenderUI(void) {
@@ -784,23 +791,12 @@ void Game_RenderItems(void) {
 		CP_Image image = NULL;
 		SpriteSheet* sprite = NULL;
 		switch (item->type) {
-		case ITEM_BOOST:
-			image = Asset_GetImage(BOOST_ITEM_ASSET);
-			break;
-		case ITEM_GROW:
-			image = Asset_GetImage(BIG_ITEM_ASSET);
-			break;
-		case ITEM_SHRINK:
-			image = Asset_GetImage(SMALL_ITEM_ASSET);
-			break;
-		case ITEM_REVERSE:
-			image = Asset_GetImage(REVERSE_ITEM_ASSET);
-			break;
 		case ITEM_PORTAL:
-			sprite = Asset_GetSprite(item->pos.x <= world_limits.x * 0.5f ? BLUE_PORTAL_SPRITE_ASSET : ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+			sprite = item_image_cache[(item->pos.x <= world_limits.x * 0.5f ? ITEM_PORTAL - 1 : ITEM_PORTAL)];
 			anim_mul = 1.f;
 			break;
 		default:
+			image = item_image_cache[item->type - 1];
 			break;
 		}
 
@@ -1299,7 +1295,7 @@ void Collision_Response_Ball(GolfBall* ball_1, GolfBall* ball_2) {
 	ball_1->vel = CP_Vector_Add(ball_1->vel, CP_Vector_Scale(impulse, im1));
 	ball_2->vel = CP_Vector_Subtract(ball_2->vel, CP_Vector_Scale(impulse, im2));
 
-	CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_Play(hit_sound);
 }
 
 // as the name implies, it handles what to do when the ball hits a wall
@@ -1331,7 +1327,7 @@ void Collision_Response_Wall(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vec
 	ball->vel.y = reflection.y / resistance;
 	//} 
 
-	CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+	CP_Sound_Play(hit_sound);
 }
 
 float Get_Resistance_At(CP_Vector pos) {
