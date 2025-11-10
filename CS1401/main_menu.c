@@ -32,7 +32,7 @@ typedef struct ButtonStr {
 } Button;
 
 float world_width1 = 48, world_height1 = 27;
-float logo_x, logo_y, logo_start_x;
+float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
 int window_size_H, window_size_W;
 int resolution_number = 0;
 
@@ -102,7 +102,7 @@ void main_menu_init(void)
 	//start of level select button
 	buttons[3].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
 	buttons[3].pos.x = world_width1 * 1.1f;
-	buttons[3].pos.y = world_height1 * .8f;
+	buttons[3].pos.y = world_height1 * .7f;
 	buttons[3].ending_pos.x = world_width1 * 0.1f;
 	buttons[3].start_pos.x = buttons[3].pos.x;
 	buttons[3].func = change_screen;
@@ -110,7 +110,7 @@ void main_menu_init(void)
 
 	buttons[4].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
 	buttons[4].pos.x = world_width1 * 1.2f;
-	buttons[4].pos.y = world_height1 * .8f;
+	buttons[4].pos.y = world_height1 * .7f;
 	buttons[4].ending_pos.x = world_width1 * 0.2f;
 	buttons[4].start_pos.x = buttons[4].pos.x;
 	buttons[4].func = change_screen;
@@ -118,7 +118,7 @@ void main_menu_init(void)
 
 	buttons[5].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
 	buttons[5].pos.x = world_width1 * 1.3f;
-	buttons[5].pos.y = world_height1 * .8f;
+	buttons[5].pos.y = world_height1 * .7f;
 	buttons[5].ending_pos.x = world_width1 * 0.3f;
 	buttons[5].start_pos.x = buttons[5].pos.x;
 	buttons[5].func = change_screen;
@@ -126,7 +126,7 @@ void main_menu_init(void)
 
 	buttons[6].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
 	buttons[6].pos.x = world_width1 * 1.4f;
-	buttons[6].pos.y = world_height1 * .8f;
+	buttons[6].pos.y = world_height1 * .7f;
 	buttons[6].ending_pos.x = world_width1 * 0.4f;
 	buttons[6].start_pos.x = buttons[6].pos.x;
 	buttons[6].func = change_screen;
@@ -134,7 +134,7 @@ void main_menu_init(void)
 
 	buttons[7].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
 	buttons[7].pos.x = world_width1 * 1.5f;
-	buttons[7].pos.y = world_height1 * .8f;
+	buttons[7].pos.y = world_height1 * .7f;
 	buttons[7].ending_pos.x = world_width1 * 0.5f;
 	buttons[7].start_pos.x = buttons[7].pos.x;
 	buttons[7].func = change_screen;
@@ -144,7 +144,7 @@ void main_menu_init(void)
 	//level select back button
 	buttons[8].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	buttons[8].pos.x = world_width1 * 1.5f;
-	buttons[8].pos.y = world_height1 * .15f;
+	buttons[8].pos.y = world_height1 * .9f;
 	buttons[8].ending_pos.x = world_width1 * 0.1f;
 	buttons[8].start_pos.x = buttons[8].pos.x;
 	buttons[8].func = play_button;
@@ -237,6 +237,11 @@ void main_menu_init(void)
 	logo_start_x = CP_System_GetWindowWidth() * 0.5f;
 	logo_x = CP_System_GetWindowWidth() * 0.5f;
 	logo_y = CP_System_GetWindowHeight() * 0.3f;
+
+	level_select_start = CP_System_GetWindowWidth() * 1.5f;
+	level_select_end = CP_System_GetWindowWidth() * 0.5f;
+	level_select_x = level_select_start;
+	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 
 	CP_Sound_StopAll();
 	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
@@ -375,6 +380,12 @@ void main_menu_button(float mouse_x, float mouse_y) {
 }
 
 void level_select_button(float mouse_x, float mouse_y) {
+
+	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+	CP_Settings_TextSize(2 * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+	CP_Font_DrawText("Level Select", level_select_x, level_select_y);
+
 	//LEVEL SELECT BUTTONS
 	for (int i = 3; i < 3 + TOTAL_LEVELS; i++) {
 		//defining the position of the button
@@ -393,11 +404,14 @@ void level_select_button(float mouse_x, float mouse_y) {
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
+
 		if (is_clicked == 1) {
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].ending_pos.x, CP_System_GetDt() * 4);
+			level_select_x = CP_Math_LerpFloat(level_select_x, level_select_end, CP_System_GetDt());
 		}
 		else {
 			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].start_pos.x, CP_System_GetDt() * 4);
+			level_select_x = CP_Math_LerpFloat(level_select_x, level_select_start, CP_System_GetDt());
 		}
 
 		//telling what the button should do
