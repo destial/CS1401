@@ -101,7 +101,7 @@ static void load_borders(float middle_wall_angle) {
 	middle_wall->color = Get_Color(COLOR_GRAY);
 	middle_wall->angle = middle_wall_angle;
 	middle_wall->rotation_rate = 0.f;
-	middle_wall->image = NULL;
+	middle_wall->image = Asset_GetImage(BORDER_WALL_ASSET);
 	middle_wall->destroyed = false;
 
 	Wall* top_wall = middle_wall + 1;
@@ -112,7 +112,7 @@ static void load_borders(float middle_wall_angle) {
 	top_wall->color = Get_Color(COLOR_GRAY);
 	top_wall->angle = 90.f;
 	top_wall->rotation_rate = 0.f;
-	top_wall->image = NULL;
+	top_wall->image = Asset_GetImage(BORDER_WALL_ASSET);
 	top_wall->destroyed = false;
 
 	Wall* bot_wall = middle_wall + 2;
@@ -123,7 +123,7 @@ static void load_borders(float middle_wall_angle) {
 	bot_wall->color = Get_Color(COLOR_GRAY);
 	bot_wall->angle = 90.f;
 	bot_wall->rotation_rate = 0.f;
-	bot_wall->image = NULL;
+	bot_wall->image = Asset_GetImage(BORDER_WALL_ASSET);
 	bot_wall->destroyed = false;
 
 	Wall* left_wall = middle_wall + 3;
@@ -134,7 +134,7 @@ static void load_borders(float middle_wall_angle) {
 	left_wall->color = Get_Color(COLOR_GRAY);
 	left_wall->angle = 0.f;
 	left_wall->rotation_rate = 0.f;
-	left_wall->image = NULL;
+	left_wall->image = Asset_GetImage(BORDER_WALL_ASSET);
 	left_wall->destroyed = false;
 
 	Wall* right_wall = middle_wall + 4;
@@ -145,7 +145,7 @@ static void load_borders(float middle_wall_angle) {
 	right_wall->color = Get_Color(COLOR_GRAY);
 	right_wall->angle = 0.f;
 	right_wall->rotation_rate = 0.f;
-	right_wall->image = NULL;
+	right_wall->image = Asset_GetImage(BORDER_WALL_ASSET);
 	right_wall->destroyed = false;
 }
 
@@ -703,7 +703,7 @@ void Game_RenderWalls(void) {
 				c.y,
 				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - translate) : 1.f),
 				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - translate) : 1.f),
-				0.f, 0.f, w * (wall->scale.x / d), h * (wall->scale.y / d),
+				0.f, 0.f, (i > 4 ? w * (wall->scale.x / d) : w * wall->scale.x), (i > 4 ? h * (wall->scale.y / d) : h * wall->scale.y),
 				255, wall->angle
 			);
 
@@ -871,12 +871,17 @@ void Game_RenderGolfs(void) {
 			CP_Vector b = World_To_Screen(golf->pos.x - n.x, golf->pos.y - n.y, world_limits.x, world_limits.y);
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(0, 1), n);
 
+			CP_Settings_Save();
+
 			CP_Settings_Fill(Get_Color(COLOR_WHITE));
 			CP_Settings_Stroke(Get_Color(COLOR_BLACK));
+			CP_Settings_StrokeWeight(1.f);
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(b.x, b.y, 
 				golf->diameter * world_ratios.x,
 				golf->diameter * world_ratios.x * 0.5f, angle, 1.f);
+
+			CP_Settings_Restore();
 		}
 
 		if (debug_enabled) {
