@@ -96,7 +96,7 @@ static void load_borders(float middle_wall_angle) {
 	Wall* middle_wall = walls.arr;
 	middle_wall->pos.x = world_limits.x * 0.5f;
 	middle_wall->pos.y = world_limits.y * 0.5f;
-	middle_wall->scale.x = world_limits.x * 0.015f;
+	middle_wall->scale.x = world_limits.x * 0.02f;
 	middle_wall->scale.y = world_limits.y * 2.5f;
 	middle_wall->color = Get_Color(COLOR_GRAY);
 	middle_wall->angle = middle_wall_angle;
@@ -116,7 +116,7 @@ static void load_borders(float middle_wall_angle) {
 	top_wall->destroyed = false;
 
 	Wall* bot_wall = middle_wall + 2;
-	bot_wall->scale.x = world_limits.x * 0.03f;
+	bot_wall->scale.x = world_limits.x * 0.02f;
 	bot_wall->scale.y = world_limits.y * 2.5f;
 	bot_wall->pos.x = world_limits.x * 0.5f;
 	bot_wall->pos.y = bot_wall->scale.x * 0.5f;
@@ -127,7 +127,7 @@ static void load_borders(float middle_wall_angle) {
 	bot_wall->destroyed = false;
 
 	Wall* left_wall = middle_wall + 3;
-	left_wall->scale.x = world_limits.x * 0.03f;
+	left_wall->scale.x = world_limits.x * 0.02f;
 	left_wall->scale.y = world_limits.y * 2.5f;
 	left_wall->pos.x = left_wall->scale.x * 0.5f;
 	left_wall->pos.y = world_limits.y * 0.5f;
@@ -138,7 +138,7 @@ static void load_borders(float middle_wall_angle) {
 	left_wall->destroyed = false;
 
 	Wall* right_wall = middle_wall + 4;
-	right_wall->scale.x = world_limits.x * 0.035f;
+	right_wall->scale.x = world_limits.x * 0.02f;
 	right_wall->scale.y = world_limits.y * 2.5f;
 	right_wall->pos.x = world_limits.x - (right_wall->scale.x * 0.5f);
 	right_wall->pos.y = world_limits.y * 0.5f;
@@ -256,7 +256,7 @@ void Game_UpdatePhysics(float dt)
 			break;
 		}
 	}
-
+	// update swinging animation
 	if (swinging) {
 		swinging -= dt;
 		swinging = max(0.f, swinging);
@@ -296,8 +296,7 @@ void Game_UpdatePhysics(float dt)
 
 			// make sure the mouse is on the ball and its currently not moving
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
-				golf->dragging = all_balls_stopped;
-				if (all_balls_stopped) {
+				if (golf->dragging = all_balls_stopped) { // intentional!!!!!!!!!!!
 					current = golf;
 				}
 			}
@@ -565,10 +564,10 @@ void Game_RenderUI(void) {
 		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.1f, 5);
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5);
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.25f, 5);
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.3f, 5);
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.4f, 5);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
@@ -634,7 +633,6 @@ void Game_RenderTerrains(void) {
 			continue;
 
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
-		
 		CP_Settings_Fill(terrain->type == TERRAIN_SAND ? sand : terrain->type == TERRAIN_ICE ? ice : pit);
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
@@ -912,7 +910,6 @@ void Game_RenderShadows(void) {
 			continue;
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y + 5.f,
@@ -1627,18 +1624,7 @@ void Game_Load(void) {
 			wall->destroyed = false;
 		}
 
-		// middle wall is always the first
-		Wall* middle_wall = walls.arr;
-
-		middle_wall->pos.x = world_limits.x * 0.5f;
-		middle_wall->pos.y = world_limits.y * 0.5f;
-		middle_wall->scale.x = world_limits.x * 0.04f;
-		middle_wall->scale.y = world_limits.y * 2.5f;
-		middle_wall->color = Get_Color(COLOR_GRAY);
-		middle_wall->image = NULL;
-		middle_wall->angle = 0.f;
-		middle_wall->rotation_rate = 0.f;
-		middle_wall->destroyed = false;
+		load_borders(0.f);
 	} else {
 
 		// level loading failed, quit the game because heap allocation went wrong!!
