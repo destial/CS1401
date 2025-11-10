@@ -58,6 +58,9 @@ float camera_scale;
 
 // reset on level loading
 float translate = 1.f;
+float turn_now = 0.f;
+float turn_now_hold = 0.f;
+bool turn_now_revert = false;
 bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false;
 #define MIN_VEL 0.05f
 
@@ -86,6 +89,64 @@ static Terrain* Get_Terrains() {
 	return terrains.arr;
 }
 
+static void load_borders(float middle_wall_angle) {
+	// middle wall is always the first (never in the level file)
+	Wall* middle_wall = walls.arr;
+	middle_wall->pos.x = world_limits.x * 0.5f;
+	middle_wall->pos.y = world_limits.y * 0.5f;
+	middle_wall->scale.x = world_limits.x * 0.015f;
+	middle_wall->scale.y = world_limits.y * 2.5f;
+	middle_wall->color = Get_Color(COLOR_GRAY);
+	middle_wall->angle = middle_wall_angle;
+	middle_wall->rotation_rate = 0.f;
+	middle_wall->image = NULL;
+	middle_wall->destroyed = false;
+
+	Wall* top_wall = middle_wall + 1;
+	top_wall->scale.x = world_limits.x * 0.05f;
+	top_wall->scale.y = world_limits.y * 2.5f;
+	top_wall->pos.x = world_limits.x * 0.5f;
+	top_wall->pos.y = world_limits.y - (top_wall->scale.x * 0.5f);
+	top_wall->color = Get_Color(COLOR_GRAY);
+	top_wall->angle = 90.f;
+	top_wall->rotation_rate = 0.f;
+	top_wall->image = NULL;
+	top_wall->destroyed = false;
+
+	Wall* bot_wall = middle_wall + 2;
+	bot_wall->scale.x = world_limits.x * 0.03f;
+	bot_wall->scale.y = world_limits.y * 2.5f;
+	bot_wall->pos.x = world_limits.x * 0.5f;
+	bot_wall->pos.y = bot_wall->scale.x * 0.5f;
+	bot_wall->color = Get_Color(COLOR_GRAY);
+	bot_wall->angle = 90.f;
+	bot_wall->rotation_rate = 0.f;
+	bot_wall->image = NULL;
+	bot_wall->destroyed = false;
+
+	Wall* left_wall = middle_wall + 3;
+	left_wall->scale.x = world_limits.x * 0.03f;
+	left_wall->scale.y = world_limits.y * 2.5f;
+	left_wall->pos.x = left_wall->scale.x * 0.5f;
+	left_wall->pos.y = world_limits.y * 0.5f;
+	left_wall->color = Get_Color(COLOR_GRAY);
+	left_wall->angle = 0.f;
+	left_wall->rotation_rate = 0.f;
+	left_wall->image = NULL;
+	left_wall->destroyed = false;
+
+	Wall* right_wall = middle_wall + 4;
+	right_wall->scale.x = world_limits.x * 0.035f;
+	right_wall->scale.y = world_limits.y * 2.5f;
+	right_wall->pos.x = world_limits.x - (right_wall->scale.x * 0.5f);
+	right_wall->pos.y = world_limits.y * 0.5f;
+	right_wall->color = Get_Color(COLOR_GRAY);
+	right_wall->angle = 0.f;
+	right_wall->rotation_rate = 0.f;
+	right_wall->image = NULL;
+	right_wall->destroyed = false;
+}
+
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
@@ -107,6 +168,9 @@ void game_init(void)
 
 	// reset on level loading
 	translate = 1.f;
+	turn_now = 0.f;
+	turn_now_hold = 0.f;
+	turn_now_revert = false;
 	playable = false;
 	win = false;
 	has_won = false;
@@ -167,6 +231,7 @@ void Game_UpdatePhysics(float dt)
 	Wall* wall_arr = Get_Walls();
 	GolfBall* golf_arr = Get_Golfs();
 	Hole* hole_arr = Get_Holes();
+
 	// golf ball player input logic (ensure all golf balls are stopped before player can putt)
 	all_balls_stopped = true;
 	for (int i = 0; i < golf_balls.length; ++i) {
@@ -188,6 +253,7 @@ void Game_UpdatePhysics(float dt)
 			current = NULL;
 			add_stroke();
 			CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
+			turn_now = 0.f;
 		}
 	}
 	// update golf balls
@@ -308,8 +374,8 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// bound the ball at the left border
-			if (golf->pos.x < golf->diameter * 0.5f) {
-				golf->pos.x = golf->diameter * 0.5f;
+			if (golf->pos.x < golf->diameter * 0.5f + (world_limits.x - world_limits.x)) {
+				golf->pos.x = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
 				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
@@ -324,8 +390,8 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// bound the ball at the bottom border
-			if (golf->pos.y < golf->diameter * 0.5f) {
-				golf->pos.y = golf->diameter * 0.5f;
+			if (golf->pos.y < golf->diameter * 0.5f + (world_limits.x - world_limits.x)) {
+				golf->pos.y = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
 				CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
@@ -434,8 +500,8 @@ void Game_Render(void)
 	Game_RenderHoles();
 
 	// render shadows
-	if (get_shadow_setting())
-		Game_RenderShadows();
+	//if (get_shadow_setting())
+	//	Game_RenderShadows();
 
 	// render walls
 	Game_RenderWalls();
@@ -481,17 +547,17 @@ void Game_RenderUI(void) {
 	if (!editor_mode) {
 		// draw current strokes
 		CP_Settings_TextSize(40.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(str, 0, CP_System_GetWindowHeight() * 0.5f - 40.f);
+		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.1f, 5);
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, 0, CP_System_GetWindowHeight() * 0.5f);
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5);
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, 0, CP_System_GetWindowHeight() * 0.5f + 40.f);
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.3f, 5);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
@@ -501,20 +567,40 @@ void Game_RenderUI(void) {
 		*/
 	}
 	else if (playable && all_balls_stopped && !editor_mode) {
-		CP_Settings_Fill(Get_Color(COLOR_ORANGE));
-		CP_Settings_Stroke(Get_Color(COLOR_ORANGE));
-		CP_Settings_TextSize(50.f);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.9f);
+		if (turn_now >= 0.f) {
+			CP_Settings_Fill(Get_Color(COLOR_CARMINE));
+			CP_Settings_Stroke(Get_Color(COLOR_RED));
+			CP_Settings_TextSize(120.f * turn_now);
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+			CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
+			if (turn_now_revert) {
+				turn_now -= CP_System_GetDt();
+				if (turn_now < 0.f) {
+					turn_now_revert = false;
+				}
+			}
+			else {
+				turn_now += CP_System_GetDt();
+				if (turn_now > 1.f) {
+					turn_now = 1.f;
+					turn_now_hold += CP_System_GetDt();
+					if (turn_now_hold > 1.f) {
+						turn_now_hold = 0.f;
+						turn_now_revert = true;
+					}
+				}
+			}
+		}
 	}
 
 	// render debug text on top of everything
 	CP_Settings_Fill(Get_Color(COLOR_GREEN));
-	CP_Settings_TextSize(20.f);
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_BOTTOM);
+	CP_Settings_TextSize(30.f);
+	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
-	CP_Font_DrawText(fps, 0, 20);
+	CP_Font_DrawText(fps, 5, 5);
 	if (debug_enabled) {
+		CP_Settings_TextSize(20.f);
 		Game_RenderDebug();
 	}
 
@@ -527,6 +613,9 @@ void Game_RenderTerrains(void) {
 	Terrain* terrain_arr = Get_Terrains();
 	CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 	CP_Settings_RectMode(CP_POSITION_CENTER);
+	CP_Color sand = Get_Color(COLOR_ORANGE);
+	CP_Color ice = Get_Color(COLOR_LIGHT_BLUE);
+	CP_Color pit = Get_Color(COLOR_RED);
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* terrain = terrain_arr + i;
@@ -534,15 +623,13 @@ void Game_RenderTerrains(void) {
 			continue;
 
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
-		CP_Color sand = Get_Color(COLOR_ORANGE);
-		CP_Color ice = Get_Color(COLOR_LIGHT_BLUE);
-		CP_Color pit = Get_Color(COLOR_RED);
+		
 		CP_Settings_Fill(
-			terrain->type == TERRAIN_SAND ? CP_Color_Create(sand.r, sand.g, sand.b, 128) :
-			terrain->type == TERRAIN_ICE ? CP_Color_Create(ice.r, ice.g, ice.b, 128) :
-			CP_Color_Create(pit.r, pit.g, pit.b, 128));
+			terrain->type == TERRAIN_SAND ? CP_Color_Create(sand.r, sand.g, sand.b, (int)(128.f * (1.f - translate))) :
+			terrain->type == TERRAIN_ICE ? CP_Color_Create(ice.r, ice.g, ice.b, (int)(128.f * (1.f - translate))) :
+			CP_Color_Create(pit.r, pit.g, pit.b, (int)(128.f * (1.f - translate))));
 		CP_Graphics_DrawRectAdvanced(
-			CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+			c.x,
 			c.y,
 			terrain->scale.x * world_ratios.x,
 			terrain->scale.y * world_ratios.y,
@@ -581,11 +668,12 @@ void Game_RenderWalls(void) {
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		if (wall->image == NULL) { // theres no image for this wall (most likely the middle wall)
-			CP_Settings_Fill(wall->color);
+			CP_Color a = CP_Color_Create(wall->color.r, wall->color.g, wall->color.b, (int)(255.f * (1.f - translate)));
+			CP_Settings_Fill(a);
 			CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(
-				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+				c.x,
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
@@ -606,12 +694,12 @@ void Game_RenderWalls(void) {
 			// used for tiling the wall sprite based on its scale
 			int d = gcd((int)wall->scale.x, (int)wall->scale.y);
 			CP_Image_DrawSubImageAdvanced(wall->image,
-				CP_Math_LerpFloat(c.x, (float)CP_System_GetWindowWidth(), translate),
+				c.x,
 				c.y,
 				wall->scale.x * world_ratios.x,
 				wall->scale.y * world_ratios.y,
 				0.f, 0.f, w * (wall->scale.x / d), h * (wall->scale.y / d),
-				255, wall->angle
+				(int)(255.f * (1.f - translate)), wall->angle
 			);
 
 			CP_Settings_Restore();
@@ -654,14 +742,23 @@ void Game_RenderWalls(void) {
 }
 
 void Game_RenderHoles(void) {
+	CP_Vector world_ratios = Get_World_Ratios();
 	Hole* hole_arr = Get_Holes();
-
+	CP_Color outline = CP_Color_Create(Get_Color(COLOR_WHITE).r, Get_Color(COLOR_WHITE).b, Get_Color(COLOR_WHITE).g, (int) (255.f * (1.f - translate)));
+	CP_Color fill = CP_Color_Create(Get_Color(COLOR_BLACK).r, Get_Color(COLOR_BLACK).b, Get_Color(COLOR_BLACK).g, (int)(255.f * (1.f - translate)));
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
 		if (hole == NULL || hole->destroyed)
 			continue;
 
-		draw_hole(hole->pos, hole->diameter, world_limits.x, world_limits.y, translate);
+		CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
+		
+		CP_Settings_Stroke(outline);
+		CP_Settings_Fill(fill);
+		CP_Graphics_DrawCircle(
+			coords.x,
+			coords.y,
+			hole->diameter * world_ratios.x);
 
 		if (debug_enabled) {
 			CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
@@ -719,21 +816,21 @@ void Game_RenderItems(void) {
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 			CP_Image_DrawAdvanced(image,
-				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.x,
 				coords.y,
 				item->diameter * world_ratios.x * anim_mul,
 				item->diameter * world_ratios.x * anim_mul,
-				255,
+				255 * (1.f - translate),
 				item->angle);
 		}
 
 		if (sprite != NULL) {
 			Sprite_Draw(sprite,
-				CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+				coords.x,
 				coords.y,
 				item->diameter * world_ratios.x * anim_mul,
 				item->diameter * world_ratios.x * anim_mul,
-				255);
+				255 * (1.f - translate));
 		}
 
 		if (debug_enabled) {
@@ -769,11 +866,11 @@ void Game_RenderGolfs(void) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image_DrawAdvanced(golf_ball_image,
-			CP_Math_LerpFloat(coords.x, (float)CP_System_GetWindowWidth(), translate),
+			coords.x,
 			coords.y,
 			golf->diameter * world_ratios.x,
 			golf->diameter * world_ratios.x,
-			255,
+			(int)(255.f * (1.f - translate)),
 			golf->angle);
 
 		if (swinging) {
@@ -1409,11 +1506,11 @@ void Game_Load(void) {
 		}
 
 		// load the walls in the level
-		// (+1 because there will always be a middle wall, which is always at index 0)
-		walls.length = loaded_level->walls_size + 1;
+		// (+5 because there will always be a middle wall and 4 borders, which is always at index 0-4)
+		walls.length = loaded_level->walls_size + 5;
 		walls.arr = gc_malloc(sizeof(Wall) * walls.length);
 		if (walls.arr) { // if the OS couldnt allocate any memory
-			int wall_index = 1;
+			int wall_index = 5;
 			for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
 				Wall* wall = Get_Walls() + wall_index;
 				if (wall == NULL)
@@ -1435,17 +1532,7 @@ void Game_Load(void) {
 				++wall_index;
 			}
 
-			// middle wall is always the first (never in the level file)
-			Wall* middle_wall = walls.arr;
-			middle_wall->pos.x = world_limits.x * 0.5f;
-			middle_wall->pos.y = world_limits.y * 0.5f;
-			middle_wall->scale.x = world_limits.x * 0.01f;
-			middle_wall->scale.y = world_limits.y * 2.5f;
-			middle_wall->angle = loaded_level->middle_wall_angle;
-			middle_wall->rotation_rate = 0.f;
-			middle_wall->color = Get_Color(COLOR_BLACK);
-			middle_wall->image = NULL;
-			middle_wall->destroyed = false;
+			load_borders(loaded_level->middle_wall_angle);
 		}
 		else {
 			// level loading failed, quit the game because heap allocation went wrong!!
@@ -1551,9 +1638,9 @@ void Game_Load(void) {
 
 		middle_wall->pos.x = world_limits.x * 0.5f;
 		middle_wall->pos.y = world_limits.y * 0.5f;
-		middle_wall->scale.x = world_limits.x * 0.01f;
-		middle_wall->scale.y = world_limits.y * 1.1f;
-		middle_wall->color = Get_Color(COLOR_BLACK);
+		middle_wall->scale.x = world_limits.x * 0.04f;
+		middle_wall->scale.y = world_limits.y * 2.5f;
+		middle_wall->color = Get_Color(COLOR_GRAY);
 		middle_wall->image = NULL;
 		middle_wall->angle = 0.f;
 		middle_wall->rotation_rate = 0.f;
@@ -1930,19 +2017,15 @@ void Scale_World(float scale) {
 	Item* items_arr = Get_Items();
 	Terrain* terrains_arr = Get_Terrains();
 
-	for (int i = 0; i < walls.length; ++i) {
+	load_borders(walls_arr->angle);
+
+	for (int i = 5; i < walls.length; ++i) {
 		Wall* w = walls_arr + i;
 		if (w == NULL)
 			continue;
 
-		if (i == 0) { // the middle wall is always scaled to this specific ratio (!!!)
-			w->scale.x = world_limits.x * 0.01f;
-			w->scale.y = world_limits.y * 2.5f;
-		}
-
 		w->pos.x *= (world_limits.x / prev_x);
 		w->pos.y *= (world_limits.y / prev_y);
-		
 	}
 
 	for (int i = 0; i < golf_balls.length; ++i) {

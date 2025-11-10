@@ -68,6 +68,8 @@ CP_Color Get_Color(ColorCode code) {
 		colors[COLOR_ORANGE] = CP_Color_Create(255, 128, 0, 255);
 		colors[COLOR_YELLOW] = CP_Color_Create(255, 255, 0, 255);
 		colors[COLOR_PINK] = CP_Color_Create(255, 0, 200, 255);
+		colors[COLOR_GRAY] = CP_Color_Create(127, 127, 127, 255);
+		colors[COLOR_CARMINE] = CP_Color_Create(163, 0, 21, 255);
 		colors[COLOR_CLEAR] = CP_Color_Create(0, 0, 0, 0);
 	}
 	return colors[code];
