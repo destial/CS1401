@@ -1,3 +1,10 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 11 November 2025
+@course CSD1401
+@brief Definition file for controlling the tutorial stages
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "cprocessing.h"
@@ -7,7 +14,7 @@
 
 typedef struct TutorialStruct {
 	SpriteSheet* gif;
-	char instructions[256];
+	char instructions[256]; // fixed size
 } Tutorial;
 
 bool tutorial_phases_loaded = false;
@@ -20,24 +27,36 @@ void Tutorial_Load(bool tut_mode) {
 	if (tut_mode) {
 		switch (curr_tutorial_phase) {
 		case TUT_PHASE_DRAG_BALL:
-			tutorial_phases[TUT_PHASE_DRAG_BALL].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 14, 5, 5.f);
-			sprintf_s(tutorial_phases[TUT_PHASE_DRAG_BALL].instructions, 256,
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 14, 5, 5.f);
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Use the mouse left button to hold "
 				"and drag any golf ball to charge up "
 				"the swing. Release the mouse left to "
-				"hit the golf ball. Click anywhere "
-				"to start playing!");
+				"hit the golf ball. Use the scroll wheel "
+				"to change the power of your stroke. "
+				"Click anywhere to start playing!");
 			break;
 		case TUT_PHASE_ITEM:
-			tutorial_phases[TUT_PHASE_ITEM].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 8, 6, 5.f);
-			sprintf_s(tutorial_phases[TUT_PHASE_ITEM].instructions, 256,
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 8, 6, 5.f);
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Roll over the powerups in the level "
-				"to activate the ability. [placeholder] "
-				"means to speed up, [mushroom up] means "
-				"to grow in size, [mushroom down] means "
-				"to shrink in size!");
+				"to activate the ability. The feather "
+				"means a speed boost, mushroom up means "
+				"to grow in size, mushroom down means "
+				"to shrink in size, rotating arrows means "
+				"to reverse direction!");
 			break;
-
+		case TUT_PHASE_TERRAIN:
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 6, 6, 5.f);
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+				"There are multiple different terrains "
+				"that can affect your golf ball. The sand "
+				"terrain slows you down faster, the ice "
+				"terrain makes you slide over it until "
+				"it ends, the red pit will instantly reset "
+				"your golf ball back to its previous "
+				"position!");
+			break;
 		default: break;
 		}
 	}
@@ -56,10 +75,15 @@ bool Tutorial_GetMode(void) {
 }
 
 void Tutorial_NextPhase(void) {
+	// no phase detected, return
 	if (curr_tutorial_phase == TUT_NO_PHASE)
 		return;
+
+	// clear the previous loaded tutorial phase
 	Tutorial* tut = &tutorial_phases[curr_tutorial_phase];
 	Asset_Free_Node(tut->gif);
+	
+	// if last in the phase, no more phases left
 	if (curr_tutorial_phase + 1 >= TUT_PHASE_LAST) {
 		curr_tutorial_phase = TUT_NO_PHASE;
 		return;
@@ -68,33 +92,39 @@ void Tutorial_NextPhase(void) {
 }
 
 void Tutorial_Update(void) {
-	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) {
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT)) { // click anywhere on the screen to play the game
 		Tutorial_NextPhase();
 		tutorial_mode = false;
 	}
 }
 
 void Tutorial_Render(void) {
+	// not in tutorial mode
 	if (!tutorial_mode || curr_tutorial_phase == TUT_NO_PHASE)
 		return;
 
+	// if for some reason the tutorial phase isnt loaded
 	Tutorial* tut = &tutorial_phases[curr_tutorial_phase];
 	if (!tut)
 		return;
 
 	CP_Settings_Save();
+	CP_Settings_RectMode(CP_POSITION_CORNER);
 
+	// tinted background
 	CP_Color fade = Get_ColorAlpha(COLOR_BLACK, 192);
 	CP_Settings_Stroke(fade);
 	CP_Settings_Fill(fade);
-	CP_Settings_RectMode(CP_POSITION_CORNER);
 	CP_Graphics_DrawRect(0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight());
-	Sprite_Draw(tut->gif, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, tut->gif->sub_w, tut->gif->sub_h, 255);
 
+	// the gif
+	Sprite_Draw(tut->gif, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float) tut->gif->sub_w, (float) tut->gif->sub_h, 255);
+
+	// the instructions
 	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawTextBox(tut->instructions, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, tut->gif->sub_w);
+	CP_Font_DrawTextBox(tut->instructions, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float) tut->gif->sub_w);
 
 	CP_Settings_Restore();
 }

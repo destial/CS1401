@@ -79,6 +79,7 @@
 // Tutorial phase gifs
 #define TUTORIAL_PHASE_1_ASSET "Assets/Images/tut_phase1.png"
 #define TUTORIAL_PHASE_2_ASSET "Assets/Images/tut_phase2.png"
+#define TUTORIAL_PHASE_3_ASSET "Assets/Images/tut_phase3.png"
 
 typedef struct AssetStruct Asset;
 

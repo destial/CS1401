@@ -445,6 +445,12 @@ void Editor_Update_End(void) {
 			} else if (current_type == EDIT_TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
 				terrain->angle = CP_Vector_AngleCW(CP_Vector_Subtract(terrain->pos, mouse_world), current_editing_offset);
+				for (float a = 0.f; a <= 360.f; a += 45.f) {
+					// angle snapping
+					if (fabs((double)(a - terrain->angle)) <= 3.f) {
+						terrain->angle = a;
+					}
+				}
 				editor_dirty = true;
 			}
 		}

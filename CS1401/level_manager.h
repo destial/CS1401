@@ -23,7 +23,7 @@ typedef struct LevelStruct { // ordered in this way to minimize struct size
     float* terrains; // [0 = x, 1 = y, 2 = scale.x, 3 = scale.y, 4 = angle, 5 = type]
     int golf_balls_size, holes_size, walls_size, items_size, terrains_size;
     float middle_wall_angle;
-    char par, tutorial_level;
+    int par, tutorial_level;
 } Level;
 
 // Offsets the float array by its respective values ^^ (see above)

@@ -199,6 +199,7 @@ void game_init(void)
 	
 	scoring_init();
 	Game_SetResetting(false);
+	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
 }
 
 void game_update(void)
@@ -274,6 +275,8 @@ void Game_UpdatePhysics(float dt)
 			add_stroke();
 			CP_Sound_Play(hit_sound);
 			turn_now = 0.f;
+			turn_now_hold = 0.f;
+			turn_now_revert = false;
 		}
 	}
 	// update golf balls
