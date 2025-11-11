@@ -206,7 +206,10 @@ void game_update(void)
 	Process_Inputs();
 
 	if (Tutorial_GetMode()) {
-		Tutorial_Update();
+		Tutorial_Update(); 
+		if (!Tutorial_GetMode()) {
+			current_time = CP_System_GetSeconds();
+		}
 	}
 	else {
 		// semi-fixed timestep for physics time
