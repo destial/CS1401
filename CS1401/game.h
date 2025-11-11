@@ -17,6 +17,7 @@ typedef enum ItemTypeEnum {
 	ITEM_GROW,
 	ITEM_SHRINK,
 	ITEM_REVERSE,
+	ITEM_COIN,
 	ITEM_PORTAL,
 	ITEM_LAST
 } ItemType;

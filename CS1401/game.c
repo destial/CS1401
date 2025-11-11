@@ -163,8 +163,10 @@ void game_init(void)
 	item_image_cache[ITEM_GROW - 1] = Asset_GetImage(BIG_ITEM_ASSET);
 	item_image_cache[ITEM_SHRINK - 1] = Asset_GetImage(SMALL_ITEM_ASSET);
 	item_image_cache[ITEM_REVERSE - 1] = Asset_GetImage(REVERSE_ITEM_ASSET);
+	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+	
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
@@ -808,20 +810,24 @@ void Game_RenderItems(void) {
 			sprite = item_image_cache[(item->pos.x <= world_limits.x * 0.5f ? ITEM_PORTAL - 1 : ITEM_PORTAL)];
 			anim_mul = 1.f;
 			break;
+		case ITEM_COIN:
+			sprite = item_image_cache[item->type - 1];
+			break;
 		default:
 			image = item_image_cache[item->type - 1];
 			break;
 		}
 
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Settings_Stroke(Get_Color(COLOR_WHITE));
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		if (image != NULL) {
 			if (item->type == ITEM_REVERSE) {
 				item->angle += 45.f * CP_System_GetDt();
 				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 			}
-			CP_Settings_Fill(Get_Color(COLOR_WHITE));
-			CP_Settings_Stroke(Get_Color(COLOR_WHITE));
-			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+			
 			CP_Image_DrawAdvanced(image,
 				coords.x,
 				coords.y,
@@ -1047,6 +1053,7 @@ void Process_Inputs(void) {
 		Game_SetResetting(true);
 		game_exit();
 		game_init();
+		Tutorial_Load(false);
 		translate = 0.f;
 		return;
 	}
@@ -1483,7 +1490,7 @@ void Game_Load(void) {
 				item->angle = loaded_level->items[i + 3];
 				item->type = (int) loaded_level->items[i + 4];
 
-				item->collected = false;
+				item->collected = item->type == ITEM_COIN && resetting ? true : false;
 				item->destroyed = false;
 				++item_index;
 			}
