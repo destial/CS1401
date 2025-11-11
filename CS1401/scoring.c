@@ -48,6 +48,8 @@ typedef struct Buttonbb {
 	float width;
 	float height;
 	float scale;
+	float icon_width;
+	float icon_height;
 
 } bb;
 
@@ -107,30 +109,49 @@ static float GetPulseScale(float baseScale, float amplitude, float speed) {
 void scoring_init() {
 	float win_width = (float) CP_System_GetWindowWidth();
 	float win_height = (float) CP_System_GetWindowHeight();
+	//------------------------------------------------------------------------------------------------
 	//Initialise exit buttons
 	scorebb[0].x = 0.35f * win_width;
-	scorebb[0].y = 0.75f * win_height;
+	scorebb[0].y = 0.70f * win_height;
+	//Button size and asset
 	scorebb[0].width = 0.1f * win_width;
 	scorebb[0].height = 0.1f * win_height;
-	scorebb[0].button_img = Asset_GetImage(BUTTON_GREY_ASSET);
-	scorebb[0].button_icon = Asset_GetImage(RED_CROSS);
+	scorebb[0].button_img = Asset_GetImage(SB_BUTTON_GREY);
 
+	//Button icon and asset
+	scorebb[0].icon_width = 50.0f;
+	scorebb[0].icon_height = 50.0f;
+	scorebb[0].button_icon = Asset_GetImage(RED_CROSS);
+	//------------------------------------------------------------------------------------------------
 	//Initialise Replay buttons
 	scorebb[1].x = 0.5f * win_width;
-	scorebb[1].y = 0.75f * win_height;
+	scorebb[1].y = 0.70f * win_height;
+
+	//Button size and asset
 	scorebb[1].width = 0.1f * win_width;
 	scorebb[1].height = 0.1f * win_height;
-	scorebb[1].button_img = Asset_GetImage(BUTTON_YELLOW_ASSET);
+	scorebb[1].button_img = Asset_GetImage(SB_BUTTON_YELLOW);
+
+	//Button icon and asset
+	scorebb[1].icon_width = 50.0f;
+	scorebb[1].icon_height = 50.0f;
 	scorebb[1].button_icon = Asset_GetImage(DARK_REPLAY_BUTTON);
 
+	//------------------------------------------------------------------------------------------------
 	//Initialise Next Lvl buttons
 	scorebb[2].x = 0.65f * win_width;
-	scorebb[2].y = 0.75f * win_height;
+	scorebb[2].y = 0.70f * win_height;
+
+	//Button size and asset
 	scorebb[2].width = 0.1f * win_width;
 	scorebb[2].height = 0.1f * win_height;
-	scorebb[2].button_img = Asset_GetImage(BUTTON_BLUE_ASSET);
-	scorebb[2].button_icon = Asset_GetImage(DARK_PLAY_BUTTON);
+	scorebb[2].button_img = Asset_GetImage(SB_BUTTON_GREEN);
 
+	//Button icon and asset
+	scorebb[2].icon_width = 50.0f;
+	scorebb[2].icon_height = 50.0f;
+	scorebb[2].button_icon = Asset_GetImage(DARK_PLAY_BUTTON);
+	//------------------------------------------------------------------------------------------------
 	//Initialise 3 stars
 	scoress[0].x = 0.35f * win_width;
 	scoress[0].y = 0.35f * win_height;
@@ -149,7 +170,7 @@ void scoring_init() {
 	scoress[2].width = 0.15f * win_width;
 	scoress[2].height = 0.20f * win_height;
 	scoress[2].img = Asset_GetImage(GREY_STAR);
-									
+	//------------------------------------------------------------------------------------------------								
 	//Initialise 3 Gold stars YELLOW_STAR
 	scoregs[0].x = 0.35f * win_width;
 	scoregs[0].y = 0.35f * win_height;
@@ -213,38 +234,52 @@ void scoring_update(void) {
 	hover_x = CP_Input_GetMouseX();
 	hover_y = CP_Input_GetMouseY();
 	//Button Animation
-	float sbb_width, sbb_height;
-	sbb_width = 0.2f * win_width;
+	float sbb_width, sbb_height, sbb_iheight, sbb_iwidth;
+	sbb_width = 0.1f * win_width;
 	sbb_height = 0.1f * win_height;
+	sbb_iwidth = 50.0f;
+	sbb_iheight = 50.0f;
 
 	if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, hover_x, hover_y) == 1) {
 		//button animation
 		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
 		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[0].icon_width = CP_Math_LerpFloat(scorebb[0].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[0].icon_height = CP_Math_LerpFloat(scorebb[0].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width, CP_System_GetDt() * 10.0f);
 		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height, CP_System_GetDt() * 10.0f);
+		scorebb[0].icon_width = CP_Math_LerpFloat(scorebb[0].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
+		scorebb[0].icon_height = CP_Math_LerpFloat(scorebb[0].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
 	}
 	//click on replay
 	if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, hover_x, hover_y) == 1) {
 		//button animation
 		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
 		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[1].icon_width = CP_Math_LerpFloat(scorebb[1].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[1].icon_height = CP_Math_LerpFloat(scorebb[1].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width, CP_System_GetDt() * 10.0f);
 		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height, CP_System_GetDt() * 10.0f);
+		scorebb[1].icon_width = CP_Math_LerpFloat(scorebb[1].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
+		scorebb[1].icon_height = CP_Math_LerpFloat(scorebb[1].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
 	}
 	//click on next level
 	if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, hover_x, hover_y) == 1) {
 		//button animation
 		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
 		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[2].icon_width = CP_Math_LerpFloat(scorebb[2].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
+		scorebb[2].icon_height = CP_Math_LerpFloat(scorebb[2].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
 	}
 	else {
 		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width, CP_System_GetDt() * 10.0f);
 		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height, CP_System_GetDt() * 10.0f);
+		scorebb[2].icon_width = CP_Math_LerpFloat(scorebb[2].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
+		scorebb[2].icon_height = CP_Math_LerpFloat(scorebb[2].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
 	}
 
 	//Moving stars
@@ -374,7 +409,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	//Draw level buttons
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
-	CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x - 100.0f, scorebb[2].y - 10.0f , 50, 50, 255, 0.0f);
+	CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x, scorebb[2].y , scorebb[2].icon_width, scorebb[2].icon_height, 255, 0.0f);
 	/*sprintf_s(a, 50, "NEXT LEVEL");
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);*/
@@ -382,6 +417,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	//Draw exit buttons
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
+	CP_Image_DrawAdvanced(scorebb[0].button_icon, scorebb[0].x, scorebb[0].y, scorebb[0].icon_width, scorebb[0].icon_height, 255, 0.0f);
 	/*sprintf_s(a, 50, "EXIT");
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);*/
@@ -389,6 +425,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	//Draw Replay button
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
+	CP_Image_DrawAdvanced(scorebb[1].button_icon, scorebb[1].x, scorebb[1].y, scorebb[1].icon_width, scorebb[1].icon_height, 255, 0.0f);
 	/*sprintf_s(a, 50, "REPLAY");
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);*/

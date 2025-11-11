@@ -46,7 +46,7 @@
 #define HALO_SPRITE_ASSET "Assets/Images/halo_sheet.png"
 
 //Scoreboard
-#define RED_CROSS "Assets/Images/check_square_color_cross"
+#define RED_CROSS "Assets/Images/icon_outline_cross.png"
 #define DARK_PLAY_BUTTON "Assets/Images/icon_play_dark.png" 
 #define RED_PLAY_BUTTON "Assets/Images/arrow_basic_w.png"
 #define DARK_REPLAY_BUTTON "Assets/Images/icon_repeat_dark.png"
@@ -56,7 +56,10 @@
 #define STROKE_BG "Assets/Images/button_rectangle_depth_line.png"
 #define SCOREBOARD_HEADER "Assets/Images/button_rectangle_line.png"
 #define BANNER "Assets/Images/banner_classic_curtain.png"
-#define SB_BUTTON_BLUE "Assets/Images/"
+#define SB_BUTTON_BLUE "Assets/Images/button_square_flat.png"
+#define SB_BUTTON_YELLOW "Assets/Images/yellow_button_square_flat.png"
+#define SB_BUTTON_GREEN "Assets/Images/green_button_square_flat.png"
+#define SB_BUTTON_GREY "Assets/Images/grey_button_square_flat.png"
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
