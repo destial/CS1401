@@ -25,6 +25,7 @@ Level* Level_Load(int level) {
         if (lvl) {
             lvl->world_width = Map_GetFloat(root, "width", 48.f);
             lvl->world_height = Map_GetFloat(root, "height", 27.f);
+            lvl->tutorial_level = Map_GetInt(root, "tutorial_level", -1);
 
             lvl->walls_size = Map_GetInt(root, "walls_amount", 1);
             lvl->walls = lvl->walls_size ? gc_calloc((size_t)lvl->walls_size * WALLS_OFFSET, sizeof(float)) : NULL;

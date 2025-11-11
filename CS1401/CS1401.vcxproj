@@ -30,6 +30,7 @@
     <ClCompile Include="main_menu.c" />
     <ClCompile Include="particle_manager.c" />
     <ClCompile Include="state_manager.c" />
+    <ClCompile Include="tutorial_manager.c" />
     <ClCompile Include="utils.c" />
     <ClCompile Include="scoring.c" />
     <ClCompile Include="splash_screen.c" />
@@ -46,6 +47,7 @@
     <ClInclude Include="main_menu.h" />
     <ClInclude Include="particle_manager.h" />
     <ClInclude Include="state_manager.h" />
+    <ClInclude Include="tutorial_manager.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="scoring.h" />
     <ClInclude Include="splash_screen.h" />

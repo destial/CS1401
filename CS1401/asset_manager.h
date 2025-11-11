@@ -76,6 +76,10 @@
 
 #define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
+// Tutorial phase gifs
+#define TUTORIAL_PHASE_1_ASSET "Assets/Images/tut_phase1.png"
+#define TUTORIAL_PHASE_2_ASSET "Assets/Images/tut_phase2.png"
+
 typedef struct AssetStruct Asset;
 
 typedef enum AssetBlendEnum {
@@ -136,5 +140,12 @@ SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float 
 @brief Free up all the loaded assets from the asset map. Do not call this in main()!
 */
 void Assets_Free(void);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Free up a specific node from the asset map according to its stored pointer.
+@param value - The stored pointer to the image/audio/sprite/font asset
+*/
+void Asset_Free_Node(void* value);
 
 #endif

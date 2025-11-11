@@ -79,7 +79,7 @@ void Particles_Update(float dt) {
 
 		// get the particle data information of this type
 		ParticleData* data = &particle_types[p->type];
-		if (data == NULL) {
+		if (!data || !data->root_image) {
 			Particles_Preload();
 			data = &particle_types[p->type];
 		}
@@ -134,4 +134,7 @@ void Particles_Render(CP_Vector world_limits, CP_Vector world_ratios) {
 void Particles_Free(void) {
 	FREE_MEMORY(particles.arr);
 	particles.length = 0;
+	for (int i = 0; i < PARTICLE_LAST; ++i) {
+		particle_types[i] = (ParticleData) { 0 };
+	}
 }

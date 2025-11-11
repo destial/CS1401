@@ -19,6 +19,7 @@
 #include "state_manager.h"
 #include "particle_manager.h"
 #include "cprocessing.h"
+#include "tutorial_manager.h"
 
 // initialize global variables here
 CP_Font font;
@@ -204,22 +205,27 @@ void game_update(void)
 {
 	Process_Inputs();
 
-	// semi-fixed timestep for physics time
-	// incase the game gets too laggy for slow pc
-	float new_time = CP_System_GetSeconds();
-	float frame_time = new_time - current_time;
-	current_time = new_time;
-
-	float dt;
-	// run timestep for every lost frame if < 60fps
-	while (frame_time > 0.f) {
-		dt = min(frame_time, 1 / 60.f);
-		Game_UpdatePhysics(dt);
-		frame_time -= dt;
+	if (Tutorial_GetMode()) {
+		Tutorial_Update();
 	}
+	else {
+		// semi-fixed timestep for physics time
+		// incase the game gets too laggy for slow pc
+		float new_time = CP_System_GetSeconds();
+		float frame_time = new_time - current_time;
+		current_time = new_time;
 
-	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
-		scoring_update();
+		float dt;
+		// run timestep for every lost frame if < 60fps
+		while (frame_time > 0.f) {
+			dt = min(frame_time, 1 / 60.f);
+			Game_UpdatePhysics(dt);
+			frame_time -= dt;
+		}
+
+		if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
+			scoring_update();
+	}
 
 	// rendering does not need to be in physics time
 	CP_Settings_ApplyMatrix(camera_matrix);
@@ -519,7 +525,7 @@ void Game_Render(void)
 	// render items
 	Game_RenderItems();
 
-	if (playable && get_shadow_setting()) 
+	if (playable) 
 		Particles_Render(Get_World_Limits(), Get_World_Ratios());
 
 	// render golf balls
@@ -530,6 +536,9 @@ void Game_Render(void)
 
 	if (editor_mode) {
 		Editor_Render();
+	}
+	else {
+		Tutorial_Render();
 	}
 }
 
@@ -991,9 +1000,7 @@ void game_exit(void)
 	FREE_MEMORY(holes.arr);
 	reset_strokes();
 	Particles_Free();
-	if (Get_Next_State() == STATE_GAME && !resetting) {
-		Assets_Free();
-	}
+	Assets_Free();
 	printf("Exit game\n");
 }
 
@@ -1399,6 +1406,11 @@ void Game_Load(void) {
 		world_limits.x = loaded_level->world_width;
 		world_limits.y = loaded_level->world_height;
 		og_world_limits = CP_Vector_Set(world_limits.x, world_limits.y);
+		int tut_mode = loaded_level->tutorial_level;
+		if (tut_mode >= 0) {
+			Tutorial_SetPhase(tut_mode);
+			Tutorial_Load(true);
+		}
 
 		// set scoreboard position based on world size
 		sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);

@@ -51,9 +51,7 @@ void splash_screen_update(void)
 
 void splash_screen_exit(void)
 {
-	if (Get_Next_State() == STATE_SPLASH) {
-		Assets_Free();
-		Particles_Free();
-	}
+	Assets_Free();
+	Particles_Free();
 	printf("Exit splash\n");
 }

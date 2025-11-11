@@ -844,10 +844,8 @@ bool get_shadow_setting(void) {
 //frees the image when exiting the application
 void main_menu_exit(void) 
 {
-	if (Get_Next_State() == STATE_MAINMENU) {
-		Assets_Free();
-		Particles_Free();
-	}
+	Assets_Free();
+	Particles_Free();
 	if (settings_map) {
 		printf("Saving user data!\n");
 		Map_EditFloat(settings_map, "sfx_volume", sfx_limit);

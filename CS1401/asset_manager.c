@@ -112,6 +112,51 @@ static Asset* get_node(const char* key) {
     return NULL;
 }
 
+void Asset_Free_Node(void* value) {
+    if (value == NULL)
+        return;
+
+    if (root_assets->value == value) {
+        // dont free this up! its a lazy workaround
+        return;
+    }
+
+    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (ptr->next) {
+            if (ptr->next->value == value) { // if match, we bridge the previous and the next one
+                Asset* todel = ptr->next;
+                Asset* after = todel->next;
+                ptr->next = after;
+
+                // ensure to free up the memory allocated for each node
+                // free up the loaded assets respectively
+                if (todel->type == ASSET_IMAGE && todel->image != NULL) {
+                    CP_Image_Free(todel->image);
+                    todel->image = NULL;
+                }
+                else if (todel->type == ASSET_FONT && todel->font != NULL) {
+                    CP_Font_Free(todel->font);
+                    todel->font = NULL;
+                }
+                else if (todel->type == ASSET_AUDIO && todel->audio != NULL) {
+                    CP_Sound_Free(todel->audio);
+                    todel->audio = NULL;
+                }
+                else if (todel->type == ASSET_SPRITE && todel->sprite != NULL) {
+                    CP_Image_Free(todel->sprite->root_image);
+                    todel->sprite->root_image = NULL;
+                    FREE_MEMORY(todel->sprite);
+                }
+                else if (todel->type == ASSET_TYPELESS && todel->value != NULL) {
+                    FREE_MEMORY(todel->value);
+                }
+                FREE_MEMORY(todel);
+                break;
+            }
+        }
+    }
+}
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer

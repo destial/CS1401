@@ -72,6 +72,9 @@
     <ClCompile Include="particle_manager.c">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="tutorial_manager.c">
+      <Filter>Source Files\Managers</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -114,6 +117,9 @@
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="particle_manager.h">
+      <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="tutorial_manager.h">
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
   </ItemGroup>
