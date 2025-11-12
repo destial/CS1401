@@ -65,14 +65,14 @@ void main_menu_init(void)
 		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
 		music_limit = Map_GetFloat(settings_map, "music_volume", music_limit);
 		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
-		is_shadowed = Map_GetInt(settings_map, "is_shadowed", is_shadowed);
+		is_shadowed = Map_GetBool(settings_map, "high_quality", is_shadowed);
 
 	}
 	else {
 		printf("User data file not found! Creating new one!\n");
 		settings_map = Map_AddFloat(settings_map, "sfx_volume", sfx_limit);
 		settings_map = Map_AddFloat(settings_map, "music_volume", music_limit);
-		settings_map = Map_AddInt(settings_map, "is_shadowed", is_shadowed);
+		settings_map = Map_AddBool(settings_map, "high_quality", is_shadowed);
 	}
 
 	//play button
@@ -850,7 +850,8 @@ void main_menu_exit(void)
 		printf("Saving user data!\n");
 		Map_EditFloat(settings_map, "sfx_volume", sfx_limit);
 		Map_EditFloat(settings_map, "music_volume", music_limit);
-		Map_EditFloat(settings_map, "is_shadowed", is_shadowed);
+		Map_EditBool(settings_map, "high_quality", is_shadowed);
+		settings_map = Map_Remove(settings_map, "is_shadowed");
 
 		Map_Save("user.data", settings_map);
 		Map_Free(settings_map);

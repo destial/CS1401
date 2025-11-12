@@ -203,6 +203,7 @@ void game_init(void)
 	scoring_init();
 	Game_SetResetting(false);
 	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
+	UI_Start();
 }
 
 void game_update(void)
@@ -564,13 +565,9 @@ void Game_Render(void)
 	if (editor_mode) {
 		Editor_Render();
 	}
-	else {
-		CP_Settings_ResetMatrix();
-		Tutorial_Render();
-	}
 
-	CP_Settings_ResetMatrix();
 	if (pause_menu_transition >= 0.f) {
+		UI_SetPriority(-1);
 		// tinted background
 		UI_Quad(
 			CP_System_GetWindowWidth() * 0.5f,
@@ -579,6 +576,7 @@ void Game_Render(void)
 			(float)CP_System_GetWindowHeight(),
 			Get_ColorAlpha(COLOR_BLACK, 192));
 
+		UI_SetPriority(0);
 		// menu background
 		UI_Image(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
@@ -587,11 +585,12 @@ void Game_Render(void)
 			CP_System_GetWindowHeight() - 300.f, 
 			Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
+		UI_SetPriority(1);
 		// pause text
 		UI_Text(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-			300, 200, Get_Color(COLOR_BLACK), "Game Paused!");
+			300, 200, Get_Color(COLOR_BLACK), "Game Paused!", 40.f);
 
 		// continue button
 		if (UI_ButtonImageText(
@@ -616,7 +615,11 @@ void Game_Render(void)
 			Set_Next_State(STATE_MAINMENU);
 		}
 	}
+	else if (!editor_mode) {
+		Tutorial_Render();
+	}
 
+	CP_Settings_ResetMatrix();
 	UI_Render();
 }
 
@@ -659,7 +662,9 @@ void Game_RenderUI(void) {
 			power_val = CP_Vector_Length(current->vel) / 50.f;
 			power_val = min(1.f, power_val);
 		}
+		UI_SetPriority(-5);
 		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.7f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
+		UI_SetPriority(0);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
@@ -1102,7 +1107,7 @@ void Process_Inputs(void) {
 	mouse_world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
 
 	// go to main menu if pressed escape key
-	if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
+	if (CP_Input_KeyTriggered(KEY_ESCAPE) && !Tutorial_GetMode()) {
 		if (!pause_menu) {
 			pause_menu_transition = 0.f;
 		}
