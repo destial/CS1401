@@ -328,7 +328,7 @@ int get_strokes(void) {
 	return stroke;
 }
 
-void score(void) {
+void score(float x, float y) {
 	//define all the scoring variables
 	bogey = lvl_par + 1;
 	d_bogey = lvl_par + 2;
@@ -340,10 +340,10 @@ void score(void) {
 	int stroke = get_strokes();
 	char w[50];
 	if (stroke == lvl_par) {
-		sprintf_s(w, 50, "You got a par");
+		sprintf_s(w, 50, "You got a par!!");
 	}
 	else if (stroke == 1) {
-		sprintf_s(w, 50, "You got a hole in one");
+		sprintf_s(w, 50, "You got a hole in one!!");
 	}
 	else if (stroke == bogey) {
 		sprintf_s(w, 50, "You got a bogey");
@@ -366,7 +366,7 @@ void score(void) {
 	else {
 		sprintf_s(w, 50, "You suck lol");
 	}
-	CP_Font_DrawText(w, 800, 400);
+	CP_Font_DrawText(w, x, y);
 }
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
@@ -404,6 +404,12 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	score();
 	CP_Font_DrawText(b, coords.x, coords.y);*/
 
+	//Change level clear colour based on user score.
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	sprintf_s(b, 50, "LEVEL CLEARED!");
+	CP_Font_DrawText(b, coords.x, coords.y);
+	score(coords.x, coords.y *1.1f);
+
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
 	//Draw level buttons
@@ -434,7 +440,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
 	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, 0.5f * win_width, 0.15f * win_height);
+	CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
 
 	//Drawing the grey star points based on the points they get.
 	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
