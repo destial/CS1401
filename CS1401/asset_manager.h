@@ -45,6 +45,7 @@
 #define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
 #define RAINBOW_SPARKLE_SPRITE_ASSET "Assets/Images/rainbow_sparkle_sheet.png"
 #define HALO_SPRITE_ASSET "Assets/Images/halo_sheet.png"
+#define PUTT_ARROW_ASSET "Assets/Images/putt_arrow.png"
 
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_outline_cross.png"

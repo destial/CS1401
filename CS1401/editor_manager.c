@@ -311,6 +311,7 @@ void Editor_Update_Items(ObjectArray* items) {
 				i->type = ITEM_TYPELESS + 1;
 			}
 			i->angle = 0.f;
+			i->diameter = i->type == ITEM_PORTAL ? 2.f : 1.f;
 			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_LEFT)) {
@@ -318,6 +319,7 @@ void Editor_Update_Items(ObjectArray* items) {
 				i->type = ITEM_LAST - 1;
 			}
 			i->angle = 0.f;
+			i->diameter = i->type == ITEM_PORTAL ? 2.f : 1.f;
 			editor_dirty = true;
 		}
 		else if (CP_Input_KeyTriggered(KEY_DELETE)) {

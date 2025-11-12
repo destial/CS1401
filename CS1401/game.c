@@ -627,18 +627,37 @@ void Game_RenderUI(void) {
 	GolfBall* golf_arr = Get_Golfs();
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
+	float power_val = 0.f;
 	if (current != NULL) {
-		// render the current power of the ball
-		CP_Vector a = World_To_Screen(current->pos.x, current->pos.y, world_limits.x, world_limits.y);
-		CP_Vector b = World_To_Screen(current->pos.x + current->vel.x, current->pos.y + current->vel.y, world_limits.x, world_limits.y);
 		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
 		int red = CP_Math_ClampInt(x, 0, 255);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
-		CP_Settings_Fill(power_color);
-		CP_Settings_Stroke(power_color);
-		CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-		CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+		power_val = CP_Vector_Length(current->vel) / 50.f;
+		power_val = min(1.f, power_val);
+
+		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
+		if (putt_arrow == NULL) {
+			// render the current power of the ball
+			CP_Vector a = World_To_Screen(current->pos.x, current->pos.y, world_limits.x, world_limits.y);
+			CP_Vector b = World_To_Screen(current->pos.x + current->vel.x, current->pos.y + current->vel.y, world_limits.x, world_limits.y);
+
+			CP_Settings_Fill(power_color);
+			CP_Settings_Stroke(power_color);
+			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
+			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+		}
+		else {
+			CP_Vector world_ratios = Get_World_Ratios();
+			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(current->vel), 5.f * power_val);
+			CP_Vector b = World_To_Screen(current->pos.x + normal.x, current->pos.y + normal.y, world_limits.x, world_limits.y);
+			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
+
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			float w = current->diameter * world_ratios.x * 5.f;
+			float h = current->diameter * world_ratios.x;
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * power_val, h, 255, angle);
+		}
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
@@ -657,11 +676,7 @@ void Game_RenderUI(void) {
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
 		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.4f, 5);
 
-		float power_val = 0.f;
-		if (current != NULL) {
-			power_val = CP_Vector_Length(current->vel) / 50.f;
-			power_val = min(1.f, power_val);
-		}
+		
 		UI_SetPriority(-5);
 		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.7f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
 		UI_SetPriority(0);
@@ -1874,7 +1889,7 @@ Item* Game_AddItem(CP_Vector pos, ItemType type) {
 		// if there's an unused item in the array, we overwrite it
 		if (i->destroyed) {
 			i->pos = pos;
-			i->diameter = 1.f;
+			i->diameter = type == ITEM_PORTAL ? 2.f : 1.f;
 			i->angle = 0.f;
 			i->destroyed = false;
 			i->collected = false;
@@ -1889,7 +1904,7 @@ Item* Game_AddItem(CP_Vector pos, ItemType type) {
 	if (items.arr) {
 		Item* new_item = Get_Items() + (items.length - 1);
 		new_item->pos = pos;
-		new_item->diameter = 1.f;
+		new_item->diameter = type == ITEM_PORTAL ? 2.f : 1.f;
 		new_item->angle = 0.f;
 		new_item->destroyed = false;
 		new_item->collected = false;
