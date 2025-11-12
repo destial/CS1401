@@ -227,10 +227,9 @@ CP_Image Asset_GetImage(const char* filepath) {
             if (image != NULL) {
                 return image;
             }
-            else { // filepath is wrong!
-                FREE_MEMORY(ptr->next);
-                return NULL;
-            }
+            // filepath is wrong!
+            FREE_MEMORY(ptr->next);
+            return NULL;
         }
     }
     return NULL;
@@ -332,10 +331,9 @@ CP_Font Asset_GetFont(const char* filepath) {
             if (font != NULL) {
                 return font;
             }
-            else { // filepath is wrong!
-                FREE_MEMORY(ptr->next);
-                return NULL;
-            }
+            // filepath is wrong!
+            FREE_MEMORY(ptr->next);
+            return NULL;
         }
     }
     return NULL;
@@ -366,10 +364,9 @@ CP_Sound Asset_GetAudio(const char* filepath) {
             if (audio != NULL) {
                 return audio;
             }
-            else { // filepath is wrong!
-                FREE_MEMORY(ptr->next);
-                return NULL;
-            }
+            // filepath is wrong!
+            FREE_MEMORY(ptr->next);
+            return NULL;
         }
     }
     return NULL;

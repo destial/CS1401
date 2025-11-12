@@ -42,7 +42,7 @@ CP_Font button_font;
 
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
-Map* settings_map = NULL;
+Map settings_map = NULL;
 
 void exit_main_menu(void) {
 	Set_Next_State(STATE_EXIT);

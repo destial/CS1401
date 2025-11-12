@@ -1489,7 +1489,7 @@ void Game_Load(void) {
 	// initialize golf balls default values
 
 	// get the currently set level and load the level file
-	Level* loaded_level = Level_Load(current_level);
+	Level loaded_level = Level_Load(current_level);
 
 	// if the level file exists, load that one
 	if (loaded_level != NULL) {

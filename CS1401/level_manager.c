@@ -13,15 +13,15 @@
 #include <stdlib.h>
 #include "string.h"
 
-Level* Level_Load(int level) {
+Level Level_Load(int level) {
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
 
-    Map* root = Map_Load(level_path);
+    Map root = Map_Load(level_path);
     // make sure this file actually exists
     if (root != NULL) {
         // create the level to load and set all the values *** all must have values!!!
-        Level* lvl = gc_malloc(sizeof(Level));
+        Level lvl = gc_malloc(sizeof(struct LevelStruct));
         if (lvl) {
             lvl->world_width = Map_GetFloat(root, "width", 48.f);
             lvl->world_height = Map_GetFloat(root, "height", 27.f);
@@ -315,7 +315,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     fp = NULL;
 }
 
-void Level_Free(Level* level) {
+void Level_Free(Level level) {
     FREE_MEMORY(level->walls);
     FREE_MEMORY(level->items);
     FREE_MEMORY(level->terrains);

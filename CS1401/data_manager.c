@@ -8,20 +8,20 @@
 #include "data_manager.h"
 
 // create a node of this map, or if NULL, a new node
-static Map* add_node(Map* map) {
+static Map add_node(Map map) {
     if (map == NULL) { // if the root map is NULL, we create a new root map
-        return gc_malloc(sizeof(Map));
+        return gc_malloc(sizeof(struct MapStruct));
     }
 
     if (map->key == NULL) { // if this node has no value stored, we use this instead
         return map;
     }
 
-    Map* last = map;
+    Map last = map;
     while (last->next) { // go to the back of this map
         last = last->next;
     }
-    last->next = gc_malloc(sizeof(Map)); // create the new node in at the back
+    last->next = gc_malloc(sizeof(struct MapStruct)); // create the new node in at the back
     return last->next;
 }
 
@@ -88,7 +88,7 @@ CP_Vector parse_vector(char* line) {
     return v;
 }
 
-Map* Map_Load(const char* filename) {
+Map Map_Load(const char* filename) {
     char* contents = read_content(filename);
     if (contents == NULL || strlen(contents) == 0)
         return NULL;
@@ -98,11 +98,11 @@ Map* Map_Load(const char* filename) {
     const char innerdel[] = "="; // each key value pair
 
     // allocate the root of this level map
-    Map* root = gc_malloc(sizeof(Map));
+    Map root = gc_malloc(sizeof(struct MapStruct));
     if (root == NULL)
         return NULL;
 
-    Map* next = root;
+    Map next = root;
     char* outerptr = NULL;
     char* innerptr = NULL;
 
@@ -127,7 +127,7 @@ Map* Map_Load(const char* filename) {
         // end of check, go to next line or quit if already at the end
         line = strtok_s(NULL, outerdel, &outerptr);
         if (line) {
-            next->next = gc_malloc(sizeof(Map));
+            next->next = gc_malloc(sizeof(struct MapStruct));
             if (next->next) {
                 next = next->next;
             }
@@ -144,12 +144,12 @@ Map* Map_Load(const char* filename) {
     return root;
 }
 
-Map* Map_AddString(Map* map, const char* key, char* value) {
+Map Map_AddString(Map map, const char* key, char* value) {
     // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
-    Map* next = add_node(map);
+    Map next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -165,12 +165,12 @@ Map* Map_AddString(Map* map, const char* key, char* value) {
     return map == NULL ? next : map;
 }
 
-Map* Map_AddInt(Map* map, const char* key, int value) {
+Map Map_AddInt(Map map, const char* key, int value) {
     // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
-    Map* next = add_node(map);
+    Map next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -187,12 +187,12 @@ Map* Map_AddInt(Map* map, const char* key, int value) {
     return map == NULL ? next : map;
 }
 
-Map* Map_AddFloat(Map* map, const char* key, float value) {
+Map Map_AddFloat(Map map, const char* key, float value) {
     // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
-    Map* next = add_node(map);
+    Map next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -209,12 +209,12 @@ Map* Map_AddFloat(Map* map, const char* key, float value) {
     return map == NULL ? next : map;
 }
 
-Map* Map_AddVector(Map* map, const char* key, CP_Vector value) {
+Map Map_AddVector(Map map, const char* key, CP_Vector value) {
     // if this key already exists, we skip
     if (Map_GetString(map, key))
         return map;
 
-    Map* next = add_node(map);
+    Map next = add_node(map);
 
     // +1 because last character is '\0' to terminate the string
     size_t key_len = strlen(key) + 1;
@@ -231,9 +231,9 @@ Map* Map_AddVector(Map* map, const char* key, CP_Vector value) {
     return map == NULL ? next : map;
 }
 
-void Map_EditString(Map* map, const char* key, char* value) {
+void Map_EditString(Map map, const char* key, char* value) {
     // loop through each node to find the key we are looking for
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
             gc_free(ptr->value);
@@ -248,9 +248,9 @@ void Map_EditString(Map* map, const char* key, char* value) {
     Map_AddString(map, key, value);
 }
 
-void Map_EditInt(Map* map, const char* key, int value) {
+void Map_EditInt(Map map, const char* key, int value) {
     // loop through each node to find the key we are looking for
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
             gc_free(ptr->value);
@@ -266,9 +266,9 @@ void Map_EditInt(Map* map, const char* key, int value) {
     Map_AddInt(map, key, value);
 }
 
-void Map_EditFloat(Map* map, const char* key, float value) {
+void Map_EditFloat(Map map, const char* key, float value) {
     // loop through each node to find the key we are looking for
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
             gc_free(ptr->value);
@@ -284,9 +284,9 @@ void Map_EditFloat(Map* map, const char* key, float value) {
     Map_AddFloat(map, key, value);
 }
 
-void Map_EditVector(Map* map, const char* key, CP_Vector value) {
+void Map_EditVector(Map map, const char* key, CP_Vector value) {
     // loop through each node to find the key we are looking for
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             // free up the current value
             gc_free(ptr->value);
@@ -302,21 +302,21 @@ void Map_EditVector(Map* map, const char* key, CP_Vector value) {
     Map_AddVector(map, key, value);
 }
 
-Map* Map_Remove(Map* map, const char* key) {
+Map Map_Remove(Map map, const char* key) {
     // first one in the map
     if (strcmp(map->key, key) == 0) {
-        Map* next = map->next;
+        Map next = map->next;
         FREE_MEMORY(map->key);
         FREE_MEMORY(map->value);
         FREE_MEMORY(map);
         return next;
     }
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         // inside the map
         if (ptr->next) {
             if (strcmp(ptr->next->key, key) == 0) { // if match, we bridge the previous and the next one
-                Map* todel = ptr->next;
-                Map* after = todel->next;
+                Map todel = ptr->next;
+                Map after = todel->next;
                 ptr->next = after;
 
                 // ensure to free up the memory allocated for each node
@@ -330,7 +330,7 @@ Map* Map_Remove(Map* map, const char* key) {
     return map;
 }
 
-bool Map_Save(const char* filename, Map* map) {
+bool Map_Save(const char* filename, Map map) {
     FILE* fp; // safe open
     fopen_s(&fp, filename, "w");
     if (!fp) {
@@ -338,7 +338,7 @@ bool Map_Save(const char* filename, Map* map) {
     }
 
     // add each node to the map
-    Map* next = map;
+    Map next = map;
     while (next) {
         fputs(next->key, fp); // key value pair (e.g. key=value)
         fputc('=', fp);
@@ -354,9 +354,9 @@ bool Map_Save(const char* filename, Map* map) {
     return true;
 }
 
-char* Map_GetString(Map* map, const char* key) {
+char* Map_GetString(Map map, const char* key) {
     // loop through each map node and compare the key value with the given key
-    for (Map* ptr = map; ptr != NULL; ptr = ptr->next) {
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, key) == 0) {
             return ptr->value;
         }
@@ -364,23 +364,23 @@ char* Map_GetString(Map* map, const char* key) {
     return NULL;
 }
 
-int Map_GetInt(Map* map, const char* key, int def) {
+int Map_GetInt(Map map, const char* key, int def) {
     char* value = Map_GetString(map, key);
     return value ? atoi(value) : def;
 }
 
-float Map_GetFloat(Map* map, const char* key, float def) {
+float Map_GetFloat(Map map, const char* key, float def) {
     char* value = Map_GetString(map, key);
     return value ? (float)atof(value) : def;
 }
 
-CP_Vector Map_GetVector(Map* map, const char* key) {
+CP_Vector Map_GetVector(Map map, const char* key) {
     char* value = Map_GetString(map, key);
     return value ? parse_vector(value) : CP_Vector_Set(0, 0);
 }
 
 // recursively loops through the map to free up the allocations, starting from the last node
-void Map_Free(Map* map) {
+void Map_Free(Map map) {
     if (map == NULL)
         return;
 
