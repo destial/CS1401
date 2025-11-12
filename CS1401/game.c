@@ -225,29 +225,6 @@ void game_update(void)
 			else {
 				pause_menu_transition -= (3.f * CP_System_GetDt());
 			}
-
-			// continue button
-			if (UI_ButtonImageText(
-				CP_System_GetWindowWidth() * 0.5f,
-				CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f * pause_menu_transition),
-				300, 100,
-				Asset_GetImage(BUTTON_BLUE_ASSET),
-				Asset_GetImage(BUTTON_YELLOW_ASSET),
-				"CONTINUE")) {
-				pause_menu_transition = 0.f;
-				pause_menu = !pause_menu;
-			}
-
-			// quit button
-			if (UI_ButtonImageText(
-				CP_System_GetWindowWidth() * 0.5f,
-				CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f * pause_menu_transition),
-				300, 100,
-				Asset_GetImage(BUTTON_BLUE_ASSET),
-				Asset_GetImage(BUTTON_YELLOW_ASSET),
-				"  QUIT  ")) {
-				Set_Next_State(STATE_MAINMENU);
-			}
 		}
 		else {
 			// semi-fixed timestep for physics time
@@ -376,6 +353,7 @@ void Game_UpdatePhysics(float dt)
 			if (golf->dragging) {
 				golf->stroke_pos = CP_Vector_Set(golf->pos.x, golf->pos.y);
 				golf->dragging = false;
+				current = NULL;
 				golf->halt = false;
 				swinging = 0.5f;
 				break;
@@ -584,29 +562,49 @@ void Game_Render(void)
 		Editor_Render();
 	}
 	else {
+		CP_Settings_ResetMatrix();
 		Tutorial_Render();
 	}
 
+	CP_Settings_ResetMatrix();
 	if (pause_menu_transition >= 0.f) {
 		CP_Color fade = Get_ColorAlpha(COLOR_BLACK, 192);
-		CP_Settings_NoStroke();
-		CP_Settings_Fill(fade);
-		CP_Settings_RectMode(CP_POSITION_CORNER);
-		CP_Graphics_DrawRect(0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight());
+		UI_Button(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), fade, fade);
 
-		CP_Settings_ImageMode(CP_POSITION_CENTER);
-		CP_Image_Draw(Asset_GetImage(SETTING_BACKGROUND_ASSET),
-			CP_System_GetWindowWidth() * 0.5f,
+		// menu background
+		UI_ButtonImage(CP_System_GetWindowWidth() * 0.5f,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.5f * pause_menu_transition),
-			CP_System_GetWindowWidth() - 1000.f, CP_System_GetWindowHeight() - 300.f, 255
-		);
+			CP_System_GetWindowWidth() - 1000.f, CP_System_GetWindowHeight() - 300.f, 
+			Asset_GetImage(SETTING_BACKGROUND_ASSET), Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Settings_TextSize(60.f);
-		CP_Settings_Fill(Get_Color(COLOR_BLACK));
-		CP_Font_DrawText("Game Paused!",
+		// pause text
+		UI_Text(
 			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f * pause_menu_transition));
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f * pause_menu_transition),
+			300, 200, Get_Color(COLOR_BLACK), "Game Paused!");
+
+		// continue button
+		if (UI_ButtonImageText(
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f * pause_menu_transition),
+			300, 100,
+			Asset_GetImage(BUTTON_BLUE_ASSET),
+			Asset_GetImage(BUTTON_YELLOW_ASSET),
+			"CONTINUE")) {
+			pause_menu_transition = 0.f;
+			pause_menu = !pause_menu;
+		}
+
+		// quit button
+		if (UI_ButtonImageText(
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f * pause_menu_transition),
+			300, 100,
+			Asset_GetImage(BUTTON_BLUE_ASSET),
+			Asset_GetImage(BUTTON_YELLOW_ASSET),
+			"  QUIT  ")) {
+			Set_Next_State(STATE_MAINMENU);
+		}
 	}
 
 	UI_Render();
@@ -614,24 +612,22 @@ void Game_Render(void)
 
 void Game_RenderUI(void) {
 	GolfBall* golf_arr = Get_Golfs();
-	for (int i = 0; i < golf_balls.length; ++i) {
-		GolfBall* golf = golf_arr + i;
-		// render current stroke
-		if (golf->dragging && golf == current) {
-
-			// render the current power of the ball
-			CP_Vector a = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
-			CP_Vector b = World_To_Screen(golf->pos.x + golf->vel.x, golf->pos.y + golf->vel.y, world_limits.x, world_limits.y);
-			int x = (int)(CP_Vector_LengthSquared(golf->vel) * (world_limits.x / world_limits.y));
-			int red = CP_Math_ClampInt(x, 0, 255);
-			int green = 255 - red;
-			CP_Settings_Fill(CP_Color_Create(red, green, 0, 255));
-			CP_Settings_Stroke(CP_Color_Create(red, green, 0, 255));
-			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
-		}
+	// store power color here for UI usage
+	CP_Color power_color = { 0 };
+	if (current != NULL) {
+		// render the current power of the ball
+		CP_Vector a = World_To_Screen(current->pos.x, current->pos.y, world_limits.x, world_limits.y);
+		CP_Vector b = World_To_Screen(current->pos.x + current->vel.x, current->pos.y + current->vel.y, world_limits.x, world_limits.y);
+		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
+		int red = CP_Math_ClampInt(x, 0, 255);
+		int green = 255 - red;
+		power_color = CP_Color_Create(red, green, 0, 255);
+		CP_Settings_Fill(power_color);
+		CP_Settings_Stroke(power_color);
+		CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
+		CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
 	}
-
+	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
 	if (!editor_mode) {
 		// draw current strokes
@@ -647,6 +643,13 @@ void Game_RenderUI(void) {
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
 		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.4f, 5);
+
+		float power_val = 0.f;
+		if (current != NULL) {
+			power_val = CP_Vector_Length(current->vel) / 50.f;
+			power_val = min(1.f, power_val);
+		}
+		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.7f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
 	}
 
 	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {

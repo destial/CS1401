@@ -13,6 +13,18 @@
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Create text at the given position with the given dimensions and color
+@param x - The x position of the text center
+@param y - The y position of the text center
+@param w - The width of the text
+@param h - The height of the text
+@param color - The color of the text
+@param text - The text to display
+*/
+void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Create a button at the given position with the given dimensions and colors
 @param x - The x position of the button center
 @param y - The y position of the button center
@@ -67,29 +79,31 @@ bool UI_ButtonImageText(float x, float y, float w, float h, CP_Image background,
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Create a slider at the given position with the given dimensions and colors
+@brief Create a horizontal slider at the given position with the given dimensions and colors
 @param x - The x position of the slider center
 @param y - The y position of the slider center
 @param w - The width of the slider
 @param h - The height of the slider
 @param background - The background color of the slider
 @param highlight - The highlight color of the slider
-@param value - The pointer to the float value to be modified by the slider (0.0 to 1.0)
+@param value - The starting float value of the slider (0.0 to 1.0)
+@param dragable - If this slider value can be modified by the user
 */
-void UI_Slider(float x, float y, float w, float h, CP_Color background, CP_Color highlight, float* value);
+float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color background, CP_Color highlight, float value, bool dragable);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Create a slider at the given position with the given dimensions and images
+@brief Create a horizontal slider at the given position with the given dimensions and images
 @param x - The x position of the slider center
 @param y - The y position of the slider center
 @param w - The width of the slider
 @param h - The height of the slider
 @param background - The background image of the slider
 @param highlight - The highlight image of the slider
-@param value - The pointer to the float value to be modified by the slider (0.0 to 1.0)
+@param value - The starting float value of the slider (0.0 to 1.0)
+@param dragable - If this slider value can be modified by the user
 */
-void UI_SliderImage(float x, float y, float w, float h, CP_Image background, CP_Image highlight, float* value);
+float UI_SliderHorizontalImage(float x, float y, float w, float h, CP_Image background, CP_Image highlight, float value, bool dragable);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
