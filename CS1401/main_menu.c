@@ -40,7 +40,7 @@ Button buttons[20];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false; is_equip_clicked = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 Map settings_map = NULL;
 
@@ -200,20 +200,19 @@ void main_menu_init(void)
 	buttons[15].text = "X";
 
 	//Shop Buy Button
-	buttons[16].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
+	buttons[16].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	buttons[16].pos.x = world_width1 * 0.3f;
 	buttons[16].pos.y = world_height1 * 0.32f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
-	buttons[16].text = "BUY";
+	buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+	buttons[16].func = is_equip_clicked ? NULL : is_buy_clicked ? NULL : buy_button;
 
-	//Shop Equip Button
 	buttons[17].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[17].pos.x = world_width1 * 0.7f;
 	buttons[17].pos.y = world_height1 * 0.35f;
 	buttons[17].start_pos.x = buttons[17].pos.x;
 	buttons[17].text = "BUY";
 
-	//Shop Equip Button
 	buttons[18].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[18].pos.x = world_width1 * 0.7f;
 	buttons[18].pos.y = world_height1 * 0.35f;
@@ -276,7 +275,7 @@ void main_menu_update(void)
 		//shop items would go here
 		CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.3f);
+		CP_Font_DrawText("GOLF BALLS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.3f);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
@@ -597,48 +596,50 @@ void settings_button(float mouse_x, float mouse_y) {
 
 void shops_button(float mouse_x, float mouse_y)
 {
+
+	for (int i = 16; i < 17; i++) {
 		//defining the position of the button
-		CP_Vector coords = World_To_Screen(buttons[16].pos.x, buttons[16].pos.y, world_width1, world_height1);
+		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
-			buttons[16].scale.x * CP_System_GetWindowWidth() / world_width1,
-			buttons[16].scale.y * CP_System_GetWindowHeight() / world_height1
+			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
+			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
 		};
 
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 
 		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[16].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[16].text_size * CP_System_GetWindowHeight() / world_height1);
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText(buttons[16].text, coords.x, coords.y);
+		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
-			buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 7.0f, CP_System_GetDt() * 5);
-			buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 1.3f, CP_System_GetDt() * 5);
+			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
+			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				buy_button();
+				buttons[i].func();
 			}
 		}
 		else {
 			if (is_shop_clicked) {
-				buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 6.0f, CP_System_GetDt() * 5);
-				buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 2.0f, CP_System_GetDt() * 5);
-				buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 0.95f, CP_System_GetDt() * 5);
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
+				buttons[16].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
 			}
 			else {
-				buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 0.0f, CP_System_GetDt() * 5);
-				buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 0.0f, CP_System_GetDt() * 5);
-				buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.0f, CP_System_GetDt() * 5);
 			}
 
 		}
-	
+	}
 }
 
 void back_buttons(float mouse_x, float mouse_y) {
@@ -782,19 +783,23 @@ void shop_button(void) {
 
 void buy_button(void) {
 	is_buy_clicked = !is_buy_clicked;
-	
-	switch (is_buy_clicked) {
-		case true:
-			buttons[16].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
-			buttons[16].text = "EQUIP";
-			break;
-		
-		case false:
-			
-			break;
+	for (int i = 16; i < 17; i++) {
+		if (coins >= 10 && is_buy_clicked) {
+			deduct_coins(10);
+			buttons[i].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+			buttons[i].text = "EQUIP";
+		}
 	}
-
 }
+
+void equip_button(void) {
+	is_equip_clicked = !is_equip_clicked;
+	for (int i = 16; i < 17; i++) {
+		buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[i].text = is_equip_clicked ? "EQUIPPED" : "EQUIP";
+	}
+}
+
 
 void draw_logo_image(void) {
 
