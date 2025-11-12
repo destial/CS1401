@@ -22,9 +22,6 @@ void splash_screen_init(void)
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
 	CP_System_SetWindowTitle("GGCode - GGGolf Game");
-
-	Particles_Preload();
-	Asset_Preload();
 }
 
 void splash_screen_update(void)

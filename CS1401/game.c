@@ -8,17 +8,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include "cprocessing.h"
 #include "game.h"
-#include "main_menu.h"
-#include "math.h"
 #include "utils.h"
+#include "main_menu.h"
+
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
 #include "editor_manager.h"
 #include "state_manager.h"
 #include "particle_manager.h"
-#include "cprocessing.h"
+#include "ui_manager.h"
 #include "tutorial_manager.h"
 
 // initialize global variables here
@@ -60,11 +62,8 @@ CP_Matrix camera_matrix;
 float camera_scale;
 
 // reset on level loading
-float translate = 1.f;
-float turn_now = 0.f;
-float turn_now_hold = 0.f;
-bool turn_now_revert = false;
-bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false;
+float scale_transition = 1.f, turn_now = 0.f, turn_now_hold = 0.f, pause_menu_transition = -1.f;
+bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false, turn_now_revert = false, pause_menu = false;
 #define MIN_VEL 0.05f
 
 // load based on level
@@ -181,7 +180,7 @@ void game_init(void)
 	Game_Load();
 
 	// reset on level loading
-	translate = 1.f;
+	scale_transition = 1.f;
 	turn_now = 0.f;
 	turn_now_hold = 0.f;
 	turn_now_revert = false;
@@ -190,6 +189,8 @@ void game_init(void)
 	has_won = false;
 	all_balls_stopped = true;
 	editor_mode = false;
+	pause_menu_transition = -1.f;
+	pause_menu = false;
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
@@ -215,22 +216,58 @@ void game_update(void)
 		}
 	}
 	else {
-		// semi-fixed timestep for physics time
-		// incase the game gets too laggy for slow pc
-		float new_time = CP_System_GetSeconds();
-		float frame_time = new_time - current_time;
-		current_time = new_time;
+		// update pause menu
+		if (pause_menu_transition >= 0.f) {
+			if (pause_menu) {
+				pause_menu_transition += (3.f * CP_System_GetDt());
+				pause_menu_transition = min(1.f, pause_menu_transition);
+			}
+			else {
+				pause_menu_transition -= (3.f * CP_System_GetDt());
+			}
 
-		float dt;
-		// run timestep for every lost frame if < 60fps
-		while (frame_time > 0.f) {
-			dt = min(frame_time, 1 / 60.f);
-			Game_UpdatePhysics(dt);
-			frame_time -= dt;
+			// continue button
+			if (UI_ButtonImageText(
+				CP_System_GetWindowWidth() * 0.5f,
+				CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f * pause_menu_transition),
+				300, 100,
+				Asset_GetImage(BUTTON_BLUE_ASSET),
+				Asset_GetImage(BUTTON_YELLOW_ASSET),
+				"CONTINUE")) {
+				pause_menu_transition = 0.f;
+				pause_menu = !pause_menu;
+			}
+
+			// quit button
+			if (UI_ButtonImageText(
+				CP_System_GetWindowWidth() * 0.5f,
+				CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f * pause_menu_transition),
+				300, 100,
+				Asset_GetImage(BUTTON_BLUE_ASSET),
+				Asset_GetImage(BUTTON_YELLOW_ASSET),
+				"  QUIT  ")) {
+				Set_Next_State(STATE_MAINMENU);
+			}
 		}
+		else {
+			// semi-fixed timestep for physics time
+			// incase the game gets too laggy for slow pc
+			float new_time = CP_System_GetSeconds();
+			float frame_time = new_time - current_time;
+			current_time = new_time;
 
-		if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
-			scoring_update();
+			float dt;
+			// run timestep for every lost frame if < 60fps
+			while (frame_time > 0.f) {
+				dt = min(frame_time, 1 / 60.f);
+				Game_UpdatePhysics(dt);
+				frame_time -= dt;
+			}
+
+			// tab is only for debug purposes, will be removed in the actual build
+			if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
+				scoring_update();
+		}
 	}
 
 	// rendering does not need to be in physics time
@@ -242,9 +279,9 @@ void game_update(void)
 void Game_UpdatePhysics(float dt)
 {
 	// entry animation
-	if (translate != 0.f) {
-		translate -= dt;
-		translate = max(0.f, translate);
+	if (scale_transition != 0.f) {
+		scale_transition -= dt;
+		scale_transition = max(0.f, scale_transition);
 	}
 	else if (!playable) {
 		playable = true;
@@ -268,6 +305,7 @@ void Game_UpdatePhysics(float dt)
 			break;
 		}
 	}
+
 	// update swinging animation
 	if (swinging) {
 		swinging -= dt;
@@ -548,6 +586,30 @@ void Game_Render(void)
 	else {
 		Tutorial_Render();
 	}
+
+	if (pause_menu_transition >= 0.f) {
+		CP_Color fade = Get_ColorAlpha(COLOR_BLACK, 192);
+		CP_Settings_NoStroke();
+		CP_Settings_Fill(fade);
+		CP_Settings_RectMode(CP_POSITION_CORNER);
+		CP_Graphics_DrawRect(0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight());
+
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Image_Draw(Asset_GetImage(SETTING_BACKGROUND_ASSET),
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.5f * pause_menu_transition),
+			CP_System_GetWindowWidth() - 1000.f, CP_System_GetWindowHeight() - 300.f, 255
+		);
+
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Settings_TextSize(60.f);
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText("Game Paused!",
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f * pause_menu_transition));
+	}
+
+	UI_Render();
 }
 
 void Game_RenderUI(void) {
@@ -654,8 +716,8 @@ void Game_RenderTerrains(void) {
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y,
-			terrain->scale.x * world_ratios.x * (1.f - translate),
-			terrain->scale.y * world_ratios.y * (1.f - translate),
+			terrain->scale.x * world_ratios.x * (1.f - scale_transition),
+			terrain->scale.y * world_ratios.y * (1.f - scale_transition),
 			terrain->angle,
 			2.f
 		);
@@ -697,8 +759,8 @@ void Game_RenderWalls(void) {
 			CP_Graphics_DrawRectAdvanced(
 				c.x,
 				c.y,
-				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - translate) : 1.f),
-				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - translate) : 1.f),
+				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - scale_transition) : 1.f),
+				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - scale_transition) : 1.f),
 				wall->angle,
 				0.f
 			);
@@ -718,8 +780,8 @@ void Game_RenderWalls(void) {
 			CP_Image_DrawSubImageAdvanced(wall->image,
 				c.x,
 				c.y,
-				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - translate) : 1.f),
-				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - translate) : 1.f),
+				wall->scale.x * world_ratios.x * (i > 4 ? (1.f - scale_transition) : 1.f),
+				wall->scale.y * world_ratios.y * (i > 4 ? (1.f - scale_transition) : 1.f),
 				0.f, 0.f, (i > 4 ? w * (wall->scale.x / d) : w * wall->scale.x), (i > 4 ? h * (wall->scale.y / d) : h * wall->scale.y),
 				255, wall->angle
 			);
@@ -778,7 +840,7 @@ void Game_RenderHoles(void) {
 		CP_Graphics_DrawCircle(
 			coords.x,
 			coords.y,
-			hole->diameter * world_ratios.x * (1.f - translate));
+			hole->diameter * world_ratios.x * (1.f - scale_transition));
 
 		if (debug_enabled) {
 			CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
@@ -831,8 +893,8 @@ void Game_RenderItems(void) {
 			CP_Image_DrawAdvanced(image,
 				coords.x,
 				coords.y,
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
 				255,
 				item->angle);
 		}
@@ -841,8 +903,8 @@ void Game_RenderItems(void) {
 			Sprite_Draw(sprite,
 				coords.x,
 				coords.y,
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
 				255);
 		}
 
@@ -881,8 +943,8 @@ void Game_RenderGolfs(void) {
 		CP_Image_DrawAdvanced(golf_ball_image,
 			coords.x,
 			coords.y,
-			golf->diameter * world_ratios.x * (1.f - translate),
-			golf->diameter * world_ratios.x * (1.f - translate),
+			golf->diameter * world_ratios.x * (1.f - scale_transition),
+			golf->diameter * world_ratios.x * (1.f - scale_transition),
 			255,
 			golf->angle);
 
@@ -939,8 +1001,8 @@ void Game_RenderShadows(void) {
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y + 5.f,
-			wall->scale.x * world_ratios.x * i > 4 ? (1.f - translate) : 1.f,
-			wall->scale.y * world_ratios.y * i > 4 ? (1.f - translate) : 1.f,
+			wall->scale.x * world_ratios.x * i > 4 ? (1.f - scale_transition) : 1.f,
+			wall->scale.y * world_ratios.y * i > 4 ? (1.f - scale_transition) : 1.f,
 			wall->angle,
 			0.f
 		);
@@ -979,8 +1041,8 @@ void Game_RenderShadows(void) {
 			CP_Image_DrawAdvanced(image,
 				coords.x,
 				coords.y + 5.f,
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
-				item->diameter * world_ratios.x * anim_mul * (1.f - translate),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
+				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
 				shadow.a,
 				item->angle);
 		}
@@ -997,8 +1059,8 @@ void Game_RenderShadows(void) {
 		CP_Graphics_DrawEllipse(
 			coords.x,
 			coords.y + 5.f,
-			golf->diameter * world_ratios.x * (1.f - translate),
-			(golf->diameter * world_ratios.y + 5.f) * (1.f - translate));
+			golf->diameter * world_ratios.x * (1.f - scale_transition),
+			(golf->diameter * world_ratios.y + 5.f) * (1.f - scale_transition));
 	}
 }
 
@@ -1027,8 +1089,9 @@ void Process_Inputs(void) {
 	mouse_world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
 
 	// go to main menu if pressed escape key
-	if (CP_Input_KeyDown(KEY_ESCAPE)) {
-		Set_Next_State(STATE_MAINMENU);
+	if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
+		pause_menu_transition = 0.f;
+		pause_menu = !pause_menu;
 		return;
 	}
 
@@ -1054,7 +1117,7 @@ void Process_Inputs(void) {
 		game_exit();
 		game_init();
 		Tutorial_Load(false);
-		translate = 0.f;
+		scale_transition = 0.f;
 		return;
 	}
 
