@@ -223,7 +223,10 @@ void game_update(void)
 				pause_menu_transition = min(1.f, pause_menu_transition);
 			}
 			else {
-				pause_menu_transition -= (3.f * CP_System_GetDt());
+				pause_menu_transition += (3.f * CP_System_GetDt());
+				if (pause_menu_transition >= 2.f) {
+					pause_menu_transition = -1.f;
+				}
 			}
 		}
 		else {
@@ -572,33 +575,34 @@ void Game_Render(void)
 		UI_Button(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), fade, fade);
 
 		// menu background
-		UI_ButtonImage(CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.5f * pause_menu_transition),
+		UI_ButtonImage(
+			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() - 1000.f, CP_System_GetWindowHeight() - 300.f, 
 			Asset_GetImage(SETTING_BACKGROUND_ASSET), Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
 		// pause text
 		UI_Text(
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f * pause_menu_transition),
+			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
 			300, 200, Get_Color(COLOR_BLACK), "Game Paused!");
 
 		// continue button
 		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f * pause_menu_transition),
+			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
 			"CONTINUE")) {
-			pause_menu_transition = 0.f;
+			//pause_menu_transition = 0.f;
 			pause_menu = !pause_menu;
 		}
 
 		// quit button
 		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f * pause_menu_transition),
+			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f ),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
