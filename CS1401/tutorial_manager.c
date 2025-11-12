@@ -11,6 +11,7 @@
 #include "asset_manager.h"
 #include "sprite_manager.h"
 #include "tutorial_manager.h"
+#include "ui_manager.h"
 
 typedef struct TutorialStruct {
 	SpriteSheet gif;
@@ -108,23 +109,18 @@ void Tutorial_Render(void) {
 	if (!tut)
 		return;
 
-	CP_Settings_Save();
-	CP_Settings_RectMode(CP_POSITION_CORNER);
-
+	UI_SetPriority(1);
 	// tinted background
-	CP_Color fade = Get_ColorAlpha(COLOR_BLACK, 192);
-	CP_Settings_Stroke(fade);
-	CP_Settings_Fill(fade);
-	CP_Graphics_DrawRect(0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight());
-
+	UI_Quad(CP_System_GetWindowWidth() * 0.5f, (float)CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), Get_ColorAlpha(COLOR_BLACK, 192));
+	UI_SetPriority(2);
 	// the gif
-	Sprite_Draw(tut->gif, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), 255);
+	UI_Video(CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), tut->gif);
+
+	// instructions border
+	UI_Quad(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), Get_Color(COLOR_GRAY));
 
 	// the instructions
-	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
-	CP_Settings_Fill(Get_Color(COLOR_WHITE));
-	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawTextBox(tut->instructions, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif));
-
-	CP_Settings_Restore();
+	UI_SetPriority(3);
+	UI_Text(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.35f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), Get_Color(COLOR_WHITE), tut->instructions, 50.f);
+	UI_SetPriority(0);
 }

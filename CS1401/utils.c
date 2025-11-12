@@ -7,8 +7,8 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "utils.h"
-#include "math.h"
 
 static bool colors_init = false;
 static CP_Color colors[LAST_COLOR];
@@ -97,14 +97,12 @@ int gcd(int a, int b) {
 // memory garbage collection counter (for memory leak test purposes)
 static int gccounter = 0;
 void* gc_malloc(size_t size) {
-	++gccounter;
-	printf("m: %d, ", gccounter);
+	printf("m: %d, ", ++gccounter);
 	return malloc(size);
 }
 
 void* gc_calloc(size_t count, size_t size) {
-	++gccounter;
-	printf("c: %d, ", gccounter);
+	printf("c: %d, ", ++gccounter);
 	return calloc(count, size);
 }
 
@@ -119,8 +117,7 @@ void* gc_realloc(void* ptr, size_t size) {
 
 void gc_free(void* ptr) {
 	if (ptr) {
-		--gccounter;
-		printf("freed: %d\n", gccounter);
+		printf("freed: %d\n", --gccounter);
 		free(ptr);
 	}
 }

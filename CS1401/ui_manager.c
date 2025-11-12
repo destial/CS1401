@@ -10,18 +10,28 @@
 #include "ui_manager.h"
 
 #define MAX_UI_OBJECTS 16
+#define MAX_UI_ELEMENTS 64 // 16 * 4
+
+// declare different types of UI
+typedef struct VideoStruct {
+	float x, y, w, h;
+	SpriteSheet spritesheet;
+	int priority;
+} VideoStruct;
 
 typedef struct ButtonStruct {
 	float x, y, w, h;
 	CP_Color background, highlight;
 	CP_Image back_image, hover_image;
 	char const* text;
+	int priority;
 } ButtonStruct;
 
 typedef struct TextStruct {
-	float x, y, w, h;
+	float x, y, w, h, size;
 	CP_Color color;
 	char const* text;
+	int priority;
 } TextStruct;
 
 typedef struct SliderStruct {
@@ -29,15 +39,43 @@ typedef struct SliderStruct {
 	CP_Color background, highlight;
 	CP_Image back_image, slider_image;
 	float value;
+	int priority;
 } SliderStruct;
+
+// these is used to sort each UI element by its rendering priority order
+typedef enum UITypeEnum {
+	UI_BUTTON,
+	UI_TEXT,
+	UI_VIDEO,
+	UI_SLIDER
+} UIType;
+
+typedef struct UIElement {
+	union {
+		TextStruct* text;
+		ButtonStruct* button;
+		SliderStruct* slider;
+		VideoStruct* video;
+		void* ptr;
+	};
+	UIType type;
+	int priority;
+} UIElement;
 
 typedef struct UIArrayStruct {
 	ButtonStruct buttons[MAX_UI_OBJECTS]; // max buttons
 	SliderStruct sliders[MAX_UI_OBJECTS]; // max sliders
 	TextStruct texts[MAX_UI_OBJECTS]; // max texts
+	VideoStruct videos[MAX_UI_OBJECTS]; // max videos
 
-	int buttons_length, sliders_length, texts_length;
+	UIElement sorted[MAX_UI_ELEMENTS]; // sorted each UI element by render priority
+
+	int elements_length, buttons_length, sliders_length, texts_length, videos_length;
 } UIElementsArray;
+
+// static cuz i dont want it exposed anywhere else
+static UIElementsArray _ui_elements;
+static int current_priority = 0;
 
 static int IsButtonHighlight(ButtonStruct* button, float click_x, float click_y) {
 	return (click_x <= button->x + (button->w * 0.5f)) && (click_x >= button->x - (button->w * 0.5f)) && (click_y <= button->y + (button->h * 0.5f)) && (click_y >= button->y - (button->h * 0.5f));
@@ -47,7 +85,57 @@ static int IsSliderHighlight(SliderStruct* button, float click_x, float click_y)
 	return (click_x <= button->x + (button->w * 0.5f)) && (click_x >= button->x - (button->w * 0.5f)) && (click_y <= button->y + (button->h * 0.5f)) && (click_y >= button->y - (button->h * 0.5f));
 }
 
-static UIElementsArray _ui_elements;
+// to pass as function ptr into qsort()
+static int UI_CompPriority(const UIElement* a, const UIElement* b) {
+	return a->priority - b->priority;
+}
+
+// to be called before render
+// sorts each UI element by priority
+static void UI_SortPriority(void) {
+	if (_ui_elements.sliders != NULL) {
+		for (int i = 0; i < _ui_elements.sliders_length; ++i) {
+			_ui_elements.sorted[_ui_elements.elements_length].slider = &_ui_elements.sliders[i];
+			_ui_elements.sorted[_ui_elements.elements_length].type = UI_SLIDER;
+			_ui_elements.sorted[_ui_elements.elements_length].priority = _ui_elements.sliders[i].priority;
+			++_ui_elements.elements_length;
+		}
+	}
+
+	if (_ui_elements.buttons != NULL) {
+		for (int i = 0; i < _ui_elements.buttons_length; ++i) {
+			_ui_elements.sorted[_ui_elements.elements_length].button = &_ui_elements.buttons[i];
+			_ui_elements.sorted[_ui_elements.elements_length].type = UI_BUTTON;
+			_ui_elements.sorted[_ui_elements.elements_length].priority = _ui_elements.buttons[i].priority;
+			++_ui_elements.elements_length;
+		}
+	}
+
+	if (_ui_elements.texts != NULL) {
+		for (int i = 0; i < _ui_elements.texts_length; ++i) {
+			_ui_elements.sorted[_ui_elements.elements_length].text = &_ui_elements.texts[i];
+			_ui_elements.sorted[_ui_elements.elements_length].type = UI_TEXT;
+			_ui_elements.sorted[_ui_elements.elements_length].priority = _ui_elements.texts[i].priority;
+			++_ui_elements.elements_length;
+		}
+	}
+
+	if (_ui_elements.videos != NULL) {
+		for (int i = 0; i < _ui_elements.videos_length; ++i) {
+			_ui_elements.sorted[_ui_elements.elements_length].video = &_ui_elements.videos[i];
+			_ui_elements.sorted[_ui_elements.elements_length].type = UI_VIDEO;
+			_ui_elements.sorted[_ui_elements.elements_length].priority = _ui_elements.videos[i].priority;
+			++_ui_elements.elements_length;
+		}
+	}
+
+	// thanks qsort!
+	qsort(_ui_elements.sorted, _ui_elements.elements_length, sizeof(UIElement), UI_CompPriority);
+}
+
+void UI_SetPriority(int priority) {
+	current_priority = priority;
+}
 
 bool UI_Button(float x, float y, float w, float h, CP_Color background, CP_Color highlight) {
 	return UI_ButtonText(x, y, w, h, background, highlight, NULL);
@@ -63,6 +151,21 @@ void UI_Image(float x, float y, float w, float h, CP_Image image) {
 
 void UI_Quad(float x, float y, float w, float h, CP_Color color) {
 	UI_Button(x, y, w, h, color, color);
+}
+
+void UI_Video(float x, float y, float w, float h, SpriteSheet spritesheet) {
+	// stop if array maxed out
+	if (_ui_elements.videos_length == MAX_UI_OBJECTS)
+		return;
+
+	// append a button image text
+	++_ui_elements.videos_length;
+	_ui_elements.videos[_ui_elements.videos_length - 1].w = w;
+	_ui_elements.videos[_ui_elements.videos_length - 1].h = h;
+	_ui_elements.videos[_ui_elements.videos_length - 1].x = x;
+	_ui_elements.videos[_ui_elements.videos_length - 1].y = y;
+	_ui_elements.videos[_ui_elements.videos_length - 1].spritesheet = spritesheet;
+	_ui_elements.videos[_ui_elements.videos_length - 1].priority = current_priority;
 }
 
 bool UI_ButtonImageText(float x, float y, float w, float h, CP_Image background, CP_Image highlight, char const* text) {
@@ -84,6 +187,7 @@ bool UI_ButtonImageText(float x, float y, float w, float h, CP_Image background,
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].text = text;
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].back_image = background;
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].hover_image = highlight;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].priority = current_priority;
 
 	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_ui_elements.buttons[_ui_elements.buttons_length - 1], mouse_x, mouse_y);
 }
@@ -107,11 +211,12 @@ bool UI_ButtonText(float x, float y, float w, float h, CP_Color background, CP_C
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].text = text;
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].back_image = NULL;
 	_ui_elements.buttons[_ui_elements.buttons_length - 1].hover_image = NULL;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].priority = current_priority;
 
 	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_ui_elements.buttons[_ui_elements.buttons_length - 1], mouse_x, mouse_y);
 }
 
-void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text) {
+void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text, float size) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
@@ -127,6 +232,8 @@ void UI_Text(float x, float y, float w, float h, CP_Color color, char const* tex
 	_ui_elements.texts[_ui_elements.texts_length - 1].y = y;
 	_ui_elements.texts[_ui_elements.texts_length - 1].color = color;
 	_ui_elements.texts[_ui_elements.texts_length - 1].text = text;
+	_ui_elements.texts[_ui_elements.texts_length - 1].size = size;
+	_ui_elements.texts[_ui_elements.texts_length - 1].priority = current_priority;
 }
 
 float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color background, CP_Color highlight, float value, bool dragable) {
@@ -148,6 +255,7 @@ float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color backgroun
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].value = value;
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].back_image = NULL;
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].slider_image = NULL;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].priority = current_priority;
 
 	// edit slider value if user drag
 	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
@@ -176,6 +284,7 @@ float UI_SliderHorizontalImage(float x, float y, float w, float h, CP_Image back
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].value = value;
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].back_image = background;
 	_ui_elements.sliders[_ui_elements.sliders_length - 1].slider_image = highlight;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].priority = current_priority;
 
 	// edit slider value if user drag
 	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
@@ -190,88 +299,104 @@ void UI_Start(void) {
 	_ui_elements.buttons_length = 0;
 	_ui_elements.sliders_length = 0;
 	_ui_elements.texts_length = 0;
+	_ui_elements.videos_length = 0;
+	_ui_elements.elements_length = 0;
+
+	current_priority = 0;
 }
 
 void UI_Render(void) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
+	// sort ui elements by priority
+	UI_SortPriority();
+
 	CP_Settings_Save();
 
-	// render sliders first
-	if (_ui_elements.sliders != NULL) {
-		for (int i = 0; i < _ui_elements.sliders_length; ++i) {
-			float x = _ui_elements.sliders[i].x;
-			float y = _ui_elements.sliders[i].y;
-			float w = _ui_elements.sliders[i].w;
-			float h = _ui_elements.sliders[i].h;
+	for (int i = 0; i < _ui_elements.elements_length; ++i) {
+		UIType type = _ui_elements.sorted[i].type;
+		if (type == UI_SLIDER) {
+			SliderStruct* slider = _ui_elements.sorted[i].slider;
+			float x = slider->x;
+			float y = slider->y;
+			float w = slider->w;
+			float h = slider->h;
 
 			// if slider color
-			if (_ui_elements.sliders[i].back_image == NULL) {
+			if (slider->back_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
 				CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-				CP_Settings_Fill(_ui_elements.sliders[i].background);
+				CP_Settings_Fill(slider->background);
 				CP_Graphics_DrawRect(x, y, w, h);
 			}
 			else { // if slider has image
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(_ui_elements.sliders[i].back_image, x, y, w, h, 255);
+				CP_Image_Draw(slider->back_image, x, y, w, h, 255);
 			}
-			
+
 			// if slider color
-			if (_ui_elements.sliders[i].slider_image == NULL) {
+			if (slider->slider_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
 				CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-				CP_Settings_Fill(_ui_elements.sliders[i].highlight);
-				CP_Graphics_DrawRect(x - (w * (1.f - _ui_elements.sliders[i].value) * 0.5f), y, w * (_ui_elements.sliders[i].value), h);
+				CP_Settings_Fill(slider->highlight);
+				CP_Graphics_DrawRect(x - (w * (1.f - slider->value) * 0.5f), y, w * (slider->value), h);
 			}
 			else { // if slider has image
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(_ui_elements.sliders[i].slider_image, x - (w * (1.f - _ui_elements.sliders[i].value) * 0.5f), y, w * (_ui_elements.sliders[i].value), h, 255);
+				CP_Image_Draw(slider->slider_image, x - (w * (1.f - slider->value) * 0.5f), y, w * (slider->value), h, 255);
 			}
 		}
-	}
+		else if (type == UI_BUTTON) {
+			ButtonStruct* button = _ui_elements.sorted[i].button;
+			float x = button->x;
+			float y = button->y;
+			float w = button->w;
+			float h = button->h;
 
-	// then render buttons
-	if (_ui_elements.buttons != NULL) {
-		for (int i = 0; i < _ui_elements.buttons_length; ++i) {
-			float x = _ui_elements.buttons[i].x;
-			float y = _ui_elements.buttons[i].y;
-			float w = _ui_elements.buttons[i].w;
-			float h = _ui_elements.buttons[i].h;
+			CP_BOOL c = IsButtonHighlight(button, mouse_x, mouse_y);
 
-			CP_BOOL c = IsButtonHighlight(&_ui_elements.buttons[i], mouse_x, mouse_y);
-
-			if (_ui_elements.buttons[i].back_image == NULL) {
+			// if button color
+			if (button->back_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
-				CP_Settings_Fill(c ? _ui_elements.buttons[i].highlight : _ui_elements.buttons[i].background);
+				CP_Settings_Fill(c ? button->highlight : button->background);
 				CP_Graphics_DrawRect(x, y, w, h);
 			}
-			else {
+			else { // if button has image
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(c ? _ui_elements.buttons[i].hover_image : _ui_elements.buttons[i].back_image, x, y, w, h, 255);
+				CP_Image_Draw(c ? button->hover_image : button->back_image, x, y, w, h, 255);
 			}
-			if (_ui_elements.buttons[i].text != NULL) {
+
+			// if button has text
+			if (button->text != NULL) {
 				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-				CP_Settings_TextSize((h + w) / strlen(_ui_elements.buttons[i].text));
-				CP_Settings_Fill(c ? _ui_elements.buttons[i].background : _ui_elements.buttons[i].highlight);
-				CP_Font_DrawTextBox(_ui_elements.buttons[i].text, x - (w * 0.5f), y, w);
+				CP_Settings_TextSize((h + w) / strlen(button->text));
+				CP_Settings_Fill(c ? button->background : button->highlight);
+				CP_Font_DrawTextBox(button->text, x - (w * 0.5f), y, w);
 			}
 		}
-	}
+		else if (type == UI_VIDEO) {
+			VideoStruct* video = _ui_elements.sorted[i].video;
+			float x = video->x;
+			float y = video->y;
+			float w = video->w;
+			float h = video->h;
 
-	// then render texts
-	if (_ui_elements.texts != NULL) {
-		for (int i = 0; i < _ui_elements.texts_length; ++i) {
-			float x = _ui_elements.texts[i].x;
-			float y = _ui_elements.texts[i].y;
-			float w = _ui_elements.texts[i].w;
-			float h = _ui_elements.texts[i].h;
+			// render video sprite
+			Sprite_Draw(video->spritesheet, x, y, w, h, 255);
+		}
+		else if (type == UI_TEXT) {
+			TextStruct* text = _ui_elements.sorted[i].text;
+			float x = text->x;
+			float y = text->y;
+			float w = text->w;
+			float h = text->h;
 
+			// render text
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Settings_TextSize((h + w) / strlen(_ui_elements.texts[i].text));
-			CP_Settings_Fill(_ui_elements.texts[i].color);
-			CP_Font_DrawTextBox(_ui_elements.texts[i].text, x - (w * 0.5f), y, w);
+			CP_Settings_TextSize(text->size);
+			CP_Settings_Fill(text->color);
+			CP_Font_DrawTextBox(text->text, x - (w * 0.5f), y, w);
 		}
 	}
 

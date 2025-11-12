@@ -209,6 +209,28 @@ Map Map_AddFloat(Map map, const char* key, float value) {
     return map == NULL ? next : map;
 }
 
+Map Map_AddBool(Map map, const char* key, bool value) {
+    // if this key already exists, we skip
+    if (Map_GetString(map, key))
+        return map;
+
+    Map next = add_node(map);
+
+    // +1 because last character is '\0' to terminate the string
+    size_t key_len = strlen(key) + 1;
+    next->key = gc_calloc(key_len, sizeof(char));
+    strcpy_s(next->key, key_len, key);
+
+    // set the value (right side)
+    char v[6]; sprintf_s(v, 6, "%s", value ? "true" : "false");
+    size_t val_len = strlen(v) + 1;
+    next->value = gc_calloc(val_len, sizeof(char));
+    strcpy_s(next->value, val_len, v);
+
+    next->next = NULL;
+    return map == NULL ? next : map;
+}
+
 Map Map_AddVector(Map map, const char* key, CP_Vector value) {
     // if this key already exists, we skip
     if (Map_GetString(map, key))
@@ -302,6 +324,24 @@ void Map_EditVector(Map map, const char* key, CP_Vector value) {
     Map_AddVector(map, key, value);
 }
 
+void Map_EditBool(Map map, const char* key, bool value) {
+    // loop through each node to find the key we are looking for
+    for (Map ptr = map; ptr != NULL; ptr = ptr->next) {
+        if (strcmp(ptr->key, key) == 0) {
+            // free up the current value
+            gc_free(ptr->value);
+
+            // set the new value
+            char v[6]; sprintf_s(v, 6, "%s", value ? "true" : "false");
+            size_t val_len = strlen(v) + 1;
+            ptr->value = gc_calloc(val_len, sizeof(char));
+            strcpy_s(ptr->value, val_len, v);
+            return; // after modified, we dont need to look anymore
+        }
+    }
+    Map_AddBool(map, key, value);
+}
+
 Map Map_Remove(Map map, const char* key) {
     // first one in the map
     if (strcmp(map->key, key) == 0) {
@@ -316,8 +356,7 @@ Map Map_Remove(Map map, const char* key) {
         if (ptr->next) {
             if (strcmp(ptr->next->key, key) == 0) { // if match, we bridge the previous and the next one
                 Map todel = ptr->next;
-                Map after = todel->next;
-                ptr->next = after;
+                ptr->next = todel->next;
 
                 // ensure to free up the memory allocated for each node
                 FREE_MEMORY(todel->key);
@@ -343,10 +382,9 @@ bool Map_Save(const char* filename, Map map) {
         fputs(next->key, fp); // key value pair (e.g. key=value)
         fputc('=', fp);
         fputs(next->value, fp);
-        if (next->next) {
+        if (next = next->next) {
             fputc('\n', fp);
         }
-        next = next->next;
     }
 
     fclose(fp);
@@ -372,6 +410,11 @@ int Map_GetInt(Map map, const char* key, int def) {
 float Map_GetFloat(Map map, const char* key, float def) {
     char* value = Map_GetString(map, key);
     return value ? (float)atof(value) : def;
+}
+
+bool Map_GetBool(Map map, const char* key, bool def) {
+    char* value = Map_GetString(map, key);
+    return value ? strcmp(value, "true") == 0 : def;
 }
 
 CP_Vector Map_GetVector(Map map, const char* key) {

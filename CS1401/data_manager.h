@@ -79,6 +79,16 @@ Map Map_AddVector(Map map, const char* key, CP_Vector value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Add a boolean entry to this map. If map is NULL, will create a new map with the return as the root.
+@param map - The root map, nullable
+@param key - The string key
+@param value - The boolean value
+@return The root map node, if map parameter is NULL, will allocate a new map root
+*/
+Map Map_AddBool(Map map, const char* key, bool value);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Edit a string entry of this map from the given key. If the key doesn't exist, it will add a new entry
 @param map - The root map, NOT nullable
 @param key - The string key
@@ -112,6 +122,15 @@ void Map_EditFloat(Map map, const char* key, float value);
 @param value - The vector value
 */
 void Map_EditVector(Map map, const char* key, CP_Vector value);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Edit a boolean entry of this map from the given key. If the key doesn't exist, it will add a new entry
+@param map - The root map, NOT nullable
+@param key - The string key
+@param value - The boolean value
+*/
+void Map_EditBool(Map map, const char* key, bool value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
@@ -159,6 +178,15 @@ int Map_GetInt(Map map, const char* key, int def);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the boolean value in the given map based on the given string key
+@param map - The root map
+@param key - The string key
+@param def - The default value if it doesn't exist
+*/
+bool Map_GetBool(Map map, const char* key, bool def);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the vector value in the given map based on the given string key
 @param map - The root map
 @param key - The string key
@@ -184,7 +212,7 @@ void write_content(const char* filename, char* content);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Parse the given line as a vector (e.g. 123,421)
+@brief Parse the given line as a vector (e.g. 123.43,421.07)
 @param line - The string line to parse
 @return The parsed vector
 */
