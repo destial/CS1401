@@ -649,14 +649,14 @@ void Game_RenderUI(void) {
 		}
 		else {
 			CP_Vector world_ratios = Get_World_Ratios();
-			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(current->vel), 5.f * power_val);
+			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(current->vel), 4.f * power_val);
 			CP_Vector b = World_To_Screen(current->pos.x + normal.x, current->pos.y + normal.y, world_limits.x, world_limits.y);
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
 
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			float w = current->diameter * world_ratios.x * 5.f;
 			float h = current->diameter * world_ratios.x;
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * power_val, h, 255, angle);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f *power_val, h, 255, angle);
 		}
 	}
 	
@@ -1176,7 +1176,7 @@ void Process_Inputs(void) {
 	}
 	else {
 		// increase / decrease golf putt power
-		if (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL)) {
+		if (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL) && current) {
 			power += CP_Input_MouseWheel() * 0.1f;
 			power = min_max(power, 0.1f, 3.f); // limit to maximum of 3f, min 0.1f
 		}
