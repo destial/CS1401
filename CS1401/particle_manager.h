@@ -20,25 +20,18 @@ typedef enum ParticleTypeEnum {
 	PARTICLE_LAST
 } ParticleType;
 
-typedef struct ParticleDataStruct {
-	CP_Image root_image; // the root image of the particle
-	// impt const values
-	unsigned int img_h, img_w, sub_h, sub_w, rows, columns;
-} ParticleData;
+typedef struct ParticleDataStruct ParticleData;
 
-typedef struct ParticleStruct {
-	ParticleType type; // the type of this particle
-	CP_Vector pos, vel; // the pos and velocity of this particle
-	float elapsed_dur, duration, scale, og_scale; // the lifespan & scale of this particle
-	unsigned int current_row, current_column; // the current frame row & column
-} Particle;
+typedef struct ParticleStruct Particle;
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Preload particles into the memory
 */
 void Particles_Preload(void);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Spawn particles of this type into this location.
 @param type - Particle type
 @param pos - The center position in world space
@@ -52,12 +45,14 @@ void Particles_Preload(void);
 void Particles_Spawn(ParticleType type, CP_Vector pos, int amount, float radius, float speed, float duration, float minSize, float maxSize);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Update the spawned particles per frame
 @param dt - The frame delta time
 */
 void Particles_Update(float dt);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Render the spawned particles to the world
 @param world_limits - The world size limits
 @param world_ratios - The world size to screen ratios
@@ -65,6 +60,7 @@ void Particles_Update(float dt);
 void Particles_Render(CP_Vector world_limits, CP_Vector world_ratios);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the particles after using. !!! CALL IT PLEASEEE !!!
 */
 void Particles_Free(void);

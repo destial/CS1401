@@ -9,6 +9,19 @@
 #include "asset_manager.h"
 #include "utils.h"
 
+typedef struct ParticleDataStruct {
+	CP_Image root_image; // the root image of the particle
+	// impt const values
+	unsigned int img_h, img_w, sub_h, sub_w, rows, columns;
+} ParticleData;
+
+typedef struct ParticleStruct {
+	ParticleType type; // the type of this particle
+	CP_Vector pos, vel; // the pos and velocity of this particle
+	float elapsed_dur, duration, scale, og_scale; // the lifespan & scale of this particle
+	unsigned int current_row, current_column; // the current frame row & column
+} Particle;
+
 ObjectArray particles;
 ParticleData particle_types[PARTICLE_LAST];
 

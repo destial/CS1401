@@ -82,8 +82,6 @@
 #define TUTORIAL_PHASE_2_ASSET "Assets/Images/tut_phase2.png"
 #define TUTORIAL_PHASE_3_ASSET "Assets/Images/tut_phase3.png"
 
-typedef struct AssetStruct Asset;
-
 typedef enum AssetBlendEnum {
 	BLEND_ADD,
 	BLEND_ADD_ALPHA,
@@ -135,7 +133,7 @@ CP_Sound Asset_GetAudio(const char* filepath);
 @param columns - The number of columns in the spritesheet
 @param duration - The duration of the entire animation in seconds
 */
-SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float duration);
+SpriteSheet Asset_GetSprite(const char* filepath, int rows, int columns, float duration);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

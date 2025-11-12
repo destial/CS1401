@@ -23,6 +23,10 @@
 */
 void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text);
 
+void UI_Image(float x, float y, float w, float h, CP_Image image);
+
+void UI_Quad(float x, float y, float w, float h, CP_Color color);
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Create a button at the given position with the given dimensions and colors

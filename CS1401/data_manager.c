@@ -139,8 +139,7 @@ Map* Map_Load(const char* filename) {
     next = NULL;
 
     // make sure to free up allocated memory for the text file contents
-    gc_free(contents);
-    contents = NULL;
+    FREE_MEMORY(contents);
 
     return root;
 }

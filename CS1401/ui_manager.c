@@ -9,6 +9,8 @@
 #include <string.h>
 #include "ui_manager.h"
 
+#define MAX_UI_OBJECTS 16
+
 typedef struct ButtonStruct {
 	float x, y, w, h;
 	CP_Color background, highlight;
@@ -23,25 +25,19 @@ typedef struct TextStruct {
 } TextStruct;
 
 typedef struct SliderStruct {
-	float x, y, w, h, value;
+	float x, y, w, h;
 	CP_Color background, highlight;
 	CP_Image back_image, slider_image;
+	float value;
 } SliderStruct;
 
-typedef struct ButtonStructArray {
-	ButtonStruct buttons[16]; // max 16 buttons
-	int length;
-} ButtonArray;
+typedef struct UIArrayStruct {
+	ButtonStruct buttons[MAX_UI_OBJECTS]; // max buttons
+	SliderStruct sliders[MAX_UI_OBJECTS]; // max sliders
+	TextStruct texts[MAX_UI_OBJECTS]; // max texts
 
-typedef struct SliderStructArray {
-	SliderStruct sliders[16]; // max 16 sliders
-	int length;
-} SliderArray;
-
-typedef struct TextStructArray {
-	TextStruct texts[16]; // max 16 texts
-	int length;
-} TextArray;
+	int buttons_length, sliders_length, texts_length;
+} UIElementsArray;
 
 static int IsButtonHighlight(ButtonStruct* button, float click_x, float click_y) {
 	return (click_x <= button->x + (button->w * 0.5f)) && (click_x >= button->x - (button->w * 0.5f)) && (click_y <= button->y + (button->h * 0.5f)) && (click_y >= button->y - (button->h * 0.5f));
@@ -51,9 +47,7 @@ static int IsSliderHighlight(SliderStruct* button, float click_x, float click_y)
 	return (click_x <= button->x + (button->w * 0.5f)) && (click_x >= button->x - (button->w * 0.5f)) && (click_y <= button->y + (button->h * 0.5f)) && (click_y >= button->y - (button->h * 0.5f));
 }
 
-static ButtonArray _buttons;
-static SliderArray _sliders;
-static TextArray _texts;
+static UIElementsArray _ui_elements;
 
 bool UI_Button(float x, float y, float w, float h, CP_Color background, CP_Color highlight) {
 	return UI_ButtonText(x, y, w, h, background, highlight, NULL);
@@ -63,103 +57,139 @@ bool UI_ButtonImage(float x, float y, float w, float h, CP_Image background, CP_
 	return UI_ButtonImageText(x, y, w, h, background, highlight, NULL);
 }
 
+void UI_Image(float x, float y, float w, float h, CP_Image image) {
+	UI_ButtonImage(x, y, w, h, image, image);
+}
+
+void UI_Quad(float x, float y, float w, float h, CP_Color color) {
+	UI_Button(x, y, w, h, color, color);
+}
+
 bool UI_ButtonImageText(float x, float y, float w, float h, CP_Image background, CP_Image highlight, char const* text) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	++_buttons.length;
-	_buttons.buttons[_buttons.length - 1].w = w;
-	_buttons.buttons[_buttons.length - 1].h = h;
-	_buttons.buttons[_buttons.length - 1].x = x;
-	_buttons.buttons[_buttons.length - 1].y = y;
-	_buttons.buttons[_buttons.length - 1].background = (CP_Color){ 0, 0, 0, 255 };
-	_buttons.buttons[_buttons.length - 1].highlight = (CP_Color){ 0, 0, 0, 255 };
-	_buttons.buttons[_buttons.length - 1].text = text;
-	_buttons.buttons[_buttons.length - 1].back_image = background;
-	_buttons.buttons[_buttons.length - 1].hover_image = highlight;
+	// stop if array maxed out
+	if (_ui_elements.buttons_length == MAX_UI_OBJECTS)
+		return false;
 
-	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_buttons.buttons[_buttons.length - 1], mouse_x, mouse_y);
+	// append a button image text
+	++_ui_elements.buttons_length;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].w = w;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].h = h;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].x = x;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].y = y;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].background = (CP_Color){ 0, 0, 0, 255 };
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].highlight = (CP_Color){ 0, 0, 0, 255 };
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].text = text;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].back_image = background;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].hover_image = highlight;
+
+	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_ui_elements.buttons[_ui_elements.buttons_length - 1], mouse_x, mouse_y);
 }
 
 bool UI_ButtonText(float x, float y, float w, float h, CP_Color background, CP_Color highlight, char const* text) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	++_buttons.length;
-	_buttons.buttons[_buttons.length - 1].w = w;
-	_buttons.buttons[_buttons.length - 1].h = h;
-	_buttons.buttons[_buttons.length - 1].x = x;
-	_buttons.buttons[_buttons.length - 1].y = y;
-	_buttons.buttons[_buttons.length - 1].background = background;
-	_buttons.buttons[_buttons.length - 1].highlight = highlight;
-	_buttons.buttons[_buttons.length - 1].text = text;
-	_buttons.buttons[_buttons.length - 1].back_image = NULL;
-	_buttons.buttons[_buttons.length - 1].hover_image = NULL;
+	// stop if array maxed out
+	if (_ui_elements.buttons_length == MAX_UI_OBJECTS)
+		return false;
 
-	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_buttons.buttons[_buttons.length - 1], mouse_x, mouse_y);
+	// append button with text
+	++_ui_elements.buttons_length;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].w = w;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].h = h;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].x = x;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].y = y;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].background = background;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].highlight = highlight;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].text = text;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].back_image = NULL;
+	_ui_elements.buttons[_ui_elements.buttons_length - 1].hover_image = NULL;
+
+	return CP_Input_MouseTriggered(MOUSE_BUTTON_1) && IsButtonHighlight(&_ui_elements.buttons[_ui_elements.buttons_length - 1], mouse_x, mouse_y);
 }
 
 void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	++_texts.length;
-	_texts.texts[_texts.length - 1].w = w;
-	_texts.texts[_texts.length - 1].h = h;
-	_texts.texts[_texts.length - 1].x = x;
-	_texts.texts[_texts.length - 1].y = y;
-	_texts.texts[_texts.length - 1].color = color;
-	_texts.texts[_texts.length - 1].text = text;
+	// stop if array maxed out
+	if (_ui_elements.texts_length == MAX_UI_OBJECTS)
+		return;
+
+	// append text
+	++_ui_elements.texts_length;
+	_ui_elements.texts[_ui_elements.texts_length - 1].w = w;
+	_ui_elements.texts[_ui_elements.texts_length - 1].h = h;
+	_ui_elements.texts[_ui_elements.texts_length - 1].x = x;
+	_ui_elements.texts[_ui_elements.texts_length - 1].y = y;
+	_ui_elements.texts[_ui_elements.texts_length - 1].color = color;
+	_ui_elements.texts[_ui_elements.texts_length - 1].text = text;
 }
 
 float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color background, CP_Color highlight, float value, bool dragable) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	++_sliders.length;
-	_sliders.sliders[_sliders.length - 1].w = w;
-	_sliders.sliders[_sliders.length - 1].h = h;
-	_sliders.sliders[_sliders.length - 1].x = x;
-	_sliders.sliders[_sliders.length - 1].y = y;
-	_sliders.sliders[_sliders.length - 1].background = background;
-	_sliders.sliders[_sliders.length - 1].highlight = highlight;
-	_sliders.sliders[_sliders.length - 1].value = value;
-	_sliders.sliders[_sliders.length - 1].back_image = NULL;
-	_sliders.sliders[_sliders.length - 1].slider_image = NULL;
+	// stop if array maxed out
+	if (_ui_elements.sliders_length == MAX_UI_OBJECTS)
+		return false;
 
-	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_sliders.sliders[_sliders.length - 1], mouse_x, mouse_y)) {
+	// append horizontal slider
+	++_ui_elements.sliders_length;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].w = w;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].h = h;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].x = x;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].y = y;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].background = background;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].highlight = highlight;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].value = value;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].back_image = NULL;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].slider_image = NULL;
+
+	// edit slider value if user drag
+	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
 		float new_val = (mouse_x - (x - (w * 0.5f))) / w;
-		_sliders.sliders[_sliders.length - 1].value = new_val;
+		_ui_elements.sliders[_ui_elements.sliders_length - 1].value = new_val;
 	}
-	return _sliders.sliders[_sliders.length - 1].value;
+	return _ui_elements.sliders[_ui_elements.sliders_length - 1].value;
 }
 
 float UI_SliderHorizontalImage(float x, float y, float w, float h, CP_Image background, CP_Image highlight, float value, bool dragable) {
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
-	++_sliders.length;
-	_sliders.sliders[_sliders.length - 1].w = w;
-	_sliders.sliders[_sliders.length - 1].h = h;
-	_sliders.sliders[_sliders.length - 1].x = x;
-	_sliders.sliders[_sliders.length - 1].y = y;
-	_sliders.sliders[_sliders.length - 1].background = (CP_Color){ 0, 0, 0, 255 };
-	_sliders.sliders[_sliders.length - 1].highlight = (CP_Color){ 0, 0, 0, 255 };
-	_sliders.sliders[_sliders.length - 1].value = value;
-	_sliders.sliders[_sliders.length - 1].back_image = background;
-	_sliders.sliders[_sliders.length - 1].slider_image = highlight;
+	// stop if array maxed out
+	if (_ui_elements.sliders_length == MAX_UI_OBJECTS)
+		return false;
 
-	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_sliders.sliders[_sliders.length - 1], mouse_x, mouse_y)) {
+	// append horizontal image slider
+	++_ui_elements.sliders_length;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].w = w;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].h = h;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].x = x;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].y = y;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].background = (CP_Color){ 0, 0, 0, 255 };
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].highlight = (CP_Color){ 0, 0, 0, 255 };
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].value = value;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].back_image = background;
+	_ui_elements.sliders[_ui_elements.sliders_length - 1].slider_image = highlight;
+
+	// edit slider value if user drag
+	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
 		float new_val = (mouse_x - (x - (w * 0.5f))) / w;
-		_sliders.sliders[_sliders.length - 1].value = new_val;
+		_ui_elements.sliders[_ui_elements.sliders_length - 1].value = new_val;
 	}
-	return _sliders.sliders[_sliders.length - 1].value;
+	return _ui_elements.sliders[_ui_elements.sliders_length - 1].value;
 }
 
 void UI_Start(void) {
-	_buttons.length = 0;
-	_sliders.length = 0;
-	_texts.length = 0;
+	// reset ui buffer lengths to 0
+	_ui_elements.buttons_length = 0;
+	_ui_elements.sliders_length = 0;
+	_ui_elements.texts_length = 0;
 }
 
 void UI_Render(void) {
@@ -167,79 +197,86 @@ void UI_Render(void) {
 	float mouse_y = CP_Input_GetMouseY();
 
 	CP_Settings_Save();
-	if (_sliders.sliders != NULL) {
-		for (int i = 0; i < _sliders.length; ++i) {
-			float x = _sliders.sliders[i].x;
-			float y = _sliders.sliders[i].y;
-			float w = _sliders.sliders[i].w;
-			float h = _sliders.sliders[i].h;
 
-			if (_sliders.sliders[i].back_image == NULL) {
+	// render sliders first
+	if (_ui_elements.sliders != NULL) {
+		for (int i = 0; i < _ui_elements.sliders_length; ++i) {
+			float x = _ui_elements.sliders[i].x;
+			float y = _ui_elements.sliders[i].y;
+			float w = _ui_elements.sliders[i].w;
+			float h = _ui_elements.sliders[i].h;
+
+			// if slider color
+			if (_ui_elements.sliders[i].back_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
 				CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-				CP_Settings_Fill(_sliders.sliders[i].background);
+				CP_Settings_Fill(_ui_elements.sliders[i].background);
 				CP_Graphics_DrawRect(x, y, w, h);
 			}
-			else {
+			else { // if slider has image
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(_sliders.sliders[i].back_image, x, y, w, h, 255);
+				CP_Image_Draw(_ui_elements.sliders[i].back_image, x, y, w, h, 255);
 			}
-
-			if (_sliders.sliders[i].slider_image == NULL) {
+			
+			// if slider color
+			if (_ui_elements.sliders[i].slider_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
 				CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-				CP_Settings_Fill(_sliders.sliders[i].highlight);
-				CP_Graphics_DrawRect(x - (w * (1.f - _sliders.sliders[i].value) * 0.5f), y, w * (_sliders.sliders[i].value), h);
+				CP_Settings_Fill(_ui_elements.sliders[i].highlight);
+				CP_Graphics_DrawRect(x - (w * (1.f - _ui_elements.sliders[i].value) * 0.5f), y, w * (_ui_elements.sliders[i].value), h);
 			}
-			else {
+			else { // if slider has image
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(_sliders.sliders[i].slider_image, x - (w * (1.f - _sliders.sliders[i].value) * 0.5f), y, w * (_sliders.sliders[i].value), h, 255);
+				CP_Image_Draw(_ui_elements.sliders[i].slider_image, x - (w * (1.f - _ui_elements.sliders[i].value) * 0.5f), y, w * (_ui_elements.sliders[i].value), h, 255);
 			}
 		}
 	}
 
-	if (_buttons.buttons != NULL) {
-		for (int i = 0; i < _buttons.length; ++i) {
-			float x = _buttons.buttons[i].x;
-			float y = _buttons.buttons[i].y;
-			float w = _buttons.buttons[i].w;
-			float h = _buttons.buttons[i].h;
+	// then render buttons
+	if (_ui_elements.buttons != NULL) {
+		for (int i = 0; i < _ui_elements.buttons_length; ++i) {
+			float x = _ui_elements.buttons[i].x;
+			float y = _ui_elements.buttons[i].y;
+			float w = _ui_elements.buttons[i].w;
+			float h = _ui_elements.buttons[i].h;
 
-			CP_BOOL c = IsButtonHighlight(&_buttons.buttons[i], mouse_x, mouse_y);
+			CP_BOOL c = IsButtonHighlight(&_ui_elements.buttons[i], mouse_x, mouse_y);
 
-			if (_buttons.buttons[i].back_image == NULL) {
+			if (_ui_elements.buttons[i].back_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);
-				CP_Settings_Fill(c ? _buttons.buttons[i].highlight : _buttons.buttons[i].background);
+				CP_Settings_Fill(c ? _ui_elements.buttons[i].highlight : _ui_elements.buttons[i].background);
 				CP_Graphics_DrawRect(x, y, w, h);
 			}
 			else {
 				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				CP_Image_Draw(c ? _buttons.buttons[i].hover_image : _buttons.buttons[i].back_image, x, y, w, h, 255);
+				CP_Image_Draw(c ? _ui_elements.buttons[i].hover_image : _ui_elements.buttons[i].back_image, x, y, w, h, 255);
 			}
-			if (_buttons.buttons[i].text != NULL) {
+			if (_ui_elements.buttons[i].text != NULL) {
 				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-				CP_Settings_TextSize((h + w) / strlen(_buttons.buttons[i].text));
-				CP_Settings_Fill(c ? _buttons.buttons[i].background : _buttons.buttons[i].highlight);
-				CP_Font_DrawTextBox(_buttons.buttons[i].text, x - (w * 0.5f), y, w);
+				CP_Settings_TextSize((h + w) / strlen(_ui_elements.buttons[i].text));
+				CP_Settings_Fill(c ? _ui_elements.buttons[i].background : _ui_elements.buttons[i].highlight);
+				CP_Font_DrawTextBox(_ui_elements.buttons[i].text, x - (w * 0.5f), y, w);
 			}
 		}
 	}
 
-	if (_texts.texts != NULL) {
-		for (int i = 0; i < _texts.length; ++i) {
-			float x = _texts.texts[i].x;
-			float y = _texts.texts[i].y;
-			float w = _texts.texts[i].w;
-			float h = _texts.texts[i].h;
+	// then render texts
+	if (_ui_elements.texts != NULL) {
+		for (int i = 0; i < _ui_elements.texts_length; ++i) {
+			float x = _ui_elements.texts[i].x;
+			float y = _ui_elements.texts[i].y;
+			float w = _ui_elements.texts[i].w;
+			float h = _ui_elements.texts[i].h;
 
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Settings_TextSize((h + w) / strlen(_texts.texts[i].text));
-			CP_Settings_Fill(_texts.texts[i].color);
-			CP_Font_DrawTextBox(_texts.texts[i].text, x - (w * 0.5f), y, w);
+			CP_Settings_TextSize((h + w) / strlen(_ui_elements.texts[i].text));
+			CP_Settings_Fill(_ui_elements.texts[i].color);
+			CP_Font_DrawTextBox(_ui_elements.texts[i].text, x - (w * 0.5f), y, w);
 		}
 	}
 
 	CP_Settings_Restore();
 
+	// reset ui buffer
 	UI_Start();
 }

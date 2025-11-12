@@ -571,15 +571,21 @@ void Game_Render(void)
 
 	CP_Settings_ResetMatrix();
 	if (pause_menu_transition >= 0.f) {
-		CP_Color fade = Get_ColorAlpha(COLOR_BLACK, 192);
-		UI_Button(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), fade, fade);
+		// tinted background
+		UI_Quad(
+			CP_System_GetWindowWidth() * 0.5f,
+			CP_System_GetWindowHeight() * 0.5f,
+			(float)CP_System_GetWindowWidth(),
+			(float)CP_System_GetWindowHeight(),
+			Get_ColorAlpha(COLOR_BLACK, 192));
 
 		// menu background
-		UI_ButtonImage(
+		UI_Image(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
 			CP_System_GetWindowHeight() * 0.5f,
-			CP_System_GetWindowWidth() - 1000.f, CP_System_GetWindowHeight() - 300.f, 
-			Asset_GetImage(SETTING_BACKGROUND_ASSET), Asset_GetImage(SETTING_BACKGROUND_ASSET));
+			CP_System_GetWindowWidth() - 1000.f,
+			CP_System_GetWindowHeight() - 300.f, 
+			Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
 		// pause text
 		UI_Text(
@@ -873,7 +879,7 @@ void Game_RenderItems(void) {
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
 
 		CP_Image image = NULL;
-		SpriteSheet* sprite = NULL;
+		SpriteSheet sprite = NULL;
 		switch (item->type) {
 		case ITEM_PORTAL:
 			sprite = item_image_cache[(item->pos.x <= world_limits.x * 0.5f ? ITEM_PORTAL - 1 : ITEM_PORTAL)];
@@ -1097,7 +1103,9 @@ void Process_Inputs(void) {
 
 	// go to main menu if pressed escape key
 	if (CP_Input_KeyTriggered(KEY_ESCAPE)) {
-		pause_menu_transition = 0.f;
+		if (!pause_menu) {
+			pause_menu_transition = 0.f;
+		}
 		pause_menu = !pause_menu;
 		return;
 	}

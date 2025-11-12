@@ -6,13 +6,21 @@
 */
 
 #include "sprite_manager.h"
+#include "utils.h"
 
-void Sprite_Draw(SpriteSheet* sheet, float x, float y, float w, float h, int alpha) {
+typedef struct SpriteSheetStruct {
+	CP_Image root_image;
+	int img_h, img_w, sub_h, sub_w,
+		rows, columns, current_row, current_column;
+	float duration, elapsedDuration;
+} *SpriteSheet;
+
+void Sprite_Draw(SpriteSheet sheet, float x, float y, float w, float h, int alpha) {
 	// just renders with 0 degrees of rotation
 	Sprite_DrawAdvanced(sheet, x, y, w, h, alpha, 0);
 }
 
-void Sprite_DrawAdvanced(SpriteSheet* sheet, float x, float y, float w, float h, int alpha, float degrees) {
+void Sprite_DrawAdvanced(SpriteSheet sheet, float x, float y, float w, float h, int alpha, float degrees) {
 
 	// texture coordinates starting point
 	int u0 = sheet->current_column * sheet->sub_w;
@@ -33,4 +41,39 @@ void Sprite_DrawAdvanced(SpriteSheet* sheet, float x, float y, float w, float h,
 		}
 		sheet->elapsedDuration = 0.f;
 	}
+}
+
+void Sprite_Free(SpriteSheet spritesheet) {
+	CP_Image_Free(spritesheet->root_image);
+	spritesheet->root_image = NULL;
+	FREE_MEMORY(spritesheet);
+}
+
+SpriteSheet Sprite_Create(CP_Image image, int rows, int columns, float duration) {
+	SpriteSheet sheet = gc_malloc(sizeof(struct SpriteSheetStruct));
+	if (sheet == NULL)
+		return NULL;
+
+	// initialize the sprite sheet values
+	sheet->root_image = image;
+	sheet->current_row = 0;
+	sheet->current_column = 0;
+	sheet->rows = rows;
+	sheet->columns = columns;
+	sheet->duration = duration;
+	sheet->elapsedDuration = 0.f;
+
+	sheet->img_h = CP_Image_GetHeight(sheet->root_image);
+	sheet->img_w = CP_Image_GetWidth(sheet->root_image);
+	sheet->sub_h = sheet->img_h / rows;
+	sheet->sub_w = sheet->img_w / columns;
+	return sheet;
+}
+
+int Sprite_GetWidth(SpriteSheet spritesheet) {
+	return spritesheet->sub_w;
+}
+
+int Sprite_GetHeight(SpriteSheet spritesheet) {
+	return spritesheet->sub_h;
 }

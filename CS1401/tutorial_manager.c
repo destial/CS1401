@@ -13,7 +13,7 @@
 #include "tutorial_manager.h"
 
 typedef struct TutorialStruct {
-	SpriteSheet* gif;
+	SpriteSheet gif;
 	char instructions[256]; // fixed size
 } Tutorial;
 
@@ -118,13 +118,13 @@ void Tutorial_Render(void) {
 	CP_Graphics_DrawRect(0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight());
 
 	// the gif
-	Sprite_Draw(tut->gif, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float) tut->gif->sub_w, (float) tut->gif->sub_h, 255);
+	Sprite_Draw(tut->gif, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), 255);
 
 	// the instructions
 	CP_Settings_Stroke(Get_Color(COLOR_WHITE));
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawTextBox(tut->instructions, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float) tut->gif->sub_w);
+	CP_Font_DrawTextBox(tut->instructions, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif));
 
 	CP_Settings_Restore();
 }

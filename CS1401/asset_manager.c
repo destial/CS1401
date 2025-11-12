@@ -19,6 +19,8 @@ typedef enum AssetType {
     ASSET_LAST
 } AssetType;
 
+typedef struct AssetStruct *Asset;
+
 typedef struct AssetStruct { 
     char* key;
     // each pointer holds 8 bytes, so we can just use union "polymorphism"
@@ -27,14 +29,14 @@ typedef struct AssetStruct {
         CP_Image image;
         CP_Font font;
         CP_Sound audio;
-        SpriteSheet* sprite;
+        SpriteSheet sprite;
         void* value; // this is here for funsies, in case we want to store anything else
     };
-    Asset* next;
+    Asset next;
     AssetType type;
-} Asset;
+} *Asset;
 
-Asset* root_assets = NULL;
+Asset root_assets = NULL;
 
 void Asset_Preload(void) {
     // only the item assets have a shadow image
@@ -46,7 +48,7 @@ void Asset_Preload(void) {
     Asset_GetBlendedImage(REVERSE_ITEM_ASSET, shadow, BLEND_SET);
 }
 
-static void* set_node(Asset* node, AssetType type, void* value, const char* filepath) {
+static void* set_node(Asset node, AssetType type, void* value, const char* filepath) {
     // load the image into memory and check if it exists
     node->value = value;
     if (node->value == NULL) {
@@ -77,7 +79,7 @@ static void* set_node(Asset* node, AssetType type, void* value, const char* file
 @param node - The map node to load the image into
 @param filepath - The filepath of the image file
 */
-static CP_Image load_image(Asset* node, const char* filepath) {
+static CP_Image load_image(Asset node, const char* filepath) {
     return (CP_Image) set_node(node, ASSET_IMAGE, CP_Image_Load(filepath), filepath);
 }
 
@@ -87,7 +89,7 @@ static CP_Image load_image(Asset* node, const char* filepath) {
 @param node - The map node to load the font into
 @param filepath - The filepath of the font file
 */
-static CP_Font load_font(Asset* node, const char* filepath) {
+static CP_Font load_font(Asset node, const char* filepath) {
     return (CP_Font) set_node(node, ASSET_FONT, CP_Font_Load(filepath), filepath);
 }
 
@@ -97,17 +99,17 @@ static CP_Font load_font(Asset* node, const char* filepath) {
 @param node - The map node to load the audio into
 @param filepath - The filepath of the audio file
 */
-static CP_Sound load_audio(Asset* node, const char* filepath) {
+static CP_Sound load_audio(Asset node, const char* filepath) {
     return (CP_Sound) set_node(node, ASSET_AUDIO, CP_Sound_Load(filepath), filepath);
 }
 
-static Asset* get_node(const char* key) {
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+static Asset get_node(const char* key) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->key == NULL)
             continue;
 
         if (strcmp(ptr->key, key) == 0)
-            return (Asset*)ptr;
+            return ptr;
     }
     return NULL;
 }
@@ -121,11 +123,11 @@ void Asset_Free_Node(void* value) {
         return;
     }
 
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->next) {
             if (ptr->next->value == value) { // if match, we bridge the previous and the next one
-                Asset* todel = ptr->next;
-                Asset* after = todel->next;
+                Asset todel = ptr->next;
+                Asset after = todel->next;
                 ptr->next = after;
 
                 // ensure to free up the memory allocated for each node
@@ -143,9 +145,8 @@ void Asset_Free_Node(void* value) {
                     todel->audio = NULL;
                 }
                 else if (todel->type == ASSET_SPRITE && todel->sprite != NULL) {
-                    CP_Image_Free(todel->sprite->root_image);
-                    todel->sprite->root_image = NULL;
-                    FREE_MEMORY(todel->sprite);
+                    Sprite_Free(todel->sprite);
+                    todel->sprite = NULL;
                 }
                 else if (todel->type == ASSET_TYPELESS && todel->value != NULL) {
                     FREE_MEMORY(todel->value);
@@ -162,7 +163,7 @@ void Asset_Free_Node(void* value) {
 @brief Free the memory allocated for this map of the assets loaded, also recursively goes through each next pointer
 @param map - The root asset map
 */
-static void free_asset(Asset* map) {
+static void free_asset(Asset map) {
     if (map == NULL)
         return;
 
@@ -186,9 +187,8 @@ static void free_asset(Asset* map) {
         map->audio = NULL;
     }
     else if (map->type == ASSET_SPRITE && map->sprite != NULL) {
-        CP_Image_Free(map->sprite->root_image);
-        map->sprite->root_image = NULL;
-        FREE_MEMORY(map->sprite);
+        Sprite_Free(map->sprite);
+        map->sprite = NULL;
     }
     else if (map->type == ASSET_TYPELESS && map->value != NULL) {
         FREE_MEMORY(map->value);
@@ -206,7 +206,7 @@ static void free_asset(Asset* map) {
 CP_Image Asset_GetImage(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = gc_malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(struct AssetStruct));
         CP_Image image = load_image(root_assets, filepath);
         if (image == NULL) {
             FREE_MEMORY(root_assets);
@@ -215,12 +215,12 @@ CP_Image Asset_GetImage(const char* filepath) {
     }
     
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_IMAGE) {
 			return ptr->image;
         }
         if (ptr->next == NULL) {
-            ptr->next = gc_malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(struct AssetStruct));
 
             // ensure the image exists and can actually be loaded
             CP_Image image = load_image(ptr->next, filepath);
@@ -295,10 +295,10 @@ CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendM
 
     // create a shadow image from the color array
     CP_Image recolored_image = CP_Image_CreateFromData(w, h, (unsigned char*)colorArray);
-    gc_free(colorArray); // after creating this image, we can free up the color array buffer
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    FREE_MEMORY(colorArray); // after creating this image, we can free up the color array buffer
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (ptr->next == NULL) {
-            ptr->next = gc_malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(struct AssetStruct));
             // load this image into this new node
             set_node(ptr->next, ASSET_IMAGE, recolored_image, colored_path);
             break;
@@ -310,7 +310,7 @@ CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendM
 CP_Font Asset_GetFont(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = gc_malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(struct AssetStruct));
         CP_Font font = load_font(root_assets, filepath);
         if (font == NULL) {
             FREE_MEMORY(root_assets);
@@ -320,12 +320,12 @@ CP_Font Asset_GetFont(const char* filepath) {
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_FONT) {
             return ptr->font;
         }
         if (ptr->next == NULL) {
-            ptr->next = gc_malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(struct AssetStruct));
 
             // ensure the font exists and can actually be loaded
             CP_Font font = load_font(ptr->next, filepath);
@@ -344,7 +344,7 @@ CP_Font Asset_GetFont(const char* filepath) {
 CP_Sound Asset_GetAudio(const char* filepath) {
     // if the root is empty, we initialize it
     if (root_assets == NULL) {
-        root_assets = gc_malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(struct AssetStruct));
         CP_Sound audio = load_audio(root_assets, filepath);
         if (audio == NULL) {
             FREE_MEMORY(root_assets);
@@ -354,12 +354,12 @@ CP_Sound Asset_GetAudio(const char* filepath) {
     }
 
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
-    for (Asset* ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
         if (strcmp(ptr->key, filepath) == 0 && ptr->type == ASSET_AUDIO) {
             return ptr->audio;
         }
         if (ptr->next == NULL) {
-            ptr->next = gc_malloc(sizeof(Asset));
+            ptr->next = gc_malloc(sizeof(struct AssetStruct));
 
             // ensure the audio file exists and can actually be loaded
             CP_Sound audio = load_audio(ptr->next, filepath);
@@ -375,9 +375,9 @@ CP_Sound Asset_GetAudio(const char* filepath) {
     return NULL;
 }
 
-SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float duration) {
+SpriteSheet Asset_GetSprite(const char* filepath, int rows, int columns, float duration) {
     if (root_assets == NULL) {
-        root_assets = gc_malloc(sizeof(Asset));
+        root_assets = gc_malloc(sizeof(struct AssetStruct));
         if (root_assets == NULL) 
             return NULL;
         
@@ -387,7 +387,7 @@ SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float 
     }
 
 	// check if this sprite sheet already exists
-    Asset* node = get_node(filepath);
+    Asset node = get_node(filepath);
     if (node != NULL && node->type == ASSET_SPRITE) {
         return node->sprite;
     }
@@ -395,27 +395,9 @@ SpriteSheet* Asset_GetSprite(const char* filepath, int rows, int columns, float 
 	// the current filepath is not a sprite yet, so check if it's an image first
 	// then we convert it to a sprite sheet
     if (node != NULL && node->type == ASSET_IMAGE) {
-        SpriteSheet* sheet = gc_malloc(sizeof(SpriteSheet));
-        if (sheet == NULL) 
-            return NULL;
-        
-        // initialize the sprite sheet values
-        sheet->root_image = node->image;
-        sheet->current_row = 0;
-        sheet->current_column = 0;
-        sheet->rows = rows;
-        sheet->columns = columns;
-        sheet->duration = duration;
-        sheet->elapsedDuration = 0.f;
-
-		sheet->img_h = CP_Image_GetHeight(sheet->root_image);
-		sheet->img_w = CP_Image_GetWidth(sheet->root_image);
-		sheet->sub_h = sheet->img_h / rows;
-		sheet->sub_w = sheet->img_w / columns;
-
-        node->sprite = sheet;
+        node->sprite = Sprite_Create(node->image, rows, columns, duration);
         node->type = ASSET_SPRITE;
-        return sheet;
+        return node->sprite;
     }
 
     // its not loaded yet, so we load it as an image if it exists

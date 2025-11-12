@@ -104,6 +104,7 @@ CP_BOOL CP_Vector_IsZero(CP_Vector vect);
 float CP_Vector_LengthSquared(CP_Vector vect);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get a defined color
 @param code - The color code
 @return A defined color in memory
@@ -111,6 +112,7 @@ float CP_Vector_LengthSquared(CP_Vector vect);
 CP_Color Get_Color(ColorCode code);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get a defined color with a varied alpha
 @param code - The color code
 @param alpha - The alpha level
@@ -119,12 +121,14 @@ CP_Color Get_Color(ColorCode code);
 CP_Color Get_ColorAlpha(ColorCode code, int alpha);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief The greatest common divisor between two integers (e.g. a / b, to find the simplest fraction)
 @param a - The first int
 @param b - The second int
 */
 int gcd(int a, int b);
 
+// @author Rance Andres(andresrancerowell.g@digipen.edu)
 // Memory management. Replace your std allocs with this for proper memory debugging
 void* gc_malloc(size_t size);
 void* gc_calloc(size_t count, size_t size);
