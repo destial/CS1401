@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
-#include "data_manager.h"
+#include "game_settings.h"
 #include "state_manager.h"
 #include "particle_manager.h"
 #include "level_manager.h"
@@ -40,9 +40,8 @@ Button buttons[20];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false; is_equip_clicked = false;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false, is_equip_clicked = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
-Map settings_map = NULL;
 
 void exit_main_menu(void) {
 	Set_Next_State(STATE_EXIT);
@@ -57,23 +56,11 @@ void main_menu_init(void)
 	window_size_W = CP_System_GetWindowWidth();
 
 	CP_Font_Set(button_font);
-
-	settings_map = Map_Load("user.data");
-	if (settings_map) {
-		printf("Loading previous user data!\n");
-		sfx_limit = Map_GetFloat(settings_map, "sfx_volume", sfx_limit);
-		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
-		music_limit = Map_GetFloat(settings_map, "music_volume", music_limit);
-		CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
-		is_shadowed = Map_GetBool(settings_map, "high_quality", is_shadowed);
-
-	}
-	else {
-		printf("User data file not found! Creating new one!\n");
-		settings_map = Map_AddFloat(settings_map, "sfx_volume", sfx_limit);
-		settings_map = Map_AddFloat(settings_map, "music_volume", music_limit);
-		settings_map = Map_AddBool(settings_map, "high_quality", is_shadowed);
-	}
+	sfx_limit = GameSetting_GetFloat("sfx_volume");
+	music_limit = GameSetting_GetFloat("music_volume");
+	is_shadowed = GameSetting_GetBool("high_quality");
+	int c = GameSetting_GetInt("coins");
+	if (c >= 0) set_coins(c);
 
 	//play button
 	buttons[0].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
@@ -851,16 +838,10 @@ void main_menu_exit(void)
 {
 	Assets_Free();
 	Particles_Free();
-	if (settings_map) {
-		printf("Saving user data!\n");
-		Map_EditFloat(settings_map, "sfx_volume", sfx_limit);
-		Map_EditFloat(settings_map, "music_volume", music_limit);
-		Map_EditBool(settings_map, "high_quality", is_shadowed);
-		settings_map = Map_Remove(settings_map, "is_shadowed");
-
-		Map_Save("user.data", settings_map);
-		Map_Free(settings_map);
-		settings_map = NULL;
-	}
+	GameSetting_SetFloat("sfx_volume", sfx_limit);
+	GameSetting_SetFloat("music_volume", music_limit);
+	GameSetting_SetBool("high_quality", is_shadowed);
+	GameSetting_SetInt("coins", getCoins());
+	GameSetting_Save();
 	printf("Exit main menu\n");
 }

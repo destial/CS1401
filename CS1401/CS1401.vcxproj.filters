@@ -78,6 +78,9 @@
     <ClCompile Include="ui_manager.c">
       <Filter>Source Files\Managers</Filter>
     </ClCompile>
+    <ClCompile Include="game_settings.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -127,6 +130,9 @@
     </ClInclude>
     <ClInclude Include="ui_manager.h">
       <Filter>Header Files\Managers</Filter>
+    </ClInclude>
+    <ClInclude Include="game_settings.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
