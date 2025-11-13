@@ -217,6 +217,12 @@ void game_update(void)
 		}
 	}
 	else {
+		// semi-fixed timestep for physics time
+		// incase the game gets too laggy for slow pc
+		float new_time = CP_System_GetSeconds();
+		float frame_time = new_time - current_time;
+		current_time = new_time;
+
 		// update pause menu
 		if (pause_menu_transition >= 0.f) {
 			if (pause_menu) {
@@ -231,12 +237,6 @@ void game_update(void)
 			}
 		}
 		else {
-			// semi-fixed timestep for physics time
-			// incase the game gets too laggy for slow pc
-			float new_time = CP_System_GetSeconds();
-			float frame_time = new_time - current_time;
-			current_time = new_time;
-
 			float dt;
 			// run timestep for every lost frame if < 60fps
 			while (frame_time > 0.f) {
