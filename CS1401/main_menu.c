@@ -62,6 +62,8 @@ void main_menu_init(void)
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
+	set_coins(1000);
+
 	//play button
 	buttons[0].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;
@@ -192,7 +194,7 @@ void main_menu_init(void)
 	buttons[16].pos.y = world_height1 * 0.32f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
 	buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
-	buttons[16].func = is_equip_clicked ? NULL : is_buy_clicked ? NULL : buy_button;
+	buttons[16].func = is_buy_clicked ? equip_button : buy_button;
 
 	buttons[17].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[17].pos.x = world_width1 * 0.7f;
@@ -530,9 +532,9 @@ void settings_button(float mouse_x, float mouse_y) {
 				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
 			}
 			else {
-				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 0.0f, CP_System_GetDt() * 5);
-				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 0.0f, CP_System_GetDt() * 5);
-				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.x = 0;
+				buttons[i].scale.y = 0;
+				buttons[i].text_size = 0;
 			}
 
 		}
@@ -573,9 +575,9 @@ void settings_button(float mouse_x, float mouse_y) {
 			buttons[13].text_size = CP_Math_LerpFloat(buttons[13].text_size, 0.95f, CP_System_GetDt() * 5);
 		}
 		else {
-			buttons[13].scale.x = CP_Math_LerpFloat(buttons[13].scale.x, 0.0f, CP_System_GetDt() * 5);
-			buttons[13].scale.y = CP_Math_LerpFloat(buttons[13].scale.y, 0.0f, CP_System_GetDt() * 5);
-			buttons[13].text_size = CP_Math_LerpFloat(buttons[13].text_size, 0.0f, CP_System_GetDt() * 5);
+			buttons[13].scale.x = 0;
+			buttons[13].scale.y = 0;
+			buttons[13].text_size = 0;
 		}
 
 	}
@@ -620,9 +622,9 @@ void shops_button(float mouse_x, float mouse_y)
 				buttons[16].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
 			}
 			else {
-				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 0.0f, CP_System_GetDt() * 5);
-				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 0.0f, CP_System_GetDt() * 5);
-				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.x = 0;
+				buttons[i].scale.y = 0;
+				buttons[i].text_size = 0;
 			}
 
 		}
@@ -706,9 +708,9 @@ void back_buttons(float mouse_x, float mouse_y) {
 		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 1.3f, CP_System_GetDt() * 5);
 	}
 	else {
-		buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 0.0f, CP_System_GetDt() * 5);
-		buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 0.0f, CP_System_GetDt() * 5);
-		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 0.0f, CP_System_GetDt() * 5);
+		buttons[12].scale.x = 0;
+		buttons[12].scale.y = 0;
+		buttons[12].text_size = 0;
 	}
 
 	//BACK BUTTON FOR SHOP PAGE
@@ -747,9 +749,9 @@ void back_buttons(float mouse_x, float mouse_y) {
 		buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 1.3f, CP_System_GetDt() * 5);
 	}
 	else {
-		buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 0.0f, CP_System_GetDt() * 5);
-		buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 0.0f, CP_System_GetDt() * 5);
-		buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 0.0f, CP_System_GetDt() * 5);
+		buttons[15].scale.x = 0;
+		buttons[15].scale.y = 0;
+		buttons[15].text_size = 0;
 	}
 	
 }
@@ -769,21 +771,33 @@ void shop_button(void) {
 }
 
 void buy_button(void) {
-	is_buy_clicked = !is_buy_clicked;
 	for (int i = 16; i < 17; i++) {
-		if (coins >= 10 && is_buy_clicked) {
+		if (coins >= 10) {
+			is_buy_clicked = !is_buy_clicked;
 			deduct_coins(10);
-			buttons[i].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
-			buttons[i].text = "EQUIP";
+			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+			buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+			buttons[i].func = is_buy_clicked ? equip_button : buy_button;
 		}
 	}
 }
 
 void equip_button(void) {
-	is_equip_clicked = !is_equip_clicked;
+
 	for (int i = 16; i < 17; i++) {
-		buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
-		buttons[i].text = is_equip_clicked ? "EQUIPPED" : "EQUIP";
+
+		if (is_buy_clicked && !is_equip_clicked) {
+
+			is_equip_clicked = !is_equip_clicked;
+			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+		}
+		else {
+
+			is_equip_clicked = !is_equip_clicked;
+			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+		}
+
+		buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	}
 }
 
