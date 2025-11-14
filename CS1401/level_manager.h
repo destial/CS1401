@@ -12,7 +12,7 @@
 #include "game.h"
 #include "utils.h"
 
-#define TOTAL_LEVELS 5
+#define TOTAL_LEVELS 10
 typedef struct LevelStruct *Level;
 
 typedef struct LevelStruct { // ordered in this way to minimize struct size

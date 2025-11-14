@@ -58,6 +58,7 @@
 #define STROKE_BG "Assets/Images/button_rectangle_depth_line.png"
 #define SCOREBOARD_HEADER "Assets/Images/button_rectangle_line.png"
 #define BANNER "Assets/Images/banner_classic_curtain.png"
+#define HANGING_BANNER "Assets/Images/banner_hanging.png"
 #define SB_BUTTON_BLUE "Assets/Images/button_square_flat.png"
 #define SB_BUTTON_YELLOW "Assets/Images/yellow_button_square_flat.png"
 #define SB_BUTTON_GREEN "Assets/Images/green_button_square_flat.png"

@@ -36,7 +36,8 @@ float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_
 int window_size_H, window_size_W;
 int resolution_number = 0;
 
-Button buttons[20];
+Button buttons[30];
+Button level_buttons[TOTAL_LEVELS];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
@@ -87,126 +88,166 @@ void main_menu_init(void)
 	buttons[2].start_pos.x = buttons[2].pos.x;
 	buttons[2].func = exit_main_menu;
 	buttons[2].text = "QUIT";
-
-	//start of level select button
-	buttons[3].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	buttons[3].pos.x = world_width1 * 1.1f;
-	buttons[3].pos.y = world_height1 * .7f;
-	buttons[3].ending_pos.x = world_width1 * 0.1f;
-	buttons[3].start_pos.x = buttons[3].pos.x;
-	buttons[3].func = change_screen;
-	buttons[3].text = "1";
-
-	buttons[4].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	buttons[4].pos.x = world_width1 * 1.2f;
-	buttons[4].pos.y = world_height1 * .7f;
-	buttons[4].ending_pos.x = world_width1 * 0.2f;
-	buttons[4].start_pos.x = buttons[4].pos.x;
-	buttons[4].func = change_screen;
-	buttons[4].text = "2";
-
-	buttons[5].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	buttons[5].pos.x = world_width1 * 1.3f;
-	buttons[5].pos.y = world_height1 * .7f;
-	buttons[5].ending_pos.x = world_width1 * 0.3f;
-	buttons[5].start_pos.x = buttons[5].pos.x;
-	buttons[5].func = change_screen;
-	buttons[5].text = "3";
-
-	buttons[6].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	buttons[6].pos.x = world_width1 * 1.4f;
-	buttons[6].pos.y = world_height1 * .7f;
-	buttons[6].ending_pos.x = world_width1 * 0.4f;
-	buttons[6].start_pos.x = buttons[6].pos.x;
-	buttons[6].func = change_screen;
-	buttons[6].text = "4";
-
-	buttons[7].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	buttons[7].pos.x = world_width1 * 1.5f;
-	buttons[7].pos.y = world_height1 * .7f;
-	buttons[7].ending_pos.x = world_width1 * 0.5f;
-	buttons[7].start_pos.x = buttons[7].pos.x;
-	buttons[7].func = change_screen;
-	buttons[7].text = "5";
-	//end of level select button
 	
 	//level select back button
-	buttons[8].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	buttons[8].pos.x = world_width1 * 1.5f;
-	buttons[8].pos.y = world_height1 * .9f;
-	buttons[8].ending_pos.x = world_width1 * 0.1f;
-	buttons[8].start_pos.x = buttons[8].pos.x;
-	buttons[8].func = play_button;
-	buttons[8].text = "<";
+	buttons[3].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	buttons[3].pos.x = world_width1 * 1.5f;
+	buttons[3].pos.y = world_height1 * .9f;
+	buttons[3].ending_pos.x = world_width1 * 0.1f;
+	buttons[3].start_pos.x = buttons[3].pos.x;
+	buttons[3].func = play_button;
+	buttons[3].text = "<";
 
 	//start of resolution buttons
-	buttons[9].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
-	buttons[9].pos.x = world_width1 * 0.35f;
-	buttons[9].pos.y = world_height1 * 0.28f;
-	buttons[9].start_pos.x = buttons[9].pos.x;
-	buttons[9].text = "1280 X 720";
+	buttons[4].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[4].pos.x = world_width1 * 0.35f;
+	buttons[4].pos.y = world_height1 * 0.28f;
+	buttons[4].start_pos.x = buttons[4].pos.x;
+	buttons[4].text = "1280 X 720";
 
-	buttons[10].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
-	buttons[10].pos.x = world_width1 * 0.5f;
-	buttons[10].pos.y = world_height1 * 0.28f;
-	buttons[10].start_pos.x = buttons[10].pos.x;
-	buttons[10].text = "1600 X 900";
+	buttons[5].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[5].pos.x = world_width1 * 0.5f;
+	buttons[5].pos.y = world_height1 * 0.28f;
+	buttons[5].start_pos.x = buttons[5].pos.x;
+	buttons[5].text = "1600 X 900";
 
-	buttons[11].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
-	buttons[11].pos.x = world_width1 * 0.65f;
-	buttons[11].pos.y = world_height1 * 0.28f;
-	buttons[11].start_pos.x = buttons[11].pos.x;
-	buttons[11].text = "1920 X 1080";
+	buttons[6].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[6].pos.x = world_width1 * 0.65f;
+	buttons[6].pos.y = world_height1 * 0.28f;
+	buttons[6].start_pos.x = buttons[6].pos.x;
+	buttons[6].text = "1920 X 1080";
 	//end of resolution button
 
 	//settings back button
-	buttons[12].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	buttons[12].pos.x = world_width1 * 0.25f;
-	buttons[12].pos.y = world_height1 * 0.7f;
-	buttons[12].start_pos.x = buttons[12].pos.x;
-	buttons[12].text = "X";
+	buttons[7].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	buttons[7].pos.x = world_width1 * 0.25f;
+	buttons[7].pos.y = world_height1 * 0.7f;
+	buttons[7].start_pos.x = buttons[7].pos.x;
+	buttons[7].text = "X";
 
-	buttons[13].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
-	buttons[13].pos.x = world_width1 * 0.75f;
-	buttons[13].pos.y = world_height1 * 0.7f;
-	buttons[13].start_pos.x = buttons[13].pos.x;
-	buttons[13].text = "High Details";
-	buttons[13].func = is_shadow;
+	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
+	buttons[8].pos.x = world_width1 * 0.75f;
+	buttons[8].pos.y = world_height1 * 0.7f;
+	buttons[8].start_pos.x = buttons[8].pos.x;
+	buttons[8].text = "High Details";
+	buttons[8].func = is_shadow;
 
 	//Shop Button
-	buttons[14].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
-	buttons[14].pos.x = world_width1 * 0.7f;
-	buttons[14].pos.y = world_height1 * 0.35f;
-	buttons[14].start_pos.x = buttons[14].pos.x;
-	buttons[14].func = shop_button;
-	buttons[14].text = "SHOP";
+	buttons[9].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
+	buttons[9].pos.x = world_width1 * 0.7f;
+	buttons[9].pos.y = world_height1 * 0.35f;
+	buttons[9].start_pos.x = buttons[9].pos.x;
+	buttons[9].func = shop_button;
+	buttons[9].text = "SHOP";
 
 	//Shop Back Button
-	buttons[15].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	buttons[15].pos.x = world_width1 * 0.25f;
-	buttons[15].pos.y = world_height1 * 0.7f;
-	buttons[15].start_pos.x = buttons[15].pos.x;
-	buttons[15].text = "X";
+	buttons[10].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	buttons[10].pos.x = world_width1 * 0.25f;
+	buttons[10].pos.y = world_height1 * 0.7f;
+	buttons[10].start_pos.x = buttons[10].pos.x;
+	buttons[10].text = "X";
 
 	//Shop Buy Button
-	buttons[16].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
-	buttons[16].pos.x = world_width1 * 0.3f;
-	buttons[16].pos.y = world_height1 * 0.32f;
-	buttons[16].start_pos.x = buttons[16].pos.x;
-	buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
-	buttons[16].func = is_buy_clicked ? equip_button : buy_button;
+	buttons[11].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[11].pos.x = world_width1 * 0.3f;
+	buttons[11].pos.y = world_height1 * 0.32f;
+	buttons[11].start_pos.x = buttons[11].pos.x;
+	buttons[11].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+	buttons[11].func = is_buy_clicked ? equip_button : buy_button;
 
-	buttons[17].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
-	buttons[17].pos.x = world_width1 * 0.7f;
-	buttons[17].pos.y = world_height1 * 0.35f;
-	buttons[17].start_pos.x = buttons[17].pos.x;
-	buttons[17].text = "BUY";
+	buttons[12].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[12].pos.x = world_width1 * 0.7f;
+	buttons[12].pos.y = world_height1 * 0.35f;
+	buttons[12].start_pos.x = buttons[12].pos.x;
+	buttons[12].text = "BUY";
 
-	buttons[18].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
-	buttons[18].pos.x = world_width1 * 0.7f;
-	buttons[18].pos.y = world_height1 * 0.35f;
-	buttons[18].start_pos.x = buttons[18].pos.x;
-	buttons[18].text = "EQUIP";
+	buttons[13].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[13].pos.x = world_width1 * 0.7f;
+	buttons[13].pos.y = world_height1 * 0.35f;
+	buttons[13].start_pos.x = buttons[13].pos.x;
+	buttons[13].text = "EQUIP";
+
+	//start of level select button
+	level_buttons[0].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[0].pos.x = world_width1 * 1.1f;
+	level_buttons[0].pos.y = world_height1 * .7f;
+	level_buttons[0].ending_pos.x = world_width1 * 0.1f;
+	level_buttons[0].start_pos.x = level_buttons[0].pos.x;
+	level_buttons[0].func = change_screen;
+	level_buttons[0].text = "1";
+
+	level_buttons[1].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[1].pos.x = world_width1 * 1.2f;
+	level_buttons[1].pos.y = world_height1 * .7f;
+	level_buttons[1].ending_pos.x = world_width1 * 0.2f;
+	level_buttons[1].start_pos.x = level_buttons[1].pos.x;
+	level_buttons[1].func = change_screen;
+	level_buttons[1].text = "2";
+
+	level_buttons[2].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[2].pos.x = world_width1 * 1.3f;
+	level_buttons[2].pos.y = world_height1 * .7f;
+	level_buttons[2].ending_pos.x = world_width1 * 0.3f;
+	level_buttons[2].start_pos.x = level_buttons[2].pos.x;
+	level_buttons[2].func = change_screen;
+	level_buttons[2].text = "3";
+
+	level_buttons[3].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[3].pos.x = world_width1 * 1.4f;
+	level_buttons[3].pos.y = world_height1 * .7f;
+	level_buttons[3].ending_pos.x = world_width1 * 0.4f;
+	level_buttons[3].start_pos.x = level_buttons[3].pos.x;
+	level_buttons[3].func = change_screen;
+	level_buttons[3].text = "4";
+
+	level_buttons[4].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[4].pos.x = world_width1 * 1.5f;
+	level_buttons[4].pos.y = world_height1 * .7f;
+	level_buttons[4].ending_pos.x = world_width1 * 0.5f;
+	level_buttons[4].start_pos.x = level_buttons[4].pos.x;
+	level_buttons[4].func = change_screen;
+	level_buttons[4].text = "5";
+
+	level_buttons[5].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[5].pos.x = world_width1 * 1.6f;
+	level_buttons[5].pos.y = world_height1 * .7f;
+	level_buttons[5].ending_pos.x = world_width1 * 0.6f;
+	level_buttons[5].start_pos.x = level_buttons[5].pos.x;
+	level_buttons[5].func = change_screen;
+	level_buttons[5].text = "6";
+
+	level_buttons[6].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[6].pos.x = world_width1 * 1.7f;
+	level_buttons[6].pos.y = world_height1 * .7f;
+	level_buttons[6].ending_pos.x = world_width1 * 0.7f;
+	level_buttons[6].start_pos.x = level_buttons[6].pos.x;
+	level_buttons[6].func = change_screen;
+	level_buttons[6].text = "7";
+
+	level_buttons[7].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[7].pos.x = world_width1 * 1.8f;
+	level_buttons[7].pos.y = world_height1 * .7f;
+	level_buttons[7].ending_pos.x = world_width1 * 0.8f;
+	level_buttons[7].start_pos.x = level_buttons[7].pos.x;
+	level_buttons[7].func = change_screen;
+	level_buttons[7].text = "8";
+
+	level_buttons[8].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[8].pos.x = world_width1 * 1.9f;
+	level_buttons[8].pos.y = world_height1 * .7f;
+	level_buttons[8].ending_pos.x = world_width1 * 0.9f;
+	level_buttons[8].start_pos.x = level_buttons[8].pos.x;
+	level_buttons[8].func = change_screen;
+	level_buttons[8].text = "9";
+
+	level_buttons[9].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	level_buttons[9].pos.x = world_width1 * 1.1f;
+	level_buttons[9].pos.y = world_height1 * .5f;
+	level_buttons[9].ending_pos.x = world_width1 * 0.1f;
+	level_buttons[9].start_pos.x = level_buttons[9].pos.x;
+	level_buttons[9].func = change_screen;
+	level_buttons[9].text = "10";
+	//end of level select button
 
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
@@ -227,7 +268,7 @@ void main_menu_init(void)
 	logo_y = CP_System_GetWindowHeight() * 0.3f;
 
 	level_select_start = CP_System_GetWindowWidth() * 1.5f;
-	level_select_end = CP_System_GetWindowWidth() * 0.5f;
+	level_select_end = CP_System_GetWindowWidth() * 0.55f;
 	level_select_x = level_select_start;
 	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 
@@ -329,98 +370,102 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	}
 
 	//SHOP BUTTON
-	CP_Vector coords = World_To_Screen(buttons[14].pos.x, buttons[14].pos.y, world_width1, world_height1);
+	CP_Vector coords = World_To_Screen(buttons[9].pos.x, buttons[9].pos.y, world_width1, world_height1);
 	CP_Vector local_scale = {
-		buttons[14].scale.x * CP_System_GetWindowWidth() / world_width1,
-		buttons[14].scale.y * CP_System_GetWindowHeight() / world_height1
+		buttons[9].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[9].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
-	CP_Image_DrawAdvanced(buttons[14].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[9].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 	//Drawing Text
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[14].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextSize(buttons[9].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[14].text, coords.x, coords.y);
+	CP_Font_DrawText(buttons[9].text, coords.x, coords.y);
 
 	if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5 && !is_overlayed)
 	{
-		buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 9.0f, CP_System_GetDt() * 5);
-		buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 4.0f, CP_System_GetDt() * 5);
-		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 2.0f, CP_System_GetDt() * 5);
+		buttons[9].scale.x = CP_Math_LerpFloat(buttons[9].scale.x, 9.0f, CP_System_GetDt() * 5);
+		buttons[9].scale.y = CP_Math_LerpFloat(buttons[9].scale.y, 4.0f, CP_System_GetDt() * 5);
+		buttons[9].text_size = CP_Math_LerpFloat(buttons[9].text_size, 2.0f, CP_System_GetDt() * 5);
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 		{
-			buttons[14].func();
+			buttons[9].func();
 		}
 	}
 	else {
-		buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 7.0f, CP_System_GetDt() * 5);
-		buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 3.0f, CP_System_GetDt() * 5);
-		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 1.3f, CP_System_GetDt() * 5);
+		buttons[9].scale.x = CP_Math_LerpFloat(buttons[9].scale.x, 7.0f, CP_System_GetDt() * 5);
+		buttons[9].scale.y = CP_Math_LerpFloat(buttons[9].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[9].text_size = CP_Math_LerpFloat(buttons[9].text_size, 1.3f, CP_System_GetDt() * 5);
 	}
 
 	if (is_clicked == 1) {
-		buttons[14].pos.x = CP_Math_LerpFloat(buttons[14].pos.x, -15.0f, CP_System_GetDt() * 4);
+		buttons[9].pos.x = CP_Math_LerpFloat(buttons[9].pos.x, -15.0f, CP_System_GetDt() * 4);
 	}
 	else {
-		buttons[14].pos.x = CP_Math_LerpFloat(buttons[14].pos.x, buttons[14].start_pos.x, CP_System_GetDt() * 4);
+		buttons[9].pos.x = CP_Math_LerpFloat(buttons[9].pos.x, buttons[9].start_pos.x, CP_System_GetDt() * 4);
 	}
 }
 
 void level_select_button(float mouse_x, float mouse_y) {
 
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	CP_Image_DrawAdvanced(Asset_GetImage(HANGING_BANNER), level_select_x, level_select_y, 0.3 * CP_System_GetWindowWidth(), 0.15 * CP_System_GetWindowHeight(), 255, 0.f);
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
 	CP_Settings_TextSize(2 * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText("Level Select", level_select_x, level_select_y);
+	
 
 	//LEVEL SELECT BUTTONS
-	for (int i = 3; i < 3 + TOTAL_LEVELS; i++) {
+	for (int i = 0; i < TOTAL_LEVELS; i++) {
 		//defining the position of the button
-		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
+		CP_Vector coords = World_To_Screen(level_buttons[i].pos.x, level_buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
-			buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
-			buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
+			level_buttons[i].scale.x * CP_System_GetWindowWidth() / world_width1,
+			level_buttons[i].scale.y * CP_System_GetWindowHeight() / world_height1
 		};
 
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		CP_Image_DrawAdvanced(level_buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
 
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
+		CP_Settings_TextSize(level_buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
+		CP_Font_DrawText(level_buttons[i].text, coords.x, coords.y);
 
 
 		if (is_clicked == 1) {
-			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].ending_pos.x, CP_System_GetDt() * 4);
+			level_buttons[i].pos.x = CP_Math_LerpFloat(level_buttons[i].pos.x, level_buttons[i].ending_pos.x, CP_System_GetDt() * 4);
 			level_select_x = CP_Math_LerpFloat(level_select_x, level_select_end, CP_System_GetDt());
 		}
 		else {
-			buttons[i].pos.x = CP_Math_LerpFloat(buttons[i].pos.x, buttons[i].start_pos.x, CP_System_GetDt() * 4);
+			level_buttons[i].pos.x = CP_Math_LerpFloat(level_buttons[i].pos.x, level_buttons[i].start_pos.x, CP_System_GetDt() * 4);
 			level_select_x = CP_Math_LerpFloat(level_select_x, level_select_start, CP_System_GetDt());
 		}
 
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
-			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
-			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
+			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
+			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
+			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				Game_SetLevel(i - 3 + 1);
-				buttons[i].func();
+				level_buttons[i].func();
 			}
 		}
 		else {
-			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.f, CP_System_GetDt() * 5);
+			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 3.0f, CP_System_GetDt() * 5);
+			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 2.f, CP_System_GetDt() * 5);
 		}
 
 	}
+
 }
 
 void volume_bar(float mouse_x, float mouse_y) {
@@ -496,7 +541,7 @@ void volume_bar(float mouse_x, float mouse_y) {
 
 void settings_button(float mouse_x, float mouse_y) {
 	//RESOLUTION BUTTONS
-	for (int i = 9; i < 12; i++) {
+	for (int i = 4; i < 7; i++) {
 		//defining the position of the button
 		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
@@ -522,7 +567,7 @@ void settings_button(float mouse_x, float mouse_y) {
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				change_resolution(i - 9);
+				change_resolution(i - 4);
 			}
 		}
 		else {
@@ -541,43 +586,43 @@ void settings_button(float mouse_x, float mouse_y) {
 	}
 
 	//SHADOW BUTTON
-	CP_Vector coords = World_To_Screen(buttons[13].pos.x, buttons[13].pos.y, world_width1, world_height1);
+	CP_Vector coords = World_To_Screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
 	CP_Vector local_scale = {
-		buttons[13].scale.x * CP_System_GetWindowWidth() / world_width1,
-		buttons[13].scale.y * CP_System_GetWindowHeight() / world_height1
+		buttons[8].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[8].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 
 	//Drawing the button
-	CP_Image_DrawAdvanced(buttons[13].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+	CP_Image_DrawAdvanced(buttons[8].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[13].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextSize(buttons[8].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[13].text, coords.x, coords.y);
+	CP_Font_DrawText(buttons[8].text, coords.x, coords.y);
 
 	//telling what the button should do
 	if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 	{
-		buttons[13].scale.x = CP_Math_LerpFloat(buttons[13].scale.x, 7.0f, CP_System_GetDt() * 5);
-		buttons[13].scale.y = CP_Math_LerpFloat(buttons[13].scale.y, 3.0f, CP_System_GetDt() * 5);
-		buttons[13].text_size = CP_Math_LerpFloat(buttons[13].text_size, 1.3f, CP_System_GetDt() * 5);
+		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 7.0f, CP_System_GetDt() * 5);
+		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 1.3f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 		{
-			buttons[13].func();
+			buttons[8].func();
 		}
 	}
 	else {
 		if (is_setting_clicked) {
-			buttons[13].scale.x = CP_Math_LerpFloat(buttons[13].scale.x, 6.0f, CP_System_GetDt() * 5);
-			buttons[13].scale.y = CP_Math_LerpFloat(buttons[13].scale.y, 2.0f, CP_System_GetDt() * 5);
-			buttons[13].text_size = CP_Math_LerpFloat(buttons[13].text_size, 0.95f, CP_System_GetDt() * 5);
+			buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 6.0f, CP_System_GetDt() * 5);
+			buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 2.0f, CP_System_GetDt() * 5);
+			buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 0.95f, CP_System_GetDt() * 5);
 		}
 		else {
-			buttons[13].scale.x = 0;
-			buttons[13].scale.y = 0;
-			buttons[13].text_size = 0;
+			buttons[8].scale.x = 0;
+			buttons[8].scale.y = 0;
+			buttons[8].text_size = 0;
 		}
 
 	}
@@ -586,7 +631,7 @@ void settings_button(float mouse_x, float mouse_y) {
 void shops_button(float mouse_x, float mouse_y)
 {
 
-	for (int i = 16; i < 17; i++) {
+	for (int i = 11; i < 14; i++) {
 		//defining the position of the button
 		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
 		CP_Vector local_scale = {
@@ -633,69 +678,69 @@ void shops_button(float mouse_x, float mouse_y)
 
 void back_buttons(float mouse_x, float mouse_y) {
 	//BACK BUTTON FOR LEVEL SELECT
-	CP_Vector coords_back_level = World_To_Screen(buttons[8].pos.x, buttons[8].pos.y, world_width1, world_height1);
+	CP_Vector coords_back_level = World_To_Screen(buttons[3].pos.x, buttons[3].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_level = {
-		buttons[8].scale.x * CP_System_GetWindowWidth() / world_width1,
-		buttons[8].scale.y * CP_System_GetWindowHeight() / world_height1
+		buttons[3].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[3].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced(buttons[8].button_image, coords_back_level.x, coords_back_level.y, local_scale_level.x, local_scale_level.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[3].button_image, coords_back_level.x, coords_back_level.y, local_scale_level.x, local_scale_level.y, 255, 0.f);
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[8].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextSize(buttons[3].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[8].text, coords_back_level.x, coords_back_level.y);
+	CP_Font_DrawText(buttons[3].text, coords_back_level.x, coords_back_level.y);
 
 	if (is_clicked == 1) {
-		buttons[8].pos.x = CP_Math_LerpFloat(buttons[8].pos.x, buttons[8].ending_pos.x, CP_System_GetDt() * 4);
+		buttons[3].pos.x = CP_Math_LerpFloat(buttons[3].pos.x, buttons[3].ending_pos.x, CP_System_GetDt() * 4);
 	}
 	else {
-		buttons[8].pos.x = CP_Math_LerpFloat(buttons[8].pos.x, buttons[8].start_pos.x, CP_System_GetDt() * 4);
+		buttons[3].pos.x = CP_Math_LerpFloat(buttons[3].pos.x, buttons[3].start_pos.x, CP_System_GetDt() * 4);
 	}
 
 	//telling what the button should do
 	if (mouse_x >= coords_back_level.x - local_scale_level.x * .5f && mouse_y >= coords_back_level.y - local_scale_level.y * .5f && mouse_x <= coords_back_level.x + local_scale_level.x * .5 && mouse_y <= coords_back_level.y + local_scale_level.y * .5)
 	{
-		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 3.0f, CP_System_GetDt() * 5);
-		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 3.0f, CP_System_GetDt() * 5);
-		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 3.f, CP_System_GetDt() * 5);
+		buttons[3].scale.x = CP_Math_LerpFloat(buttons[3].scale.x, 3.0f, CP_System_GetDt() * 5);
+		buttons[3].scale.y = CP_Math_LerpFloat(buttons[3].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[3].text_size = CP_Math_LerpFloat(buttons[3].text_size, 3.f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 		{
-			buttons[8].func();
+			buttons[3].func();
 		}
 	}
 	else {
-		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 2.0f, CP_System_GetDt() * 5);
-		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 2.0f, CP_System_GetDt() * 5);
-		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 2.0f, CP_System_GetDt() * 5);
+		buttons[3].scale.x = CP_Math_LerpFloat(buttons[3].scale.x, 2.0f, CP_System_GetDt() * 5);
+		buttons[3].scale.y = CP_Math_LerpFloat(buttons[3].scale.y, 2.0f, CP_System_GetDt() * 5);
+		buttons[3].text_size = CP_Math_LerpFloat(buttons[3].text_size, 2.0f, CP_System_GetDt() * 5);
 	}
 
 	//BACK BUTTON FOR SETTINGS PAGE
-	CP_Vector coords_back_setting = World_To_Screen(buttons[12].pos.x, buttons[12].pos.y, world_width1, world_height1);
+	CP_Vector coords_back_setting = World_To_Screen(buttons[7].pos.x, buttons[7].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_setting = {
-		buttons[12].scale.x * CP_System_GetWindowWidth() / world_width1,
-		buttons[12].scale.y * CP_System_GetWindowHeight() / world_height1
+		buttons[7].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[7].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced(buttons[12].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[7].button_image, coords_back_setting.x, coords_back_setting.y, local_scale_setting.x, local_scale_setting.y, 255, 0.f);
 
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[12].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextSize(buttons[7].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[12].text, coords_back_setting.x, coords_back_setting.y);
+	CP_Font_DrawText(buttons[7].text, coords_back_setting.x, coords_back_setting.y);
 
 	//telling what the button should do
 	if (mouse_x >= coords_back_setting.x - local_scale_setting.x * .5f && mouse_y >= coords_back_setting.y - local_scale_setting.y * .5f && mouse_x <= coords_back_setting.x + local_scale_setting.x * .5 && mouse_y <= coords_back_setting.y + local_scale_setting.y * .5)
 	{
 		if (is_setting_clicked == 1) {
-			buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 3.0f, CP_System_GetDt() * 5);
-			buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 2.0f, CP_System_GetDt() * 5);
+			buttons[7].scale.x = CP_Math_LerpFloat(buttons[7].scale.x, 3.0f, CP_System_GetDt() * 5);
+			buttons[7].scale.y = CP_Math_LerpFloat(buttons[7].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[7].text_size = CP_Math_LerpFloat(buttons[7].text_size, 2.0f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				setting_button();
@@ -703,40 +748,40 @@ void back_buttons(float mouse_x, float mouse_y) {
 		}
 	}
 	if (is_setting_clicked) {
-		buttons[12].scale.x = CP_Math_LerpFloat(buttons[12].scale.x, 2.0f, CP_System_GetDt() * 5);
-		buttons[12].scale.y = CP_Math_LerpFloat(buttons[12].scale.y, 2.0f, CP_System_GetDt() * 5);
-		buttons[12].text_size = CP_Math_LerpFloat(buttons[12].text_size, 1.3f, CP_System_GetDt() * 5);
+		buttons[7].scale.x = CP_Math_LerpFloat(buttons[7].scale.x, 2.0f, CP_System_GetDt() * 5);
+		buttons[7].scale.y = CP_Math_LerpFloat(buttons[7].scale.y, 2.0f, CP_System_GetDt() * 5);
+		buttons[7].text_size = CP_Math_LerpFloat(buttons[7].text_size, 1.3f, CP_System_GetDt() * 5);
 	}
 	else {
-		buttons[12].scale.x = 0;
-		buttons[12].scale.y = 0;
-		buttons[12].text_size = 0;
+		buttons[7].scale.x = 0;
+		buttons[7].scale.y = 0;
+		buttons[7].text_size = 0;
 	}
 
 	//BACK BUTTON FOR SHOP PAGE
-	CP_Vector coords_back_shop = World_To_Screen(buttons[15].pos.x, buttons[15].pos.y, world_width1, world_height1);
+	CP_Vector coords_back_shop = World_To_Screen(buttons[10].pos.x, buttons[10].pos.y, world_width1, world_height1);
 	CP_Vector local_scale_shop = {
-		buttons[15].scale.x * CP_System_GetWindowWidth() / world_width1,
-		buttons[15].scale.y * CP_System_GetWindowHeight() / world_height1
+		buttons[10].scale.x * CP_System_GetWindowWidth() / world_width1,
+		buttons[10].scale.y * CP_System_GetWindowHeight() / world_height1
 	};
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	//Drawing the button
-	CP_Image_DrawAdvanced(buttons[15].button_image, coords_back_shop.x, coords_back_shop.y, local_scale_shop.x, local_scale_shop.y, 255, 0.f);
+	CP_Image_DrawAdvanced(buttons[10].button_image, coords_back_shop.x, coords_back_shop.y, local_scale_shop.x, local_scale_shop.y, 255, 0.f);
 
 
 	CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-	CP_Settings_TextSize(buttons[15].text_size * CP_System_GetWindowHeight() / world_height1);
+	CP_Settings_TextSize(buttons[10].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-	CP_Font_DrawText(buttons[15].text, coords_back_shop.x, coords_back_shop.y);
+	CP_Font_DrawText(buttons[10].text, coords_back_shop.x, coords_back_shop.y);
 
 	//telling what the button should do
 	if (mouse_x >= coords_back_shop.x - local_scale_shop.x * .5f && mouse_y >= coords_back_shop.y - local_scale_shop.y * .5f && mouse_x <= coords_back_shop.x + local_scale_shop.x * .5 && mouse_y <= coords_back_shop.y + local_scale_shop.y * .5)
 	{
 		if (is_shop_clicked == 1) {
-			buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 3.0f, CP_System_GetDt() * 5);
-			buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 2.0f, CP_System_GetDt() * 5);
+			buttons[10].scale.x = CP_Math_LerpFloat(buttons[10].scale.x, 3.0f, CP_System_GetDt() * 5);
+			buttons[10].scale.y = CP_Math_LerpFloat(buttons[10].scale.y, 3.0f, CP_System_GetDt() * 5);
+			buttons[10].text_size = CP_Math_LerpFloat(buttons[10].text_size, 2.0f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				shop_button();
@@ -744,14 +789,14 @@ void back_buttons(float mouse_x, float mouse_y) {
 		}
 	}
 	if (is_shop_clicked) {
-		buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 2.0f, CP_System_GetDt() * 5);
-		buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 2.0f, CP_System_GetDt() * 5);
-		buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 1.3f, CP_System_GetDt() * 5);
+		buttons[10].scale.x = CP_Math_LerpFloat(buttons[10].scale.x, 2.0f, CP_System_GetDt() * 5);
+		buttons[10].scale.y = CP_Math_LerpFloat(buttons[10].scale.y, 2.0f, CP_System_GetDt() * 5);
+		buttons[10].text_size = CP_Math_LerpFloat(buttons[10].text_size, 1.3f, CP_System_GetDt() * 5);
 	}
 	else {
-		buttons[15].scale.x = 0;
-		buttons[15].scale.y = 0;
-		buttons[15].text_size = 0;
+		buttons[10].scale.x = 0;
+		buttons[10].scale.y = 0;
+		buttons[10].text_size = 0;
 	}
 	
 }
@@ -771,11 +816,11 @@ void shop_button(void) {
 }
 
 void buy_button(void) {
-	for (int i = 16; i < 17; i++) {
+	for (int i = 11; i < 14; i++) {
 		if (coins >= 10) {
 			is_buy_clicked = !is_buy_clicked;
 			deduct_coins(10);
-			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
 			buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 			buttons[i].func = is_buy_clicked ? equip_button : buy_button;
 		}
@@ -784,17 +829,17 @@ void buy_button(void) {
 
 void equip_button(void) {
 
-	for (int i = 16; i < 17; i++) {
+	for (int i = 11; i < 14; i++) {
 
 		if (is_buy_clicked && !is_equip_clicked) {
 
 			is_equip_clicked = !is_equip_clicked;
-			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
 		}
 		else {
 
 			is_equip_clicked = !is_equip_clicked;
-			buttons[16].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
 		}
 
 		buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
@@ -840,7 +885,7 @@ void change_resolution(num) {
 
 void is_shadow(void) {
 	is_shadowed = !is_shadowed;
-	buttons[13].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET): Asset_GetImage(BUTTON_GREY_ASSET);
+	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET): Asset_GetImage(BUTTON_GREY_ASSET);
 }
 
 bool get_shadow_setting(void) {
