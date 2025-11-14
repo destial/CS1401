@@ -48,9 +48,10 @@ bool editor_mode = false;
 
 // editable setting
 float resistance = 1.25f;
-float power = 1.f;
+float power = 2.f;
 char current_level = 1;
 float current_time;
+#define MAX_PUTT_POWER 75.f
 
 // particles
 ParticleType particle_type = PARTICLE_FLAME;
@@ -338,6 +339,7 @@ void Game_UpdatePhysics(float dt)
 			if (golf->dragging && golf == current) {
 				golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
 				golf->vel = CP_Vector_Scale(golf->vel, power);
+				golf->vel = CP_Vector_Max(golf->vel, MAX_PUTT_POWER);
 
 				// set the other balls velocity
 				for (int j = 0; j < golf_balls.length; ++j) {
@@ -633,7 +635,7 @@ void Game_RenderUI(void) {
 		int red = CP_Math_ClampInt(x, 0, 255);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
-		power_val = CP_Vector_Length(current->vel) / 50.f;
+		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
 		power_val = min(1.f, power_val);
 
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
@@ -654,8 +656,8 @@ void Game_RenderUI(void) {
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
 
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			float w = current->diameter * world_ratios.x * 5.f;
-			float h = current->diameter * world_ratios.x;
+			float w = world_ratios.x * 5.f;
+			float h = world_ratios.x;
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f *power_val, h, 255, angle);
 		}
 	}
@@ -1178,7 +1180,7 @@ void Process_Inputs(void) {
 		// increase / decrease golf putt power
 		if (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL) && current) {
 			power += CP_Input_MouseWheel() * 0.1f;
-			power = min_max(power, 0.1f, 3.f); // limit to maximum of 3f, min 0.1f
+			power = min_max(power, 0.5f, 4.f); // limit to maximum of 3f, min 0.1f
 		}
 	}
 
