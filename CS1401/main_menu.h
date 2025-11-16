@@ -30,5 +30,6 @@ void equip_button(num);
 void is_shadow(void);
 bool get_shadow_setting(void);
 void draw_logo_image(void);
+int equipped_index;
 
 #endif

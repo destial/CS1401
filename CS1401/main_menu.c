@@ -158,13 +158,13 @@ void main_menu_init(void)
 	buttons[12].pos.x = world_width1 * 0.5f;
 	buttons[12].pos.y = world_height1 * 0.32f;
 	buttons[12].start_pos.x = buttons[12].pos.x;
-	buttons[12].text = is_equip_clicked ? "EQUIPPED" : is_buy1_clicked ? "EQUIP" : "BUY";
+	buttons[12].text = is_equip_clicked ? "EQUIPPED" : is_buy1_clicked ? "EQUIP" : "BUY: 10 Coins";
 
 	buttons[13].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy2_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	buttons[13].pos.x = world_width1 * 0.7f;
 	buttons[13].pos.y = world_height1 * 0.32f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
-	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY";
+	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY: 20 Coins";
 
 	//start of level select button
 	level_buttons[0].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
@@ -288,6 +288,12 @@ void main_menu_update(void)
 	main_menu_button(mouse_x, mouse_y);
 	draw_logo_image();
 	level_select_button(mouse_x, mouse_y);
+
+	int counter_textsize = 40;
+	CP_Settings_TextSize(counter_textsize);
+	char coin_count[50] = { 0 };
+	sprintf_s(coin_count, 50, "COINS: %i", coins);
+	CP_Font_DrawText(coin_count, CP_System_GetWindowWidth() * 0.9f, CP_System_GetWindowHeight() * 0.9f);
 
 	//SETTING PAGE
 	if (is_setting_clicked) {
@@ -824,14 +830,18 @@ void buy_button(num) {
 		switch (num) {
 		case 12:
 			if (coins >= 10) {
-				deduct_coins(10);
+				if (!is_buy1_clicked) {
+					deduct_coins(10);
+				}
 				is_buy1_clicked = true;
 				equip_button(num);
 			}
 			break;
 		case 13:
 			if (coins >= 20) {
-				deduct_coins(20);
+				if (!is_buy2_clicked) {
+					deduct_coins(20);
+				}
 				is_buy2_clicked = true;
 				equip_button(num);
 			}
@@ -859,7 +869,7 @@ void equip_button(num) {
 
 	if (!is_buy1_clicked) {
 		buttons[12].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
-		buttons[12].text = "BUY";
+		buttons[12].text = "BUY: 10 Coins";
 	}
 	else if (equipped_index == 1) {
 		buttons[12].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
@@ -872,7 +882,7 @@ void equip_button(num) {
 
 	if (!is_buy2_clicked) {
 		buttons[13].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
-		buttons[13].text = "BUY";
+		buttons[13].text = "BUY: 20 Coins";
 	}
 	else if (equipped_index == 2) {
 		buttons[13].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
