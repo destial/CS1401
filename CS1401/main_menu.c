@@ -41,7 +41,7 @@ Button level_buttons[TOTAL_LEVELS];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy_clicked = false, is_shadowed = false, is_equip_clicked = false;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip1_clicked = false, is_equip2_clicked = false, is_equip3_clicked = false;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 
 void exit_main_menu(void) {
@@ -148,24 +148,23 @@ void main_menu_init(void)
 	buttons[10].text = "X";
 
 	//Shop Buy Button
-	buttons[11].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[11].button_image = is_equip1_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[11].pos.x = world_width1 * 0.3f;
 	buttons[11].pos.y = world_height1 * 0.32f;
 	buttons[11].start_pos.x = buttons[11].pos.x;
-	buttons[11].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
-	buttons[11].func = is_buy_clicked ? equip_button : buy_button;
+	buttons[11].text = is_equip1_clicked ? "EQUIPPED" : "EQUIP";
 
-	buttons[12].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
-	buttons[12].pos.x = world_width1 * 0.7f;
-	buttons[12].pos.y = world_height1 * 0.35f;
+	buttons[12].button_image = is_equip2_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy1_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[12].pos.x = world_width1 * 0.5f;
+	buttons[12].pos.y = world_height1 * 0.32f;
 	buttons[12].start_pos.x = buttons[12].pos.x;
-	buttons[12].text = "BUY";
+	buttons[12].text = is_equip2_clicked ? "EQUIPPED" : is_buy1_clicked ? "EQUIP" : "BUY";
 
-	buttons[13].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[13].button_image = is_equip3_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy2_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	buttons[13].pos.x = world_width1 * 0.7f;
-	buttons[13].pos.y = world_height1 * 0.35f;
+	buttons[13].pos.y = world_height1 * 0.32f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
-	buttons[13].text = "EQUIP";
+	buttons[13].text = is_equip3_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY";
 
 	//start of level select button
 	level_buttons[0].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
@@ -382,6 +381,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	CP_Settings_TextSize(buttons[9].text_size * CP_System_GetWindowHeight() / world_height1);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 	CP_Font_DrawText(buttons[9].text, coords.x, coords.y);
+	
 
 	if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5 && !is_overlayed)
 	{
@@ -630,7 +630,6 @@ void settings_button(float mouse_x, float mouse_y) {
 
 void shops_button(float mouse_x, float mouse_y)
 {
-
 	for (int i = 11; i < 14; i++) {
 		//defining the position of the button
 		CP_Vector coords = World_To_Screen(buttons[i].pos.x, buttons[i].pos.y, world_width1, world_height1);
@@ -657,7 +656,13 @@ void shops_button(float mouse_x, float mouse_y)
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				buttons[i].func();
+				if (i == 11) {
+					equip_button(i - 11);
+				}
+				
+				else {
+					buy_button(i - 12);
+				}
 			}
 		}
 		else {
@@ -815,35 +820,43 @@ void shop_button(void) {
 	is_overlayed = !is_overlayed;
 }
 
-void buy_button(void) {
-	for (int i = 11; i < 14; i++) {
-		if (coins >= 10) {
-			is_buy_clicked = !is_buy_clicked;
-			deduct_coins(10);
-			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
-			buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
-			buttons[i].func = is_buy_clicked ? equip_button : buy_button;
+void buy_button(num) {
+		switch (num) {
+		case 0:
+			if (coins >= 10) {
+				deduct_coins(10);
+				is_buy1_clicked = true;
+				equip_button(1);
+			}
+			break;
+		case 1:
+			if (coins >= 20) {
+				deduct_coins(20);
+				is_buy2_clicked = true;
+				equip_button(2);
+			}
+			break;
 		}
-	}
 }
 
-void equip_button(void) {
-
-	for (int i = 11; i < 14; i++) {
-
-		if (is_buy_clicked && !is_equip_clicked) {
-
-			is_equip_clicked = !is_equip_clicked;
-			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
+void equip_button(num) {
+		switch (num) {
+		case 0:
+				is_equip1_clicked = !is_equip1_clicked;
+				buttons[11].button_image = is_equip1_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+				buttons[11].text = is_equip1_clicked ? "EQUIPPED" : "EQUIP";
+				break;
+		case 1:
+				is_equip2_clicked = !is_equip2_clicked;
+				buttons[12].button_image = is_equip2_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+				buttons[12].text = is_equip2_clicked ? "EQUIPPED" : "EQUIP";
+				break;
+		case 2:
+				is_equip3_clicked = !is_equip3_clicked;
+				buttons[13].button_image = is_equip3_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+				buttons[13].text = is_equip3_clicked ? "EQUIPPED" : "EQUIP";
+				break;
 		}
-		else {
-
-			is_equip_clicked = !is_equip_clicked;
-			buttons[i].text = is_equip_clicked ? "EQUIPPED" : is_buy_clicked ? "EQUIP" : "BUY";
-		}
-
-		buttons[i].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
-	}
 }
 
 
