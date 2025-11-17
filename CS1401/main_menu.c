@@ -271,6 +271,10 @@ void main_menu_init(void)
 
 	CP_Sound_StopAll();
 	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
+
+	//Sets the default golf ball
+	int index = 11; 
+	equip_button(index);
 }
 
 void main_menu_update(void) 
