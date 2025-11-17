@@ -7,6 +7,7 @@
 #include "asset_manager.h"
 #include "sprite_manager.h"
 #include "state_manager.h"
+#include "currency_manager.h"
 #include <math.h>
 //void scoring_update();
 //void scoring_exit();
@@ -104,6 +105,25 @@ static int IsAreaClicked(float area_center_x, float area_center_y, float area_wi
 static float GetPulseScale(float baseScale, float amplitude, float speed) {
 	float t = CP_System_GetDt();
 	return baseScale + amplitude * sinf(t * speed);
+}
+
+//Currency Logic
+int coins_earned_last_level = 0;
+
+//Global var to prevent dupe coins
+int reward_given = 0;
+
+int calculate_reward(int level, int stars) {
+	// base reward: 10 coins per level
+	const int base_reward = level * 10;
+	// 20 coins per star
+	const int bonus_per_star = 20;
+
+	return base_reward + (stars * bonus_per_star);
+}
+
+void reward_player(int reward) {
+	add_coins(reward);
 }
 
 void scoring_init() {
@@ -216,11 +236,13 @@ void scoring_update(void) {
 		if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, clickbb_x, clickbb_y) == 1) {
 			//Set state to current level
 			//Set_Current_Level(Get_Current_Level());
+			reward_given = 0;
 			Set_Next_State(STATE_GAME);
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
 			if ((Game_GetLevel() + 1) == 6) {
+				reward_given = 0;
 				Set_Next_State(STATE_MAINMENU);
 			}
 			else {
@@ -299,6 +321,7 @@ void scoring_update(void) {
 	scoregs[2].width = gs_width * star_mul;
 	scoregs[2].height = gs_height * star_mul;
 
+
 }
 
 
@@ -373,6 +396,31 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Font_Set(sb_button_font);
 	float win_width = (float)CP_System_GetWindowWidth();
 	float win_height = (float)CP_System_GetWindowHeight();
+
+	//Make sure reward given only once
+	int stars = 0;
+	if (get_strokes() <= get_lvl_par() - 1) {
+		stars = 3;
+	}
+	else if (get_strokes() == get_lvl_par()) {
+		stars = 2;
+	}
+	else {
+		stars = 1;
+	}
+
+	//Give coins once per sb
+	if (!reward_given) {
+		// get current level
+		int level = Game_GetLevel();
+		int reward = calculate_reward(level, stars);
+		reward_player(reward);
+		// store reward for UI
+		coins_earned_last_level = reward;
+		// prevent duplicate reward
+		reward_given = 1;
+	}
+
 	//Load all images
 	CP_Image sbb_bg = Asset_GetImage(SCOREBOARD_BG);
 	CP_Image stroke_bg = Asset_GetImage(STROKE_BG);
@@ -408,7 +456,18 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	sprintf_s(b, 50, "LEVEL CLEARED!");
 	CP_Font_DrawText(b, coords.x, coords.y);
-	score(coords.x, coords.y *1.1f);
+	//score(coords.x, coords.y *1.1f);
+
+	char coin_info[100];
+
+	// Showing coins earned
+	sprintf_s(coin_info, 50, "Coins Earned: +%d", coins_earned_last_level);
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	CP_Font_DrawText(coin_info, coords.x, coords.y * 1.1f);
+
+	// Showing total coins
+	sprintf_s(coin_info, 50, "Total Coins:  %d", getCoins());
+	CP_Font_DrawText(coin_info, coords.x, coords.y * 1.2f);
 
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
@@ -475,3 +534,5 @@ void set_lvl_par(int par) {
 int get_lvl_par(void) {
 	return lvl_par;
 }
+
+
