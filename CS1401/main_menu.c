@@ -265,7 +265,7 @@ void main_menu_init(void)
 	logo_y = CP_System_GetWindowHeight() * 0.3f;
 
 	level_select_start = CP_System_GetWindowWidth() * 1.5f;
-	level_select_end = CP_System_GetWindowWidth() * 0.55f;
+	level_select_end = CP_System_GetWindowWidth() * 0.5f;
 	level_select_x = level_select_start;
 	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 
@@ -654,13 +654,13 @@ void shops_button(float mouse_x, float mouse_y)
 
 		//Drawing the button
 		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
-
+		buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
+		buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
-			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
-			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
+			
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				if (i == 11) {
@@ -935,6 +935,14 @@ void change_resolution(num) {
 		CP_System_SetWindowSize(1920, 1080);
 		break;
 	}
+	logo_start_x = CP_System_GetWindowWidth() * 0.5f;
+	logo_x = CP_System_GetWindowWidth() * 0.5f;
+	logo_y = CP_System_GetWindowHeight() * 0.3f;
+
+	level_select_start = CP_System_GetWindowWidth() * 1.5f;
+	level_select_end = CP_System_GetWindowWidth() * 0.5f;
+	level_select_x = level_select_start;
+	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 }
 
 void is_shadow(void) {

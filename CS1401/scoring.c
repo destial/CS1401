@@ -109,6 +109,15 @@ static float GetPulseScale(float baseScale, float amplitude, float speed) {
 
 //Currency Logic
 int coins_earned_last_level = 0;
+int extra_coins = 0;
+
+int get_extra_coins(void) {
+	return extra_coins;
+}
+
+void add_extra_coins(int add_coin_amt) {
+	extra_coins += add_coin_amt;
+}
 
 //Global var to prevent dupe coins
 int reward_given = 0;
@@ -119,7 +128,9 @@ int calculate_reward(int level, int stars) {
 	// 20 coins per star
 	const int bonus_per_star = 20;
 
-	return base_reward + (stars * bonus_per_star);
+	int extra_coins = get_extra_coins();
+
+	return base_reward + (stars * bonus_per_star) + extra_coins;
 }
 
 void reward_player(int reward) {
@@ -230,6 +241,7 @@ void scoring_update(void) {
 
 		//click on exit
 		if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, clickbb_x, clickbb_y) == 1) {
+			reward_given = 0;
 			Set_Next_State(STATE_MAINMENU);
 		}
 		//click on replay
@@ -246,6 +258,7 @@ void scoring_update(void) {
 				Set_Next_State(STATE_MAINMENU);
 			}
 			else {
+				reward_given = 0;
 				Game_SetLevel(Game_GetLevel() + 1);
 				Set_Next_State(STATE_GAME);
 			}
@@ -393,6 +406,11 @@ void score(float x, float y) {
 }
 
 void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
+
+	//Use if Game_LevelWon(void);
+	//Use if Game_levelLost(void)
+
+
 	CP_Font_Set(sb_button_font);
 	float win_width = (float)CP_System_GetWindowWidth();
 	float win_height = (float)CP_System_GetWindowHeight();
