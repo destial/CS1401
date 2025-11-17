@@ -38,7 +38,7 @@ int resolution_number = 0, equipped_index;
 
 Button buttons[30];
 Button level_buttons[TOTAL_LEVELS];
-CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, shop_banner;
+CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
 CP_Font button_font;
 
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
@@ -251,6 +251,7 @@ void main_menu_init(void)
 	shop_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 	golf_ball_default_image = Asset_GetImage(GOLF_BALL_ASSET);
 	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
+	golf_ball_pool_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 
