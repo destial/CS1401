@@ -6,18 +6,21 @@
 #include "state_manager.h"
 #include "utils.h"
 
-static CP_Image end_logo;
+static CP_Image end_logo[2];
 static float end_alpha = 0.f;
 static float end_duration = 2.f;
 static bool end_revert = false;
+static int end_index = 0;
 
 void end_state_init(void) 
 {
 	Set_Current_State(STATE_EXIT);
 	printf("Init end\n");
-	end_logo = Asset_GetImage(SPLASH_SCREEN_ASSET);
+	end_logo[0] = Asset_GetImage(TEAM_CREDITS_ASSET);
+	end_logo[1] = Asset_GetImage(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Settings_AntiAlias(true);
 	CP_Sound_StopAll();
 }
@@ -34,13 +37,17 @@ void end_state_update(void)
 	else {
 		end_alpha -= CP_System_GetDt() / end_duration;
 	}
-	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);
-
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Image_Draw(end_logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int) (end_alpha * 255.f));
+	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);;
+	
+	CP_Image_Draw(end_logo[end_index], 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(end_alpha * 255.f));
 
 	if (end_revert && end_alpha == 0.f) {
-		CP_Engine_Terminate();
+		end_index++;
+		end_revert = false;
+
+		if (end_index == 2) {
+			CP_Engine_Terminate();
+		}
 	}
 }
 

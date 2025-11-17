@@ -35,6 +35,7 @@
 #define BUTTON_GREEN_ASSET "Assets/Images/button_green.png"
 #define SPLASH_SCREEN_ASSET "Assets/Images/splash_screen.png"
 #define TITLE_SPRITE_ASSET "Assets/Images/title_sprite.png"
+#define TEAM_CREDITS_ASSET "Assets/Images/team_credits.png"
 #define BOOST_ITEM_ASSET "Assets/Images/boost_item.png"
 #define BIG_ITEM_ASSET "Assets/Images/big_item.png"
 #define SMALL_ITEM_ASSET "Assets/Images/small_item.png"

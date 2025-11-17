@@ -18,6 +18,7 @@ void splash_screen_init(void)
 	splash_logo = Asset_GetImage(SPLASH_SCREEN_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Settings_AntiAlias(TRUE);
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
@@ -50,5 +51,6 @@ void splash_screen_exit(void)
 {
 	Assets_Free();
 	Particles_Free();
+
 	printf("Exit splash\n");
 }
