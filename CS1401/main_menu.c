@@ -38,7 +38,7 @@ int resolution_number = 0, equipped_index;
 
 Button buttons[30];
 Button level_buttons[TOTAL_LEVELS];
-CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
+CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, shop_banner;
 CP_Font button_font;
 
 bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
@@ -306,10 +306,12 @@ void main_menu_update(void)
 	if (is_shop_clicked) {
 		//drawing shop background
 		CP_Image_Draw(shop_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		CP_Image shop_banner = Asset_GetImage(BANNER);
+		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f, 700.0f, 200.0f, 255, 0.0f);
 		//shop items would go here
 		CP_Settings_TextSize(1.5f * CP_System_GetWindowHeight() / world_height1);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText("GOLF BALLS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.3f);
+		CP_Font_DrawText("GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
