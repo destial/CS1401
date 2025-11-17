@@ -23,6 +23,9 @@ int get_lvl_par(void);
 void scoring_init();
 void scoring_update(void);
 
+int get_extra_coins(void);
+
+void add_extra_coins(int add_coin_amt);
 
 //
 //void add_stroke();
