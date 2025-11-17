@@ -546,6 +546,8 @@ void Game_Render(void)
 
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
+	Asset_SpriteStartFrame();
+
 	// render terrains
 	Game_RenderTerrains();
 

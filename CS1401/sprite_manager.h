@@ -71,4 +71,11 @@ int Sprite_GetWidth(SpriteSheet spritesheet);
 */
 int Sprite_GetHeight(SpriteSheet spritesheet);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Reset the frame update for this sheet.
+@param spritesheet - The spritesheet to update
+*/
+void Sprite_ResetFrame(SpriteSheet sheet);
+
 #endif

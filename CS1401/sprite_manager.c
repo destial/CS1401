@@ -13,7 +13,12 @@ typedef struct SpriteSheetStruct {
 	int img_h, img_w, sub_h, sub_w,
 		rows, columns, current_row, current_column;
 	float duration, elapsedDuration;
+	bool updated_frame;
 } *SpriteSheet;
+
+void Sprite_ResetFrame(SpriteSheet sheet) {
+	sheet->updated_frame = false;
+}
 
 void Sprite_Draw(SpriteSheet sheet, float x, float y, float w, float h, int alpha) {
 	// just renders with 0 degrees of rotation
@@ -29,6 +34,10 @@ void Sprite_DrawAdvanced(SpriteSheet sheet, float x, float y, float w, float h, 
 	// draw the sub image of this sprite
 	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sheet->sub_w), (float) (v0 + sheet->sub_h), alpha, degrees);
 
+	if (sheet->updated_frame)
+		return;
+
+	sheet->updated_frame = true;
 	// increment the animation frame based on the time elapsed
 	int frameCount = sheet->rows * sheet->columns;
 	if ((sheet->elapsedDuration += CP_System_GetDt()) > sheet->duration / frameCount) {
@@ -62,6 +71,7 @@ SpriteSheet Sprite_Create(CP_Image image, int rows, int columns, float duration)
 	sheet->columns = columns;
 	sheet->duration = duration;
 	sheet->elapsedDuration = 0.f;
+	sheet->updated_frame = false;
 
 	sheet->img_h = CP_Image_GetHeight(sheet->root_image);
 	sheet->img_w = CP_Image_GetWidth(sheet->root_image);

@@ -138,6 +138,12 @@ CP_Sound Asset_GetAudio(const char* filepath);
 SpriteSheet Asset_GetSprite(const char* filepath, int rows, int columns, float duration);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu
+@brief Reset all sprite frame updates. Called at the start of Render
+*/
+void Asset_SpriteStartFrame(void);
+
+/*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free up all the loaded assets from the asset map. Do not call this in main()!
 */
