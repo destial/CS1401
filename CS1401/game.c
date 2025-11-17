@@ -52,7 +52,7 @@ bool editor_mode = false;
 float resistance = 1.25f;
 float power = 2.f;
 char current_level = 1;
-float current_time;
+float current_time, game_timer;
 #define MAX_PUTT_POWER 75.f
 
 // particles
@@ -209,6 +209,7 @@ void game_init(void)
 	camera_matrix = CP_Matrix_Identity();
 	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
+	game_timer = 10.f;
 	
 	scoring_init();
 	Game_SetResetting(false);
@@ -256,7 +257,7 @@ void game_update(void)
 			}
 
 			// tab is only for debug purposes, will be removed in the actual build
-			if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
+			if ((Game_LevelLost() || Game_LevelWon() || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
 				scoring_update();
 		}
 	}
@@ -276,6 +277,11 @@ void Game_UpdatePhysics(float dt)
 	}
 	else if (!playable) {
 		playable = true;
+	}
+
+	if (playable) {
+		game_timer -= dt;
+		game_timer = max(0.f, game_timer);
 	}
 
 	Item* item_arr = Get_Items();
@@ -335,7 +341,7 @@ void Game_UpdatePhysics(float dt)
 			continue;
 
 		// Dragging the power of the ball
-		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && playable) {
+		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && playable && game_timer > 0.f) {
 
 			// make sure the mouse is on the ball and its currently not moving
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
@@ -681,21 +687,23 @@ void Game_RenderUI(void) {
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.1f, 5);
+		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.05f, 5);
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.25f, 5);
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5);
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.4f, 5);
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 5);
 
+		char tm[32]; sprintf_s(tm, 32, "Timer: %.2fs", game_timer);
+		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 5);
 		
 		UI_SetPriority(-5);
-		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.7f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
+		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.85f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
 		UI_SetPriority(0);
 	}
 
-	if ((win || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
+	if ((Game_LevelLost() || Game_LevelWon() || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
@@ -2197,4 +2205,12 @@ CP_Vector Get_World_Ratios(void) {
 
 CP_Matrix Get_Camera(void) {
 	return camera_matrix;
+}
+
+bool Game_LevelWon(void) {
+	return has_won;
+}
+
+bool Game_LevelLost(void) {
+	return game_timer <= 0.f && all_balls_stopped;
 }
