@@ -156,7 +156,14 @@ void game_init(void)
 	Set_Current_State(STATE_GAME);
 	printf("Init game\n");
 	font = Asset_GetFont(ARIAL_FONT_ASSET);
-	golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
+	switch (equipped_index) {
+	case 0:
+		golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
+		break;
+	case 1:
+		golf_ball_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
+		break;
+	}
 	background_image = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	hit_sound = Asset_GetAudio(GOLF_HIT_WALL_ASSET);
 	item_image_cache[ITEM_BOOST - 1] = Asset_GetImage(BOOST_ITEM_ASSET);
@@ -538,6 +545,8 @@ void Game_Render(void)
 	CP_Font_Set(font);
 
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
+
+	Asset_SpriteStartFrame();
 
 	// render terrains
 	Game_RenderTerrains();

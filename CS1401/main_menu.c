@@ -34,14 +34,14 @@ typedef struct ButtonStr {
 float world_width1 = 48, world_height1 = 27;
 float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
 int window_size_H, window_size_W;
-int resolution_number = 0;
+int resolution_number = 0, equipped_index;
 
 Button buttons[30];
 Button level_buttons[TOTAL_LEVELS];
 CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image;
 CP_Font button_font;
 
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip1_clicked = false, is_equip2_clicked = false, is_equip3_clicked = false;
+bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
 float sfx_limit = 1.0f, music_limit = 1.0f;
 
 void exit_main_menu(void) {
@@ -148,23 +148,23 @@ void main_menu_init(void)
 	buttons[10].text = "X";
 
 	//Shop Buy Button
-	buttons[11].button_image = is_equip1_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[11].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[11].pos.x = world_width1 * 0.3f;
 	buttons[11].pos.y = world_height1 * 0.32f;
 	buttons[11].start_pos.x = buttons[11].pos.x;
-	buttons[11].text = is_equip1_clicked ? "EQUIPPED" : "EQUIP";
+	buttons[11].text = is_equip_clicked ? "EQUIPPED" : "EQUIP";
 
-	buttons[12].button_image = is_equip2_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy1_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[12].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy1_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	buttons[12].pos.x = world_width1 * 0.5f;
 	buttons[12].pos.y = world_height1 * 0.32f;
 	buttons[12].start_pos.x = buttons[12].pos.x;
-	buttons[12].text = is_equip2_clicked ? "EQUIPPED" : is_buy1_clicked ? "EQUIP" : "BUY";
+	buttons[12].text = is_equip_clicked ? "EQUIPPED" : is_buy1_clicked ? "EQUIP" : "BUY: 10 Coins";
 
-	buttons[13].button_image = is_equip3_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy2_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[13].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy2_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
 	buttons[13].pos.x = world_width1 * 0.7f;
 	buttons[13].pos.y = world_height1 * 0.32f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
-	buttons[13].text = is_equip3_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY";
+	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY: 20 Coins";
 
 	//start of level select button
 	level_buttons[0].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
@@ -289,6 +289,12 @@ void main_menu_update(void)
 	draw_logo_image();
 	level_select_button(mouse_x, mouse_y);
 
+	int counter_textsize = 40;
+	CP_Settings_TextSize(counter_textsize);
+	char coin_count[50] = { 0 };
+	sprintf_s(coin_count, 50, "COINS: %i", coins);
+	CP_Font_DrawText(coin_count, CP_System_GetWindowWidth() * 0.9f, CP_System_GetWindowHeight() * 0.9f);
+
 	//SETTING PAGE
 	if (is_setting_clicked) {
 		//drawing setting background
@@ -405,7 +411,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	}
 	else {
 		buttons[9].pos.x = CP_Math_LerpFloat(buttons[9].pos.x, buttons[9].start_pos.x, CP_System_GetDt() * 4);
-	}
+	}  
 }
 
 void level_select_button(float mouse_x, float mouse_y) {
@@ -454,7 +460,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				Game_SetLevel(i - 3 + 1);
+				Game_SetLevel(i + 1);
 				level_buttons[i].func();
 			}
 		}
@@ -657,11 +663,11 @@ void shops_button(float mouse_x, float mouse_y)
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
 				if (i == 11) {
-					equip_button(i - 11);
+					equip_button(11);
 				}
 				
 				else {
-					buy_button(i - 12);
+					buy_button(i);
 				}
 			}
 		}
@@ -822,41 +828,70 @@ void shop_button(void) {
 
 void buy_button(num) {
 		switch (num) {
-		case 0:
+		case 12:
 			if (coins >= 10) {
-				deduct_coins(10);
+				if (!is_buy1_clicked) {
+					deduct_coins(10);
+				}
 				is_buy1_clicked = true;
-				equip_button(1);
+				equip_button(num);
 			}
 			break;
-		case 1:
+		case 13:
 			if (coins >= 20) {
-				deduct_coins(20);
+				if (!is_buy2_clicked) {
+					deduct_coins(20);
+				}
 				is_buy2_clicked = true;
-				equip_button(2);
+				equip_button(num);
 			}
 			break;
 		}
 }
 
 void equip_button(num) {
-		switch (num) {
-		case 0:
-				is_equip1_clicked = !is_equip1_clicked;
-				buttons[11].button_image = is_equip1_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
-				buttons[11].text = is_equip1_clicked ? "EQUIPPED" : "EQUIP";
-				break;
-		case 1:
-				is_equip2_clicked = !is_equip2_clicked;
-				buttons[12].button_image = is_equip2_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
-				buttons[12].text = is_equip2_clicked ? "EQUIPPED" : "EQUIP";
-				break;
-		case 2:
-				is_equip3_clicked = !is_equip3_clicked;
-				buttons[13].button_image = is_equip3_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
-				buttons[13].text = is_equip3_clicked ? "EQUIPPED" : "EQUIP";
-				break;
-		}
+
+	int index = num - 11;
+
+	if (num == 12 && !is_buy1_clicked) return; 
+	if (num == 13 && !is_buy2_clicked) return;  
+
+	equipped_index = index;
+
+	if (equipped_index == 0) {
+		buttons[11].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[11].text = "EQUIPPED";
+	}
+	else {
+		buttons[11].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[11].text = "EQUIP";
+	}
+
+	if (!is_buy1_clicked) {
+		buttons[12].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+		buttons[12].text = "BUY: 10 Coins";
+	}
+	else if (equipped_index == 1) {
+		buttons[12].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[12].text = "EQUIPPED";
+	}
+	else {
+		buttons[12].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[12].text = "EQUIP";
+	}
+
+	if (!is_buy2_clicked) {
+		buttons[13].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+		buttons[13].text = "BUY: 20 Coins";
+	}
+	else if (equipped_index == 2) {
+		buttons[13].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[13].text = "EQUIPPED";
+	}
+	else {
+		buttons[13].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[13].text = "EQUIP";
+	}
 }
 
 

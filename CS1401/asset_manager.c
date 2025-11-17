@@ -406,6 +406,14 @@ SpriteSheet Asset_GetSprite(const char* filepath, int rows, int columns, float d
     return NULL;
 }
 
+void Asset_SpriteStartFrame(void) {
+    for (Asset ptr = root_assets; ptr != NULL; ptr = ptr->next) {
+        if (ptr->type == ASSET_SPRITE) {
+            Sprite_ResetFrame(ptr->sprite);
+        }
+    }
+}
+
 void Assets_Free(void) {
     if (root_assets == NULL) 
         return;
