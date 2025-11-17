@@ -648,11 +648,6 @@ void shops_button(float mouse_x, float mouse_y)
 		//Drawing the button
 		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
 
-		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
-		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
-		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
-
 		//telling what the button should do
 		if (mouse_x >= coords.x - local_scale.x * .5f && mouse_y >= coords.y - local_scale.y * .5f && mouse_x <= coords.x + local_scale.x * .5 && mouse_y <= coords.y + local_scale.y * .5)
 		{
@@ -683,6 +678,11 @@ void shops_button(float mouse_x, float mouse_y)
 			}
 
 		}
+
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 255));
+		CP_Settings_TextSize(buttons[i].text_size * CP_System_GetWindowHeight() / world_height1);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+		CP_Font_DrawText(buttons[i].text, coords.x, coords.y);
 	}
 }
 

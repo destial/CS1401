@@ -22,6 +22,8 @@
 #include "particle_manager.h"
 #include "ui_manager.h"
 #include "tutorial_manager.h"
+#include "currency_manager.h"
+#include "game_settings.h"
 
 // initialize global variables here
 CP_Font font;
@@ -1119,6 +1121,8 @@ void game_exit(void)
 	reset_strokes();
 	Particles_Free();
 	Assets_Free();
+	GameSetting_SetInt("coins", getCoins());
+	GameSetting_Save();
 	printf("Exit game\n");
 }
 
@@ -1331,46 +1335,49 @@ bool Check_Item(Item* item, GolfBall* ball) {
 	bool collected = CP_Vector_Length(CP_Vector_Subtract(item->pos, ball->pos)) <= (item->diameter * 0.5f) + (ball->diameter * 0.5f);
 	if (collected) {
 		switch (item->type) {
-		case ITEM_BOOST:
-			// boost the speed of the ball
-			ball->vel = CP_Vector_Scale(ball->vel, 3.f);
-			break;
-		case ITEM_GROW:
-			// increase the size of the ball
-			ball->diameter *= 2.f;
-			break;
-		case ITEM_SHRINK:
-			// decrease the size of the ball
-			ball->diameter *= 0.5f;
-			break;
-		case ITEM_REVERSE:
-			// flip the direction of the ball
-			ball->vel = CP_Vector_Negate(ball->vel);
-			break;
-		case ITEM_PORTAL: {
-			// make sure the ball isnt teleported every frame its inside the portal
-			// only do it once
-			if (ball->teleported)
-				return collected;
+			case ITEM_BOOST:
+				// boost the speed of the ball
+				ball->vel = CP_Vector_Scale(ball->vel, 3.f);
+				break;
+			case ITEM_GROW:
+				// increase the size of the ball
+				ball->diameter *= 2.f;
+				break;
+			case ITEM_SHRINK:
+				// decrease the size of the ball
+				ball->diameter *= 0.5f;
+				break;
+			case ITEM_REVERSE:
+				// flip the direction of the ball
+				ball->vel = CP_Vector_Negate(ball->vel);
+				break;
+			case ITEM_PORTAL: {
+				// make sure the ball isnt teleported every frame its inside the portal
+				// only do it once
+				if (ball->teleported)
+					return collected;
 
-			// find the next portal that isnt this
-			// we only support 2 portals per level as of right now
-			// implementing support for more than 2 portals would be a hassle :(
-			Item* item_arr = Get_Items();
-			for (int i = 0; i < items.length; ++i) {
-				Item* it = item_arr + i;
-				// get the next portal if exists
-				if (it == NULL || it->destroyed || it == item || it->type != ITEM_PORTAL)
-					continue;
+				// find the next portal that isnt this
+				// we only support 2 portals per level as of right now
+				// implementing support for more than 2 portals would be a hassle :(
+				Item* item_arr = Get_Items();
+				for (int i = 0; i < items.length; ++i) {
+					Item* it = item_arr + i;
+					// get the next portal if exists
+					if (it == NULL || it->destroyed || it == item || it->type != ITEM_PORTAL)
+						continue;
 
-				// teleport the ball to the other portal
-				ball->pos = CP_Vector_Set(it->pos.x, it->pos.y);
-				ball->teleported = true;
-				return collected;
+					// teleport the ball to the other portal
+					ball->pos = CP_Vector_Set(it->pos.x, it->pos.y);
+					ball->teleported = true;
+					return collected;
+				}
+				break;
 			}
-			break;
-		}
-		default: break;
+			case ITEM_COIN:
+				add_coins(1);
+				break;
+			default: break;
 		}
 		item->collected = true;
 	}
