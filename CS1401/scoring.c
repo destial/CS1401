@@ -448,6 +448,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Vector coords = World_To_Screen(sBoard.x, sBoard.y, world_width, world_height);
+
 	//Drawing the scoreboard background
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Image_DrawAdvanced(
@@ -456,89 +457,141 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		coords.y,
 		0.50f * win_width,
 		0.65f * win_height,
-		255, 
+		255,
 		0.0f);
 
-	CP_Settings_TextAlignment(coords.x, coords.y);
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	char b[50];
-	char a[100];
-	//Write strokes
-	/*sprintf_s(b, 50, "Strokes: %d", stroke);
-	CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y - 20.0f, 0.3f * win_width , 0.2f * win_height, 255, 0.0f);
-	CP_Settings_TextAlignment(coords.x, coords.y);
-	score();
-	CP_Font_DrawText(b, coords.x, coords.y);*/
+	if (Game_LevelWon()) {
+		CP_Settings_TextAlignment(coords.x, coords.y);
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		char b[50];
+		char a[100];
+		//Write strokes
+		/*sprintf_s(b, 50, "Strokes: %d", stroke);
+		CP_Image_DrawAdvanced(stroke_bg, coords.x, coords.y - 20.0f, 0.3f * win_width , 0.2f * win_height, 255, 0.0f);
+		CP_Settings_TextAlignment(coords.x, coords.y);
+		score();
+		CP_Font_DrawText(b, coords.x, coords.y);*/
 
-	//Change level clear colour based on user score.
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	sprintf_s(b, 50, "LEVEL CLEARED!");
-	CP_Font_DrawText(b, coords.x, coords.y);
-	//score(coords.x, coords.y *1.1f);
+		//Change level clear colour based on user score.
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		sprintf_s(b, 50, "LEVEL CLEARED!");
+		CP_Font_DrawText(b, coords.x, coords.y);
+		//score(coords.x, coords.y *1.1f);
 
-	char coin_info[100];
+		char coin_info[100];
 
-	// Showing coins earned
-	sprintf_s(coin_info, 50, "Coins Earned: +%d", coins_earned_last_level);
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Font_DrawText(coin_info, coords.x, coords.y * 1.1f);
+		// Showing coins earned
+		sprintf_s(coin_info, 50, "Coins Earned: +%d", coins_earned_last_level);
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.1f);
 
-	// Showing total coins
-	sprintf_s(coin_info, 50, "Total Coins:  %d", getCoins());
-	CP_Font_DrawText(coin_info, coords.x, coords.y * 1.2f);
+		// Showing total coins
+		sprintf_s(coin_info, 50, "Total Coins:  %d", getCoins());
+		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.2f);
 
-	CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
-	//Draw level buttons
-	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
-	CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x, scorebb[2].y , scorebb[2].icon_width, scorebb[2].icon_height, 255, 0.0f);
-	/*sprintf_s(a, 50, "NEXT LEVEL");
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);*/
+		//Draw level buttons
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x, scorebb[2].y, scorebb[2].icon_width, scorebb[2].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "NEXT LEVEL");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);*/
 
-	//Draw exit buttons
-	CP_Settings_Fill(Get_Color(COLOR_WHITE));
-	CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
-	CP_Image_DrawAdvanced(scorebb[0].button_icon, scorebb[0].x, scorebb[0].y, scorebb[0].icon_width, scorebb[0].icon_height, 255, 0.0f);
-	/*sprintf_s(a, 50, "EXIT");
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);*/
+		//Draw exit buttons
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[0].button_icon, scorebb[0].x, scorebb[0].y, scorebb[0].icon_width, scorebb[0].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "EXIT");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);*/
 
-	//Draw Replay button
-	CP_Settings_Fill(Get_Color(COLOR_WHITE));
-	CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
-	CP_Image_DrawAdvanced(scorebb[1].button_icon, scorebb[1].x, scorebb[1].y, scorebb[1].icon_width, scorebb[1].icon_height, 255, 0.0f);
-	/*sprintf_s(a, 50, "REPLAY");
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);*/
+		//Draw Replay button
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[1].button_icon, scorebb[1].x, scorebb[1].y, scorebb[1].icon_width, scorebb[1].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "REPLAY");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);*/
 
-	//Write scoreboard with banner
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
-	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
+		//Write scoreboard with banner
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
+		sprintf_s(a, 50, "SCOREBOARD");
+		CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
 
-	//Drawing the grey star points based on the points they get.
-	CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
-	CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
-	CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 25.0f);
+		//Drawing the grey star points based on the points they get.
+		CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
+		CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 25.0f);
 
 
-	//Drawing Yellow stars
+		//Drawing Yellow stars
 
-	if (get_strokes() > get_lvl_par()) {
-		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
+		if (get_strokes() > get_lvl_par()) {
+			CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
+		}
+		else if (get_strokes() == get_lvl_par()) {
+			CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
+			CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
+		}
+		else if (get_strokes() < get_lvl_par()) {
+			CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
+			CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
+			CP_Image_DrawAdvanced(scoregs[2].img, scoregs[2].x, scoregs[2].y, scoregs[2].width, scoregs[2].height, 255, 25.0f);
+		}
 	}
-	else if (get_strokes() == get_lvl_par()) {
-		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
-		CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
+
+	else if (Game_LevelLost()) {
+		//Draw the game over screen
+		CP_Settings_TextAlignment(coords.x, coords.y);
+		char a[100];
+
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
+		sprintf_s(a, 50, "SCOREBOARD");
+		CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
+
+		//Say Times up!, you lost
+		//try again
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		/*sprintf_s(a, 50, "TIMES UP, YOU LOST!");
+		CP_Font_DrawText(a, 0.5f * win_width, 0.5f * win_height);*/
+
+		sprintf_s(a, 50, "GAME OVER! TIMES UP");
+		CP_Font_DrawText(a, 0.5f * win_width, 0.55f * win_height);
+
+		//Draw level buttons
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Image_DrawAdvanced(scorebb[2].button_img, scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[2].button_icon, scorebb[2].x, scorebb[2].y, scorebb[2].icon_width, scorebb[2].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "NEXT LEVEL");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[2].x, scorebb[2].y);*/
+
+		//Draw exit buttons
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Image_DrawAdvanced(scorebb[0].button_img, scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[0].button_icon, scorebb[0].x, scorebb[0].y, scorebb[0].icon_width, scorebb[0].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "EXIT");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[0].x, scorebb[0].y);*/
+
+		//Draw Replay button
+		CP_Settings_Fill(Get_Color(COLOR_WHITE));
+		CP_Image_DrawAdvanced(scorebb[1].button_img, scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scorebb[1].button_icon, scorebb[1].x, scorebb[1].y, scorebb[1].icon_width, scorebb[1].icon_height, 255, 0.0f);
+		/*sprintf_s(a, 50, "REPLAY");
+		CP_Settings_Fill(Get_Color(COLOR_BLACK));
+		CP_Font_DrawText(a, scorebb[1].x, scorebb[1].y);*/
+
+		//Draw empty grey stars
+		CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
+		CP_Image_DrawAdvanced(scoress[1].img, scoress[1].x, scoress[1].y, scoress[1].width, scoress[1].height, 255, 0.0f);
+		CP_Image_DrawAdvanced(scoress[2].img, scoress[2].x, scoress[2].y, scoress[2].width, scoress[2].height, 255, 25.0f);
 	}
-	else if (get_strokes() < get_lvl_par()) {
-		CP_Image_DrawAdvanced(scoregs[0].img, scoregs[0].x, scoregs[0].y, scoregs[0].width, scoregs[0].height, 255, 335.0f);
-		CP_Image_DrawAdvanced(scoregs[1].img, scoregs[1].x, scoregs[1].y, scoregs[1].width, scoregs[1].height, 255, 0.0f);
-		CP_Image_DrawAdvanced(scoregs[2].img, scoregs[2].x, scoregs[2].y, scoregs[2].width, scoregs[2].height, 255, 25.0f);
-	}
+
 
 }
 
