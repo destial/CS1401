@@ -63,8 +63,6 @@ void main_menu_init(void)
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
-	set_coins(1000);
-
 	//play button
 	buttons[0].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;
@@ -281,7 +279,8 @@ void main_menu_update(void)
 	CP_Settings_Scale(1.f, 1.f);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Image_Draw(background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, 255);
-	
+	Asset_SpriteStartFrame();
+
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
 
