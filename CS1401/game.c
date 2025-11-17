@@ -175,6 +175,7 @@ void game_init(void)
 	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+
 	
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);

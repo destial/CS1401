@@ -288,11 +288,16 @@ void main_menu_update(void)
 	draw_logo_image();
 	level_select_button(mouse_x, mouse_y);
 
-	int counter_textsize = 40;
+	int counter_textsize = 50;
 	CP_Settings_TextSize(counter_textsize);
+	CP_TEXT_ALIGN_HORIZONTAL h_align = CP_TEXT_ALIGN_H_RIGHT;
 	char coin_count[50] = { 0 };
-	sprintf_s(coin_count, 50, "COINS: %i", coins);
+	sprintf_s(coin_count, 50, "%i", coins);
 	CP_Font_DrawText(coin_count, CP_System_GetWindowWidth() * 0.9f, CP_System_GetWindowHeight() * 0.9f);
+
+	SpriteSheet s = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	Sprite_Draw(s, CP_System_GetWindowWidth() * 0.85f, CP_System_GetWindowHeight() * 0.9f, 60.0f, 60.0f, 255);
 
 	//SETTING PAGE
 	if (is_setting_clicked) {
