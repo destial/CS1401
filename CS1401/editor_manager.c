@@ -14,6 +14,7 @@
 typedef enum EditingType {
 	EDIT_NONE = 0,
 	EDIT_WALL,
+	EDIT_MIDDLE_WALL,
 	EDIT_HOLE,
 	EDIT_BALL,
 	EDIT_ITEM,
@@ -65,6 +66,15 @@ void Editor_Update_Walls(ObjectArray* walls) {
 			current_type = EDIT_WALL;
 			editor_dirty = true;
 		}
+	}
+
+	Wall* middle_wall = (Wall*)walls->arr;
+	// if clicked on this wall, set as the current editing object
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Wall(middle_wall)) {
+		current_editing = middle_wall;
+		current_click = middle_wall;
+		current_editing_offset = CP_Vector_Subtract(middle_wall->pos, mouse_world);
+		current_type = EDIT_MIDDLE_WALL;
 	}
 
 	for (int i = 5; i < walls->length; i++) {
@@ -378,7 +388,7 @@ void Editor_Update_End(void) {
 		return;
 
 	if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) {
-		if (current_type == EDIT_WALL && Check_On_Wall((Wall*)current_editing)) {
+		if ((current_type == EDIT_WALL || current_type == EDIT_MIDDLE_WALL) && Check_On_Wall((Wall*)current_editing)) {
 			current_dragging = current_editing;
 		}
 		else if (current_type == EDIT_HOLE && Check_On_Circle(((Hole*)current_editing)->pos, ((Hole*)current_editing)->diameter)) {
@@ -433,7 +443,7 @@ void Editor_Update_End(void) {
 			}
 		}
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
-			if (current_type == EDIT_WALL) {
+			if (current_type == EDIT_WALL || current_type == EDIT_MIDDLE_WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
 				for (float a = 0.f; a <= 360.f; a += 45.f) {
@@ -442,7 +452,6 @@ void Editor_Update_End(void) {
 						wall->angle = a;
 					}
 				}
-
 				editor_dirty = true;
 			} else if (current_type == EDIT_TERRAIN) {
 				Terrain* terrain = (Terrain*)current_dragging;
@@ -507,7 +516,7 @@ void Editor_Render(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	CP_Settings_ResetMatrix();
 	CP_Font_Set(Asset_GetFont(ARIAL_FONT_ASSET));
-	CP_Settings_Fill(Get_Color(COLOR_GREEN));
+	CP_Settings_Fill(Get_Color(COLOR_CYAN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);
 	// editor dirty here to make sure that any changes need to be saved
@@ -542,7 +551,7 @@ void Editor_Render(void) {
 
 	CP_Settings_ApplyMatrix(Get_Camera());
 
-	if (current_type == EDIT_WALL) {
+	if (current_type == EDIT_WALL || current_type == EDIT_MIDDLE_WALL) {
 		Wall* wall = (Wall*)current_editing;
 		CP_Vector screen_pos = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
 		CP_Vector normal = World_To_Screen(wall->pos.x + wall->normal.x, wall->pos.y + wall->normal.y, world_limits.x, world_limits.y);
