@@ -265,7 +265,7 @@ void main_menu_init(void)
 	logo_y = CP_System_GetWindowHeight() * 0.3f;
 
 	level_select_start = CP_System_GetWindowWidth() * 1.5f;
-	level_select_end = CP_System_GetWindowWidth() * 0.55f;
+	level_select_end = CP_System_GetWindowWidth() * 0.5f;
 	level_select_x = level_select_start;
 	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 
@@ -930,6 +930,14 @@ void change_resolution(num) {
 		CP_System_SetWindowSize(1920, 1080);
 		break;
 	}
+	logo_start_x = CP_System_GetWindowWidth() * 0.5f;
+	logo_x = CP_System_GetWindowWidth() * 0.5f;
+	logo_y = CP_System_GetWindowHeight() * 0.3f;
+
+	level_select_start = CP_System_GetWindowWidth() * 1.5f;
+	level_select_end = CP_System_GetWindowWidth() * 0.5f;
+	level_select_x = level_select_start;
+	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 }
 
 void is_shadow(void) {
