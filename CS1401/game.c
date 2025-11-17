@@ -175,6 +175,7 @@ void game_init(void)
 	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+
 	
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
@@ -209,7 +210,6 @@ void game_init(void)
 	camera_matrix = CP_Matrix_Identity();
 	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
-	game_timer = 10.f;
 	
 	scoring_init();
 	Game_SetResetting(false);
@@ -647,6 +647,7 @@ void Game_RenderUI(void) {
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
+	
 	if (current != NULL) {
 		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
 		int red = CP_Math_ClampInt(x, 0, 255);
@@ -656,26 +657,29 @@ void Game_RenderUI(void) {
 		power_val = min(1.f, power_val);
 
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
-		if (putt_arrow == NULL) {
-			// render the current power of the ball
-			CP_Vector a = World_To_Screen(current->pos.x, current->pos.y, world_limits.x, world_limits.y);
-			CP_Vector b = World_To_Screen(current->pos.x + current->vel.x, current->pos.y + current->vel.y, world_limits.x, world_limits.y);
+		for (int i = 0; i < golf_balls.length; ++i) {
+			GolfBall* ball = golf_arr + i;
+			if (putt_arrow == NULL) {
+				// render the current power of the ball
+				CP_Vector a = World_To_Screen(ball->pos.x, ball->pos.y, world_limits.x, world_limits.y);
+				CP_Vector b = World_To_Screen(ball->pos.x + ball->vel.x, ball->pos.y + ball->vel.y, world_limits.x, world_limits.y);
 
-			CP_Settings_Fill(power_color);
-			CP_Settings_Stroke(power_color);
-			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
-		}
-		else {
-			CP_Vector world_ratios = Get_World_Ratios();
-			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(current->vel), 4.f * power_val);
-			CP_Vector b = World_To_Screen(current->pos.x + normal.x, current->pos.y + normal.y, world_limits.x, world_limits.y);
-			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
+				CP_Settings_Fill(power_color);
+				CP_Settings_Stroke(power_color);
+				CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
+				CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+			}
+			else {
+				CP_Vector world_ratios = Get_World_Ratios();
+				CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
+				CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
+				float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
 
-			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			float w = world_ratios.x * 5.f;
-			float h = world_ratios.x;
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f *power_val, h, 255, angle);
+				CP_Settings_ImageMode(CP_POSITION_CENTER);
+				float w = world_ratios.x * 5.f;
+				float h = world_ratios.x;
+				CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
+			}
 		}
 	}
 	
@@ -1525,7 +1529,7 @@ void Game_RenderDebug(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void Game_Save(void) {
-	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par());
+	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), 120);
 }
 
 /*!
@@ -1554,6 +1558,7 @@ void Game_Load(void) {
 
 		// set the par of the level
 		set_lvl_par(loaded_level->par);
+		game_timer = (float) loaded_level->timer;
 
 		// load the golf balls in the level
 		golf_balls.length = loaded_level->golf_balls_size;
