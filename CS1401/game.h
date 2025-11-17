@@ -301,6 +301,7 @@ void Game_RemoveTerrain(Terrain* terrain);
 Terrain* Game_AddTerrain(CP_Vector pos, TerrainType type);
 
 bool Game_LevelWon(void);
+
 bool Game_LevelLost(void);
 
 #endif
