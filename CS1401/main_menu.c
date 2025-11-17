@@ -411,7 +411,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	}
 	else {
 		buttons[9].pos.x = CP_Math_LerpFloat(buttons[9].pos.x, buttons[9].start_pos.x, CP_System_GetDt() * 4);
-	}
+	}  
 }
 
 void level_select_button(float mouse_x, float mouse_y) {
@@ -460,7 +460,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1))
 			{
-				Game_SetLevel(i - 3 + 1);
+				Game_SetLevel(i + 1);
 				level_buttons[i].func();
 			}
 		}
