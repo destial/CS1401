@@ -23,6 +23,7 @@ int get_lvl_par(void);
 void scoring_init();
 void scoring_update(void);
 
+
 //
 //void add_stroke();
 //
