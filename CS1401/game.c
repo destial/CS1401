@@ -175,6 +175,7 @@ void game_init(void)
 	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+
 	
 	CP_Settings_TextSize(20.f);
 	CP_Font_Set(font);
@@ -209,7 +210,6 @@ void game_init(void)
 	camera_matrix = CP_Matrix_Identity();
 	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
-	game_timer = 10.f;
 	
 	scoring_init();
 	Game_SetResetting(false);
@@ -1525,7 +1525,7 @@ void Game_RenderDebug(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void Game_Save(void) {
-	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par());
+	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), 120);
 }
 
 /*!
@@ -1554,6 +1554,7 @@ void Game_Load(void) {
 
 		// set the par of the level
 		set_lvl_par(loaded_level->par);
+		game_timer = (float) loaded_level->timer;
 
 		// load the golf balls in the level
 		golf_balls.length = loaded_level->golf_balls_size;

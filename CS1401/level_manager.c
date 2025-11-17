@@ -94,7 +94,7 @@ Level Level_Load(int level) {
 
             // some versions of the level file dont include the par, so we default to 3
             lvl->par = Map_GetInt(root, "par", 3);
-
+            lvl->timer = Map_GetInt(root, "timer", 120);
             lvl->middle_wall_angle = Map_GetFloat(root, "middle_wall_angle", 0.f);
 
             // set the walls position, scaling, angle and rotation rates
@@ -207,7 +207,7 @@ Level Level_Load(int level) {
     return NULL;
 }
 
-void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par) {
+void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectArray* holes, ObjectArray* items, ObjectArray* terrains, CP_Vector world_limits, int par, int timer) {
     // save the world limits, golf balls, holes and middle wall first
     char level_path[128];
     sprintf_s(level_path, 128, LEVEL_FILEPATH, level);
@@ -217,9 +217,9 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
         return;
 
     fprintf(fp,
-        "width=%f\nheight=%f\nmiddle_wall_angle=%f",
+        "width=%f\nheight=%f\nmiddle_wall_angle=%f\npar=%d\ntimer=%d",
         world_limits.x, world_limits.y,
-        ((Wall*)walls->arr)->angle
+        ((Wall*)walls->arr)->angle, par, timer
     );
 
     int ball_index = 0;
