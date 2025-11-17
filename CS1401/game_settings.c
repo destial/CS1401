@@ -2,7 +2,7 @@
 #include "game_settings.h"
 #include "data_manager.h"
 
-Map settings_file = NULL;
+static Map settings_file = NULL;
 
 static void load_settings_file(void) {
 	settings_file = Map_Load("user.data");

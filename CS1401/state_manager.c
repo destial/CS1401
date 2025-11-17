@@ -13,8 +13,8 @@
 #include "state_manager.h"
 #include "utils.h"
 
-GameState current_gamestate = STATE_SPLASH;
-GameState next_gamestate = STATE_SPLASH;
+static GameState current_gamestate = STATE_SPLASH;
+static GameState next_gamestate = STATE_SPLASH;
 
 void Set_Next_State(GameState state) {
 	next_gamestate = state;

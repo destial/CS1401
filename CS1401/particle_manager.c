@@ -22,8 +22,8 @@ typedef struct ParticleStruct {
 	unsigned int current_row, current_column; // the current frame row & column
 } Particle;
 
-ObjectArray particles;
-ParticleData particle_types[PARTICLE_LAST];
+static ObjectArray particles;
+static ParticleData particle_types[PARTICLE_LAST];
 
 // set the particle values at this particle pointer
 static void set_particle(Particle* p, ParticleType type, CP_Vector pos, float radius, float speed, float duration, float minSize, float maxSize) {

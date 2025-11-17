@@ -6,10 +6,10 @@
 #include "state_manager.h"
 #include "utils.h"
 
-CP_Image end_logo;
-float end_alpha = 0.f;
-float end_duration = 2.f;
-bool end_revert = false;
+static CP_Image end_logo;
+static float end_alpha = 0.f;
+static float end_duration = 2.f;
+static bool end_revert = false;
 
 void end_state_init(void) 
 {

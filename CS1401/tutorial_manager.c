@@ -18,10 +18,9 @@ typedef struct TutorialStruct {
 	char instructions[256]; // fixed size
 } Tutorial;
 
-bool tutorial_phases_loaded = false;
-Tutorial tutorial_phases[TUT_PHASE_LAST];
-TutorialPhase curr_tutorial_phase = TUT_PHASE_DRAG_BALL;
-bool tutorial_mode = false;
+static Tutorial tutorial_phases[TUT_PHASE_LAST];
+static TutorialPhase curr_tutorial_phase = TUT_PHASE_DRAG_BALL;
+static bool tutorial_mode = false;
 
 void Tutorial_Load(bool tut_mode) {
 	tutorial_mode = tut_mode;
@@ -38,7 +37,7 @@ void Tutorial_Load(bool tut_mode) {
 				"Click anywhere to start playing!");
 			break;
 		case TUT_PHASE_ITEM:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 8, 6, 5.f);
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 11, 3, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Roll over the powerups in the level "
 				"to activate the ability. The feather "

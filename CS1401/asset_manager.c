@@ -36,7 +36,7 @@ typedef struct AssetStruct {
     AssetType type;
 } *Asset;
 
-Asset root_assets = NULL;
+static Asset root_assets = NULL;
 
 void Asset_Preload(void) {
     // only the item assets have a shadow image

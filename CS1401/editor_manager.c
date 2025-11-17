@@ -21,13 +21,13 @@ typedef enum EditingType {
 	EDIT_TERRAIN
 } EditingType;
 
-void* current_editing = NULL;
-void* current_dragging = NULL;
-void* current_click = NULL;
-CP_Vector current_editing_offset;
-EditingType current_type = EDIT_NONE;
-float editor_saving = 0.f;
-bool editor_dirty = false;
+static void* current_editing = NULL;
+static void* current_dragging = NULL;
+static void* current_click = NULL;
+static CP_Vector current_editing_offset;
+static EditingType current_type = EDIT_NONE;
+static float editor_saving = 0.f;
+static bool editor_dirty = false;
 
 bool Check_On_Wall(Wall* wall) {
 	// get bounds of the wall

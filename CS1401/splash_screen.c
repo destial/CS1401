@@ -6,10 +6,10 @@
 #include "asset_manager.h"
 #include "particle_manager.h"
 
-CP_Image splash_logo;
-float splash_alpha = 0.f;
-float splash_duration = 2.f;
-bool splash_revert = false;
+static CP_Image splash_logo;
+static float splash_alpha = 0.f;
+static float splash_duration = 2.f;
+static bool splash_revert = false;
 
 void splash_screen_init(void)
 {

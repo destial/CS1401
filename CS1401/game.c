@@ -26,53 +26,55 @@
 #include "game_settings.h"
 
 // initialize global variables here
-CP_Font font;
-CP_Image golf_ball_image, background_image;
-CP_Sound hit_sound;
-void* item_image_cache[ITEM_LAST];
+static CP_Font font;
+static CP_Image golf_ball_image, background_image;
+static CP_Sound hit_sound;
+static void* item_image_cache[ITEM_LAST];
 
 // mouse positions in screen and world space
-CP_Vector mouse = { 0, 0 }, mouse_world = { 0, 0 };
+static CP_Vector mouse = { 0, 0 }, mouse_world = { 0, 0 };
 
 // currently dragging ball
-GolfBall* current;
-float swinging = 0.f;
+static GolfBall* current;
+static float swinging = 0.f;
 
 // scoreboard position
-CP_Vector sBoard;
+static CP_Vector sBoard;
 
 #ifdef _DEBUG
-bool debug_enabled = true;
+static bool debug_enabled = true;
+static bool _debug_mode = true;
 #else
-bool debug_enabled = false;
+static bool debug_enabled = false;
+static bool _debug_mode = false;
 #endif
-bool editor_mode = false;
+static bool editor_mode = false;
 
 // editable setting
-float resistance = 1.25f;
-float power = 2.f;
-char current_level = 1;
-float current_time, game_timer;
+static float resistance = 1.25f;
+static float power = 2.f;
+static char current_level = 1;
+static float current_time, game_timer;
 #define MAX_PUTT_POWER 75.f
 
 // particles
-ParticleType particle_type = PARTICLE_FLAME;
-float particle_counter = 0.f;
+static ParticleType particle_type = PARTICLE_FLAME;
+static float particle_counter = 0.f;
 
 // camera
-CP_Vector camera_pos;
-CP_Matrix camera_matrix;
-float camera_scale;
+static CP_Vector camera_pos;
+static CP_Matrix camera_matrix;
+static float camera_scale;
 
 // reset on level loading
-float scale_transition = 1.f, turn_now = 0.f, turn_now_hold = 0.f, pause_menu_transition = -1.f;
-bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false, turn_now_revert = false, pause_menu = false;
+static float scale_transition = 1.f, turn_now = 0.f, turn_now_hold = 0.f, pause_menu_transition = -1.f;
+static bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false, turn_now_revert = false, pause_menu = false;
 #define MIN_VEL 0.05f
 
 // load based on level
-ObjectArray golf_balls, holes, walls, items, terrains;
+static ObjectArray golf_balls, holes, walls, items, terrains;
 
-CP_Vector world_limits, og_world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
+static CP_Vector world_limits, og_world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
 
 static Wall* Get_Walls() {
 	return walls.arr;
@@ -261,7 +263,7 @@ void game_update(void)
 			}
 
 			// tab is only for debug purposes, will be removed in the actual build
-			if ((Game_LevelLost() || Game_LevelWon() || CP_Input_KeyDown(KEY_TAB)) && !editor_mode)
+			if ((Game_LevelLost() || Game_LevelWon() || (_debug_mode && CP_Input_KeyDown(KEY_TAB))) && !editor_mode)
 				scoring_update();
 		}
 	}
@@ -647,43 +649,34 @@ void Game_Render(void)
 }
 
 void Game_RenderUI(void) {
-	GolfBall* golf_arr = Get_Golfs();
+	
+
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
 	
 	if (current != NULL) {
+		CP_Vector world_ratios = Get_World_Ratios();
 		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
 		int red = CP_Math_ClampInt(x, 0, 255);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
 		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
 		power_val = min(1.f, power_val);
-
+		float w = world_ratios.x * 5.f;
+		float h = world_ratios.x;
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
+		GolfBall* golf_arr = Get_Golfs();
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
-			if (putt_arrow == NULL) {
-				// render the current power of the ball
-				CP_Vector a = World_To_Screen(ball->pos.x, ball->pos.y, world_limits.x, world_limits.y);
-				CP_Vector b = World_To_Screen(ball->pos.x + ball->vel.x, ball->pos.y + ball->vel.y, world_limits.x, world_limits.y);
+			if (ball == NULL || ball->scored)
+				continue;
 
-				CP_Settings_Fill(power_color);
-				CP_Settings_Stroke(power_color);
-				CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-				CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
-			}
-			else {
-				CP_Vector world_ratios = Get_World_Ratios();
-				CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
-				CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
-				float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
-
-				CP_Settings_ImageMode(CP_POSITION_CENTER);
-				float w = world_ratios.x * 5.f;
-				float h = world_ratios.x;
-				CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
-			}
+			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
+			CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
+			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
 		}
 	}
 	
@@ -711,7 +704,7 @@ void Game_RenderUI(void) {
 		UI_SetPriority(0);
 	}
 
-	if ((Game_LevelLost() || Game_LevelWon() || CP_Input_KeyDown(KEY_TAB)) && !editor_mode) {
+	if ((Game_LevelLost() || Game_LevelWon() || (_debug_mode && CP_Input_KeyDown(KEY_TAB))) && !editor_mode) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
@@ -721,21 +714,21 @@ void Game_RenderUI(void) {
 		if (turn_now >= 0.f) {
 			CP_Settings_Fill(Get_Color(COLOR_CARMINE));
 			CP_Settings_Stroke(Get_Color(COLOR_RED));
-			CP_Settings_TextSize(120.f * turn_now);
+			CP_Settings_TextSize(180.f * turn_now);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
-			CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f);
+			CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.8f);
 			if (turn_now_revert) {
-				turn_now -= CP_System_GetDt();
+				turn_now -= CP_System_GetDt() * 1.5f;
 				if (turn_now < 0.f) {
 					turn_now_revert = false;
 				}
 			}
 			else {
 				turn_now += CP_System_GetDt();
-				if (turn_now > 1.f) {
-					turn_now = 1.f;
-					turn_now_hold += CP_System_GetDt();
-					if (turn_now_hold > 1.f) {
+				if (turn_now > .5f) {
+					turn_now = .5f;
+					turn_now_hold += CP_System_GetDt() * 1.5f;
+					if (turn_now_hold > .5f) {
 						turn_now_hold = 0.f;
 						turn_now_revert = true;
 					}
@@ -1706,7 +1699,7 @@ void Game_Load(void) {
 
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
-
+	game_timer = 120.f;
 	golf_balls.length = holes.length = 2;
 	golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
 	holes.arr = gc_malloc(sizeof(Hole) * holes.length);
