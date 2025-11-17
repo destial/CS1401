@@ -165,6 +165,10 @@ void game_init(void)
 	case 1:
 		golf_ball_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
 		break;
+
+	case 2:	
+		golf_ball_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
+		break;
 	}
 	background_image = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	hit_sound = Asset_GetAudio(GOLF_HIT_WALL_ASSET);
