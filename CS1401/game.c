@@ -647,6 +647,7 @@ void Game_RenderUI(void) {
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
+	
 	if (current != NULL) {
 		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
 		int red = CP_Math_ClampInt(x, 0, 255);
@@ -656,26 +657,29 @@ void Game_RenderUI(void) {
 		power_val = min(1.f, power_val);
 
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
-		if (putt_arrow == NULL) {
-			// render the current power of the ball
-			CP_Vector a = World_To_Screen(current->pos.x, current->pos.y, world_limits.x, world_limits.y);
-			CP_Vector b = World_To_Screen(current->pos.x + current->vel.x, current->pos.y + current->vel.y, world_limits.x, world_limits.y);
+		for (int i = 0; i < golf_balls.length; ++i) {
+			GolfBall* ball = golf_arr + i;
+			if (putt_arrow == NULL) {
+				// render the current power of the ball
+				CP_Vector a = World_To_Screen(ball->pos.x, ball->pos.y, world_limits.x, world_limits.y);
+				CP_Vector b = World_To_Screen(ball->pos.x + ball->vel.x, ball->pos.y + ball->vel.y, world_limits.x, world_limits.y);
 
-			CP_Settings_Fill(power_color);
-			CP_Settings_Stroke(power_color);
-			CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
-			CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
-		}
-		else {
-			CP_Vector world_ratios = Get_World_Ratios();
-			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(current->vel), 4.f * power_val);
-			CP_Vector b = World_To_Screen(current->pos.x + normal.x, current->pos.y + normal.y, world_limits.x, world_limits.y);
-			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
+				CP_Settings_Fill(power_color);
+				CP_Settings_Stroke(power_color);
+				CP_Settings_LineCapMode(CP_LINE_CAP_ROUND);
+				CP_Graphics_DrawLine(a.x, a.y, b.x, b.y);
+			}
+			else {
+				CP_Vector world_ratios = Get_World_Ratios();
+				CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
+				CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
+				float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
 
-			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			float w = world_ratios.x * 5.f;
-			float h = world_ratios.x;
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f *power_val, h, 255, angle);
+				CP_Settings_ImageMode(CP_POSITION_CENTER);
+				float w = world_ratios.x * 5.f;
+				float h = world_ratios.x;
+				CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
+			}
 		}
 	}
 	
