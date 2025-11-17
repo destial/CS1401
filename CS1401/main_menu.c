@@ -324,6 +324,7 @@ void main_menu_update(void)
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
 			255);
+
 		CP_Image_Draw(golf_ball_gold_image, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
