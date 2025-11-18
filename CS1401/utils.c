@@ -50,10 +50,16 @@ float CP_Vector_LengthSquared(CP_Vector vect) {
 	return CP_Math_Square(vect.x) + CP_Math_Square(vect.y);
 }
 
-float CircularInterpolate(float start, float end, float delta) {
+float Math_CLerpFloat(float start, float end, float delta) {
 	delta = min_max(delta, 0.f, 1.f);
 	float p = 1.f - ((cosf(3.1415927f * delta) + 1.f) * 0.5f);
 	return CP_Math_LerpFloat(start, end, p);
+}
+
+int Math_CLerpInt(int start, int end, float delta) {
+	delta = min_max(delta, 0.f, 1.f);
+	float p = 1.f - ((cosf(3.1415927f * delta) + 1.f) * 0.5f);
+	return CP_Math_LerpInt(start, end, p);
 }
 
 CP_Color Get_Color(ColorCode code) {

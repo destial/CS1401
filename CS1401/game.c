@@ -77,23 +77,23 @@ static ObjectArray golf_balls, holes, walls, items, terrains;
 static CP_Vector world_limits, og_world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
 
 static Wall* Get_Walls() {
-	return walls.arr;
+	return walls.arr; // for auto casting
 }
 
 static Item* Get_Items() {
-	return items.arr;
+	return items.arr; // for auto casting
 }
 
 static GolfBall* Get_Golfs() {
-	return golf_balls.arr;
+	return golf_balls.arr; // for auto casting
 }
 
 static Hole* Get_Holes() {
-	return holes.arr;
+	return holes.arr; // for auto casting
 }
 
 static Terrain* Get_Terrains() {
-	return terrains.arr;
+	return terrains.arr; // for auto casting
 }
 
 static void load_borders(float middle_wall_angle) {
@@ -257,7 +257,7 @@ void game_update(void)
 			}
 			else {
 				pause_menu_transition += (3.f * CP_System_GetDt());
-				if (pause_menu_transition >= 2.f) {
+				if (pause_menu_transition >= 2.5f) {
 					pause_menu_transition = -1.f;
 				}
 			}
@@ -270,7 +270,7 @@ void game_update(void)
 				return;
 			}
 		}
-		else {
+		else if (pause_menu_transition < 0.f) {
 			float dt;
 			// run timestep for every lost frame if < 60fps
 			while (frame_time > 0.f) {
@@ -609,6 +609,7 @@ void Game_Render(void)
 	}
 
 	if (pause_menu_transition >= 0.f) {
+		float mul = Math_CLerpFloat(pause_menu_transition > 1.f ? 1.f : -.5f, pause_menu_transition > 1.f ? 2.5f : 1.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition);
 		UI_SetPriority(-1);
 		// tinted background
 		UI_Quad(
@@ -616,12 +617,12 @@ void Game_Render(void)
 			CP_System_GetWindowHeight() * 0.5f,
 			(float)CP_System_GetWindowWidth(),
 			(float)CP_System_GetWindowHeight(),
-			Get_ColorAlpha(COLOR_BLACK, CircularInterpolate(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
+			Get_ColorAlpha(COLOR_BLACK, (int) Math_CLerpFloat(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
 
 		UI_SetPriority(0);
 		// menu background
 		UI_Image(
-			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() - 1000.f,
 			CP_System_GetWindowHeight() - 300.f, 
@@ -630,13 +631,13 @@ void Game_Render(void)
 		UI_SetPriority(1);
 		// pause text
 		UI_Text(
-			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
 			300, 200, Get_Color(COLOR_BLACK), "Game Paused!", 50.f);
 
 		// continue button
 		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
@@ -648,8 +649,8 @@ void Game_Render(void)
 
 		// restart button
 		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.42f),
+			CP_System_GetWindowWidth() * 0.5f * mul,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
@@ -660,7 +661,7 @@ void Game_Render(void)
 
 		// quit button
 		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f ),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
@@ -689,7 +690,7 @@ void Game_RenderUI(void) {
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
 	
-	if (current != NULL) {
+	if (current != NULL) { // render the current putt power when user input
 		CP_Vector world_ratios = Get_World_Ratios();
 		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
 		int red = CP_Math_ClampInt(x, 0, 255);
@@ -713,7 +714,7 @@ void Game_RenderUI(void) {
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
 		}
 	}
-	else if (all_balls_stopped && !swinging) {
+	else if (playable && all_balls_stopped && !swinging) { // render red arrow on every ball to indicate playability
 		GolfBall* golf_arr = Get_Golfs();
 		CP_Image putt_arrow = Asset_GetImage(RED_ARROW);
 		

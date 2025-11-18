@@ -89,13 +89,23 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
-@brief Interpolate between two values on a smooth cosine curve.
-@param start - The starting value
-@param end - The ending value
+@brief Interpolate between two float values on a smooth cosine curve.
+@param start - The starting integer value
+@param end - The ending integer value
 @param delta - The delta, between 0f inclusive and 1f inclusive, to interpolate with
-@return The interpolated value
+@return The interpolated integer value
 */
-float CircularInterpolate(float start, float end, float delta);
+float Math_CLerpFloat(float start, float end, float delta);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Interpolate between two integer values on a smooth cosine curve.
+@param start - The starting integer value
+@param end - The ending integer value
+@param delta - The delta, between 0 inclusive and 1 inclusive, to interpolate with
+@return The interpolated integer value
+*/
+int Math_CLerpInt(int start, int end, float delta);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
