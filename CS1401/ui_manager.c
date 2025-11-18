@@ -5,12 +5,13 @@
 @brief Definition file for UI rendering inside the game
 */
 
-#include <stdlib.h>
 #include <string.h>
+#include <stdlib.h>
 #include "ui_manager.h"
 
+#ifndef MAX_UI_OBJECTS
 #define MAX_UI_OBJECTS 16
-#define MAX_UI_ELEMENTS 64 // 16 * 4
+#endif
 
 // declare different types of UI
 typedef struct VideoStruct {
@@ -68,7 +69,7 @@ typedef struct UIArrayStruct {
 	TextStruct texts[MAX_UI_OBJECTS]; // max texts
 	VideoStruct videos[MAX_UI_OBJECTS]; // max videos
 
-	UIElement sorted[MAX_UI_ELEMENTS]; // sorted each UI element by render priority
+	UIElement sorted[MAX_UI_OBJECTS * 4]; // sorted each UI element by render priority
 
 	int elements_length, buttons_length, sliders_length, texts_length, videos_length;
 } UIElementsArray;

@@ -1154,12 +1154,12 @@ void Process_Inputs(void) {
 		return;
 	}
 
-	// enable debug drawing (game data, hitboxes, collision line)
+	// toggle debug drawing (game data, hitboxes, collision line)
 	if (CP_Input_KeyTriggered(KEY_G)) {
 		debug_enabled = !debug_enabled;
 	}
 
-	// enable debug drawing (game data, hitboxes, collision line)
+	// toggle level editor mode
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		editor_mode = !editor_mode;
 	}
@@ -1384,7 +1384,7 @@ bool Check_Item(Item* item, GolfBall* ball) {
 				break;
 			}
 			case ITEM_COIN:
-				add_coins(1);
+				add_extra_coins(1);
 				break;
 			default: break;
 		}
