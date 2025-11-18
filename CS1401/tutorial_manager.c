@@ -29,33 +29,29 @@ void Tutorial_Load(bool tut_mode) {
 		case TUT_PHASE_DRAG_BALL:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 14, 5, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
-				"Use the mouse left button to hold "
-				"and drag any golf ball to charge up "
-				"the swing. Release the mouse left to "
-				"hit the golf ball. Use the scroll wheel "
-				"to change the power of your stroke. "
-				"Click anywhere to start playing!");
+				"Click and drag a golf ball to aim your shot.\n"
+				"Release to swing.\n"
+				"Scroll to adjust power.\n"
+				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_ITEM:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 11, 3, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
-				"Roll over the powerups in the level "
-				"to activate the ability. The feather "
-				"means a speed boost, mushroom up means "
-				"to grow in size, mushroom down means "
-				"to shrink in size, rotating arrows means "
-				"to reverse direction!");
+				"Roll over power-ups to activate them:\n"
+				"Feather = speed boost,\n"
+				"Big Mushroom = grow,\n"
+				"Small Mushroom = shrink,\n"
+				"Arrows = reverse direction.\n"
+				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_TERRAIN:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 6, 6, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
-				"There are multiple different terrains "
-				"that can affect your golf ball. The sand "
-				"terrain slows you down faster, the ice "
-				"terrain makes you slide over it until "
-				"it ends, the red pit will instantly reset "
-				"your golf ball back to its previous "
-				"position!");
+				"Different terrains affect your ball:\n"
+				"Sand slows down,\n"
+				"Ice makes you slide,\n"
+				"Red pits reset your ball to its previous spot.\n"
+				"Click anywhere to start playing!\n");
 			break;
 		default: break;
 		}
