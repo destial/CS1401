@@ -225,7 +225,7 @@ void scoring_init() {
 	clickbb_x = 0; 
 	clickbb_y = 0;
 
-	sb_button_font = Asset_GetFont(ARIAL_FONT_ASSET);
+	sb_button_font = Asset_GetFont(CARTER_FONT_ASSET);
 
 	CP_Font_Set(sb_button_font);
 };
@@ -473,6 +473,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Font_DrawText(b, coords.x, coords.y);*/
 
 		//Change level clear colour based on user score.
+		CP_Settings_TextSize(50.0f);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		sprintf_s(b, 50, "LEVEL CLEARED!");
 		CP_Font_DrawText(b, coords.x, coords.y);
@@ -518,8 +519,9 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		//Write scoreboard with banner
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
+		CP_Settings_TextSize(70.0f);
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
+		CP_Font_DrawText(a, 0.5f * win_width, 0.165f * win_height);
 
 		//Drawing the grey star points based on the points they get.
 		CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
@@ -550,16 +552,19 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
+		CP_Settings_TextSize(70.0f);
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, 0.5f * win_width, 0.16f * win_height);
+		CP_Font_DrawText(a, 0.5f * win_width, 0.165f * win_height);
 
+
+		CP_Settings_TextSize(50.0f);
 		//Say Times up!, you lost
 		//try again
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		/*sprintf_s(a, 50, "TIMES UP, YOU LOST!");
 		CP_Font_DrawText(a, 0.5f * win_width, 0.5f * win_height);*/
 
-		sprintf_s(a, 50, "GAME OVER! TIMES UP");
+		sprintf_s(a, 50, "TIMES UP!");
 		CP_Font_DrawText(a, 0.5f * win_width, 0.55f * win_height);
 
 		//Draw level buttons
