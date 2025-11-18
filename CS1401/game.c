@@ -54,7 +54,7 @@ static bool editor_mode = false;
 static float resistance = 1.25f;
 static float power = 2.f;
 static char current_level = 1;
-static float current_time, game_timer;
+static float current_time, game_timer, menu_transition = -1.f;
 #define MAX_PUTT_POWER 75.f
 
 // particles
@@ -206,6 +206,7 @@ void game_init(void)
 
 	// reset on level loading
 	scale_transition = 1.f;
+	menu_transition = -1.f;
 	turn_now = 0.f;
 	turn_now_hold = 0.f;
 	turn_now_revert = false;
@@ -259,6 +260,14 @@ void game_update(void)
 				if (pause_menu_transition >= 2.f) {
 					pause_menu_transition = -1.f;
 				}
+			}
+		}
+		
+		if (menu_transition >= 0.f) {
+			menu_transition += CP_System_GetDt();
+			if (menu_transition >= 1.f) {
+				Set_Next_State(STATE_MAINMENU);
+				return;
 			}
 		}
 		else {
@@ -607,7 +616,7 @@ void Game_Render(void)
 			CP_System_GetWindowHeight() * 0.5f,
 			(float)CP_System_GetWindowWidth(),
 			(float)CP_System_GetWindowHeight(),
-			Get_ColorAlpha(COLOR_BLACK, 192));
+			Get_ColorAlpha(COLOR_BLACK, CircularInterpolate(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
 
 		UI_SetPriority(0);
 		// menu background
@@ -657,7 +666,7 @@ void Game_Render(void)
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
 			"  QUIT  ")) {
-			Set_Next_State(STATE_MAINMENU);
+			menu_transition = 0.f;
 		}
 	}
 	else if (!editor_mode) {
@@ -666,6 +675,13 @@ void Game_Render(void)
 
 	CP_Settings_ResetMatrix();
 	UI_Render();
+
+	if (menu_transition >= 0.f) {
+		CP_Settings_Fill(Get_ColorAlpha(COLOR_BLACK, (int)(menu_transition * 255.f)));
+		CP_Settings_Stroke(Get_ColorAlpha(COLOR_BLACK, (int)(menu_transition * 255.f)));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
+		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f);
+	}
 }
 
 void Game_RenderUI(void) {
