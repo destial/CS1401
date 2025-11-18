@@ -373,9 +373,11 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y) && !is_overlayed)
 		{
+
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 9.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.0f, CP_System_GetDt() * 5);
+
 
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
 			{
@@ -385,9 +387,11 @@ void main_menu_button(float mouse_x, float mouse_y) {
 			}
 		}
 		else {
+
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
+
 		}
 
 		if (is_clicked == 1) {
