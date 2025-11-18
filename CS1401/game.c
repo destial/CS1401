@@ -1104,6 +1104,13 @@ void Game_RenderShadows(void) {
 		case ITEM_REVERSE:
 			image = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 			break;
+		case ITEM_COIN:
+			CP_Graphics_DrawEllipse(
+				coords.x,
+				coords.y + 12.5f,
+				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition) * anim_mul,
+				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition) * anim_mul);
+			break;
 		default:
 			break;
 		}
