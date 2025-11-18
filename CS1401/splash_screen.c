@@ -40,7 +40,7 @@ void splash_screen_update(void)
 	splash_alpha = CP_Math_ClampFloat(splash_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Image_Draw(splash_logo, 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(splash_alpha * 255.f));
+	CP_Image_Draw(splash_logo, 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int)(splash_alpha * 255.f));
 
 	if (splash_revert && splash_alpha == 0.f) {
 		Set_Next_State(STATE_MAINMENU);
