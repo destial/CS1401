@@ -74,8 +74,8 @@
 
 // Fonts
 
-#define ESL_FONT_ASSET "Assets/Fonts/esl.ttf"
-#define ARIAL_FONT_ASSET "Assets/Fonts/arial.ttf"
+#define ESL_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
+#define ARIAL_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
 //New pixel font
 #define CARTER_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
 

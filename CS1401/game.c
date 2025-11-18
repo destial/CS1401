@@ -569,8 +569,8 @@ void Game_Render(void)
 	Game_RenderHoles();
 
 	// render shadows
-	//if (get_shadow_setting())
-	//	Game_RenderShadows();
+	if (get_shadow_setting())
+		Game_RenderShadows();
 
 	// render walls
 	Game_RenderWalls();

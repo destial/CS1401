@@ -89,6 +89,16 @@ CP_Vector CP_Vector_Max(CP_Vector vect, float length);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Interpolate between two values on a smooth cosine curve.
+@param start - The starting value
+@param end - The ending value
+@param delta - The delta, between 0f inclusive and 1f inclusive, to interpolate with
+@return The interpolated value
+*/
+float CircularInterpolate(float start, float end, float delta);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Additional vector utility to check if a vector has near-zero magnitude
 @param vect - The vector to check
 @return true if length < 0.000001f
