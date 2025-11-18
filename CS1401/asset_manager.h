@@ -52,7 +52,7 @@
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_outline_cross.png"
 #define DARK_PLAY_BUTTON "Assets/Images/icon_play_dark.png" 
-#define RED_PLAY_BUTTON "Assets/Images/arrow_basic_w.png"
+#define RED_ARROW "Assets/Images/arrow_basic_w.png"
 #define DARK_REPLAY_BUTTON "Assets/Images/icon_repeat_dark.png"
 #define GREY_STAR "Assets/Images/star_outline.png"
 #define YELLOW_STAR "Assets/Images/star.png"

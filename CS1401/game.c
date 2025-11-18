@@ -285,7 +285,7 @@ void Game_UpdatePhysics(float dt)
 		playable = true;
 	}
 
-	if (playable) {
+	if (playable && !has_won) {
 		game_timer -= dt;
 		game_timer = max(0.f, game_timer);
 	}
@@ -649,8 +649,6 @@ void Game_Render(void)
 }
 
 void Game_RenderUI(void) {
-	
-
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
@@ -677,6 +675,24 @@ void Game_RenderUI(void) {
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
+		}
+	}
+	else if (all_balls_stopped && !swinging) {
+		GolfBall* golf_arr = Get_Golfs();
+		CP_Image putt_arrow = Asset_GetImage(RED_ARROW);
+		
+		CP_Vector world_ratios = Get_World_Ratios();
+		float w = world_ratios.x;
+		float h = world_ratios.y;
+		float y_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
+		for (int i = 0; i < golf_balls.length; ++i) {
+			GolfBall* ball = golf_arr + i;
+			if (ball == NULL || ball->scored)
+				continue;
+
+			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * y_mul), world_limits.x, world_limits.y);
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w, h, 255, -90.f);
 		}
 	}
 	
