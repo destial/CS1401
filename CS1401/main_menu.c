@@ -413,7 +413,10 @@ void main_menu_button(float mouse_x, float mouse_y) {
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
 		{
-			buttons[9].func();
+			if (buttons[9].func) {
+
+				buttons[9].func();
+			}
 		}
 	}
 	else {
