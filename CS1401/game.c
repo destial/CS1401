@@ -154,6 +154,14 @@ static void load_borders(float middle_wall_angle) {
 	right_wall->destroyed = false;
 }
 
+static void restart_level(void) {
+	Game_SetResetting(true);
+	game_exit();
+	game_init();
+	Tutorial_Load(false);
+	scale_transition = 0.f;
+}
+
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
@@ -365,11 +373,11 @@ void Game_UpdatePhysics(float dt)
 				// set the other balls velocity
 				for (int j = 0; j < golf_balls.length; ++j) {
 					GolfBall* other_golf = Get_Golfs() + j;
-					if (other_golf->scored || i == j)
+					if (other_golf->scored || other_golf->scoring || i == j)
 						continue;
 
 					other_golf->vel = CP_Vector_Set(golf->vel.x, golf->vel.y);
-
+					other_golf->stroke_pos = CP_Vector_Set(other_golf->pos.x, other_golf->pos.y);
 					// make sure they dont move when setting this velocity
 					other_golf->halt = true;
 				}
@@ -397,7 +405,7 @@ void Game_UpdatePhysics(float dt)
 				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
 				float r = Get_Resistance_At(golf->pos);
 				if (r < 0.f) {
-					golf->pos = golf->stroke_pos;
+					golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
 					golf->vel.x = 0;
 					golf->vel.y = 0;
 					continue;
@@ -488,7 +496,7 @@ void Game_UpdatePhysics(float dt)
 		// check ball to ball collision
 		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
-			if (i == j || other == NULL || other->scored || other->destroyed)
+			if (i == j || other == NULL || other->scored || other->scoring || other->destroyed)
 				continue;
 
 			Check_Ball_Collision(golf, other);
@@ -533,7 +541,7 @@ void Game_UpdatePhysics(float dt)
 	// after all updates, set the previous position to here
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* ball = golf_arr + i;
-		if (ball->scored || ball->destroyed)
+		if (ball->scored || ball->scoring || ball->destroyed)
 			continue;
 
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
@@ -615,12 +623,12 @@ void Game_Render(void)
 		UI_Text(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-			300, 200, Get_Color(COLOR_BLACK), "Game Paused!", 40.f);
+			300, 200, Get_Color(COLOR_BLACK), "Game Paused!", 50.f);
 
 		// continue button
 		if (UI_ButtonImageText(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.55f),
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
@@ -629,10 +637,22 @@ void Game_Render(void)
 			pause_menu = !pause_menu;
 		}
 
+		// restart button
+		if (UI_ButtonImageText(
+			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.42f),
+			300, 100,
+			Asset_GetImage(BUTTON_BLUE_ASSET),
+			Asset_GetImage(BUTTON_YELLOW_ASSET),
+			"RESTART")) {
+			restart_level();
+			return;
+		}
+
 		// quit button
 		if (UI_ButtonImageText(
 			CP_System_GetWindowWidth() * 0.5f * pause_menu_transition,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.4f ),
+			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f ),
 			300, 100,
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
@@ -1130,7 +1150,7 @@ void Game_RenderShadows(void) {
 	// render ball shadow
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
-		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
+		if (golf == NULL || golf->scored || golf->destroyed) // ignore if golf ball is already scored
 			continue;
 
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
@@ -1195,12 +1215,16 @@ void Process_Inputs(void) {
 
 	// reset level
 	if (CP_Input_KeyTriggered(KEY_R) && (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL))) {
-		Game_SetResetting(true);
-		game_exit();
-		game_init();
-		Tutorial_Load(false);
-		scale_transition = 0.f;
-		return;
+		GolfBall* golf_arr = Get_Golfs();
+		for (int i = 0; i < golf_balls.length; ++i) {
+			GolfBall* golf = golf_arr + i;
+			if (golf == NULL || golf->scored || golf->scoring)
+				continue;
+
+			golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
+			golf->vel.x = 0;
+			golf->vel.y = 0;
+		}
 	}
 
 	if (editor_mode) {
@@ -1591,8 +1615,7 @@ void Game_Load(void) {
 
 			ball->pos.x = loaded_level->golf_balls[i];
 			ball->pos.y = loaded_level->golf_balls[i + 1];
-			ball->stroke_pos.x = ball->pos.x;
-			ball->stroke_pos.y = ball->pos.y;
+			ball->stroke_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
 			ball->diameter = loaded_level->golf_balls[i + 2];
 
 			ball->vel = CP_Vector_Set(0.f, 0.f);

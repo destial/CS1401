@@ -237,8 +237,8 @@ CP_Image Asset_GetImage(const char* filepath) {
 
 CP_Image Asset_GetBlendedImage(const char* filepath, CP_Color color, AssetBlendMode mode) {
     char colored_path[128];
-    sprintf_s(colored_path, 128, "%s//%02x%02x%02x%02x", filepath, (int)color.r, (int)color.g, (int)color.b, (int)color.a);
-    CP_Image root = Asset_GetImage(colored_path); // get the already created recolored image if exists
+    sprintf_s(colored_path, 128, "%s//%02x%02x%02x%02x%d", filepath, (int)color.r, (int)color.g, (int)color.b, (int)color.a, mode);
+    CP_Image root = Asset_GetImage(colored_path); // get the already created blended image if exists
     if (root != NULL)
         return root;
 
