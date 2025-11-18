@@ -31,18 +31,19 @@ typedef struct ButtonStr {
 	float text_size;
 } Button;
 
-float world_width1 = 48, world_height1 = 27;
-float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-int window_size_H, window_size_W;
-int resolution_number = 0, equipped_index;
+static float world_width1 = 48, world_height1 = 27;
+static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
+static int window_size_H, window_size_W;
+static int resolution_number = 0;
+int equipped_index;
 
-Button buttons[30];
-Button level_buttons[TOTAL_LEVELS];
-CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
-CP_Font button_font;
+static Button buttons[30];
+static Button level_buttons[TOTAL_LEVELS];
+static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
+static CP_Font button_font;
 
-bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
-float sfx_limit = 1.0f, music_limit = 1.0f;
+static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
+static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 void exit_main_menu(void) {
 	Set_Next_State(STATE_EXIT);
@@ -274,7 +275,10 @@ void main_menu_init(void)
 	CP_Sound_PlayMusic(Asset_GetAudio(BACKGROUND_MUSIC_ASSET));
 
 	//Sets the default golf ball
-	int index = 11; 
+	is_buy1_clicked = GameSetting_GetBool("bought1");
+	is_buy2_clicked = GameSetting_GetBool("bought2");
+	int index = GameSetting_GetInt("equipped");
+	if (index < 0) index = 11;
 	equip_button(index);
 }
 
@@ -294,7 +298,7 @@ void main_menu_update(void)
 	level_select_button(mouse_x, mouse_y);
 
 	int counter_textsize = 50;
-	CP_Settings_TextSize(counter_textsize);
+	CP_Settings_TextSize((float) counter_textsize);
 	CP_TEXT_ALIGN_HORIZONTAL h_align = CP_TEXT_ALIGN_H_RIGHT;
 	char coin_count[50] = { 0 };
 	sprintf_s(coin_count, 50, "%i", coins);
@@ -415,7 +419,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 void level_select_button(float mouse_x, float mouse_y) {
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	CP_Image_DrawAdvanced(Asset_GetImage(HANGING_BANNER), level_select_x, level_select_y, 0.3 * CP_System_GetWindowWidth(), 0.15 * CP_System_GetWindowHeight(), 255, 0.f);
+	CP_Image_DrawAdvanced(Asset_GetImage(HANGING_BANNER), level_select_x, level_select_y, 0.3f * CP_System_GetWindowWidth(), 0.15f * CP_System_GetWindowHeight(), 255, 0.f);
 	draw_text(2, "Level Select", level_select_x, level_select_y);
 	
 	//LEVEL SELECT BUTTONS
@@ -747,11 +751,11 @@ CP_Vector defining_coords(float scale_x, float scale_y) {
 	return scale;
 }
 
-float check_mouse_pos(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) { 
-	return mouse_x >= pos_x - scale_x * .5f && mouse_y >= pos_y - scale_y * .5f && mouse_x <= pos_x + scale_x * .5 && mouse_y <= pos_y + scale_y * .5;
+bool check_mouse_pos(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) {
+	return mouse_x >= pos_x - scale_x * .5f && mouse_y >= pos_y - scale_y * .5f && mouse_x <= pos_x + scale_x * .5f && mouse_y <= pos_y + scale_y * .5f;
 }
 
-float check_mouse_pos_volume(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) {
+bool check_mouse_pos_volume(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) {
 	return mouse_x >= pos_x && mouse_x <= pos_x + scale_x && mouse_y >= pos_y && mouse_y <= pos_y + scale_y;
 }
 
@@ -784,7 +788,7 @@ void shop_button(void) {
 	is_overlayed = !is_overlayed;
 }
 
-void buy_button(num) {
+void buy_button(int num) {
 		switch (num) {
 		case 12:
 			if (coins >= 10) {
@@ -807,7 +811,7 @@ void buy_button(num) {
 		}
 }
 
-void equip_button(num) {
+void equip_button(int num) {
 
 	int index = num - 11;
 
@@ -874,7 +878,7 @@ void change_screen(void) {
 	Set_Next_State(STATE_GAME);
 }
 
-void change_resolution(num) {
+void change_resolution(int num) {
 	switch (num) {
 	case 0:
 		CP_System_SetWindowSize(1280, 720);
@@ -914,6 +918,9 @@ void main_menu_exit(void)
 	GameSetting_SetFloat("music_volume", music_limit);
 	GameSetting_SetBool("high_quality", is_shadowed);
 	GameSetting_SetInt("coins", getCoins());
+	GameSetting_SetInt("equipped", equipped_index + 11);
+	GameSetting_SetBool("bought1", is_buy1_clicked);
+	GameSetting_SetBool("bought2", is_buy2_clicked);
 	GameSetting_Save();
 	printf("Exit main menu\n");
 }
