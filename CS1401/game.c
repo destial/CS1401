@@ -517,7 +517,19 @@ void Game_UpdatePhysics(float dt)
 			if (hole == NULL || hole->destroyed)
 				continue;
 
-			if (CP_Vector_Distance(golf->pos, hole->pos) < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // hole 1
+			float dist = CP_Vector_Distance(golf->pos, hole->pos);
+			if (dist < hole->diameter * 0.5f) { // fall into hole
+				CP_Vector dir = CP_Vector_Subtract(hole->pos, golf->pos);
+				float angle = CP_Vector_AngleCCW(golf->vel, dir);
+				if (angle > 180.f) {
+					angle -= 360.f;
+				}
+				golf->vel = CP_Vector_Rotate(golf->vel, -CP_Math_Radians(angle * dt));
+				CP_Vector drag_dir = CP_Vector_Scale(CP_Vector_Normalize(dir), (hole->diameter * 0.5f) - dist);
+				golf->vel = CP_Vector_Add(golf->vel, drag_dir);
+			}
+
+			if (dist < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // inside hole
 				golf->scoring = true;
 			}
 		}
@@ -624,8 +636,8 @@ void Game_Render(void)
 		UI_Image(
 			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() * 0.5f,
-			CP_System_GetWindowWidth() - 1000.f,
-			CP_System_GetWindowHeight() - 300.f, 
+			CP_System_GetWindowWidth() - (1000.f * (CP_System_GetWindowWidth() / 1600.f)),
+			CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
 			Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
 		UI_SetPriority(1);
@@ -633,13 +645,14 @@ void Game_Render(void)
 		UI_Text(
 			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-			300, 200, Get_Color(COLOR_BLACK), "Game Paused!", 50.f);
+			300 * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
+			Get_Color(COLOR_BLACK), "Game Paused!", 50.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		// continue button
 		if (UI_ButtonImageText(
 			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
-			300, 100,
+			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
 			"CONTINUE")) {
@@ -651,7 +664,7 @@ void Game_Render(void)
 		if (UI_ButtonImageText(
 			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
-			300, 100,
+			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
 			"RESTART")) {
@@ -663,10 +676,10 @@ void Game_Render(void)
 		if (UI_ButtonImageText(
 			CP_System_GetWindowWidth() * 0.5f * mul,
 			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f ),
-			300, 100,
+			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 			Asset_GetImage(BUTTON_BLUE_ASSET),
 			Asset_GetImage(BUTTON_YELLOW_ASSET),
-			"  QUIT  ")) {
+			" QUIT ")) {
 			menu_transition = 0.f;
 		}
 	}
@@ -736,24 +749,24 @@ void Game_RenderUI(void) {
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
 	if (!editor_mode) {
 		// draw current strokes
-		CP_Settings_TextSize(40.f);
+		CP_Settings_TextSize(40.f * (CP_System_GetWindowWidth() / 1600.f));
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.05f, 5);
+		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.05f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5);
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 5);
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char tm[32]; sprintf_s(tm, 32, "Timer: %.2fs", game_timer);
-		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 5);
+		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
 		
 		UI_SetPriority(-5);
-		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.85f, 40, 300, 50, Get_Color(COLOR_WHITE), power_color, power_val, false);
+		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.85f, 40.f * (CP_System_GetWindowWidth() / 1600.f), 300 * (CP_System_GetWindowWidth() / 1600.f), 50 * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), power_color, power_val, false);
 		UI_SetPriority(0);
 	}
 
