@@ -12,9 +12,12 @@ static float splash_duration = 2.f;
 static bool splash_revert = false;
 
 static void render_cursor(void) {
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-	CP_Image_DrawAdvanced(Asset_GetImage(CURSOR_ASSET), CP_Input_GetMouseX(), CP_Input_GetMouseY(), 24.f, 24.f, 255, 0.f);
+	CP_System_ShowCursor(!CP_System_GetWindowFocus());
+	if (CP_System_GetWindowFocus()) {
+		CP_Settings_ImageMode(CP_POSITION_CORNER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+		CP_Image_DrawAdvanced(Asset_GetImage(CURSOR_ASSET), CP_Input_GetMouseX(), CP_Input_GetMouseY(), 24.f, 24.f, 255, 0.f);
+	}
 }
 
 void splash_screen_init(void)
@@ -31,6 +34,16 @@ void splash_screen_init(void)
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
 	CP_System_SetWindowTitle("GGCode - GGGolf Game");
 	CP_Engine_SetPostUpdateFunction(render_cursor);
+	hIcon = LoadImageA(0, "Assets/icon.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
+	if (hIcon) {
+		// change both big and small icons to the same icon handle
+		SendMessageA(CP_System_GetWindowHandle(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessageA(CP_System_GetWindowHandle(), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+
+		// change the application icon too
+		SendMessageA(GetWindow(CP_System_GetWindowHandle(), GW_OWNER), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+		SendMessageA(GetWindow(CP_System_GetWindowHandle(), GW_OWNER), WM_SETICON, ICON_BIG, (LPARAM)hIcon);
+	}
 }
 
 void splash_screen_update(void)

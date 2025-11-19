@@ -1,5 +1,6 @@
 #include "cprocessing.h"
 #include "state_manager.h"
+#include "splash_screen.h"
 #include "particle_manager.h"
 #ifdef _DEBUG
 #include <windows.h>
@@ -83,6 +84,9 @@ int main(void)
 #endif
 	GameState_SetNext(STATE_SPLASH);
 	CP_Engine_Run(0);
+	if (hIcon) {
+		DestroyIcon(hIcon);
+	}
 #ifdef _DEBUG
 	FreeConsole();
 #endif
