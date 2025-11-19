@@ -352,6 +352,7 @@ void main_menu_update(void)
 		game_transition += CP_System_GetDt();
 		CP_Settings_Fill(Get_ColorAlpha(COLOR_BLACK, (int)(game_transition * 255.f)));
 		CP_Settings_Stroke(Get_ColorAlpha(COLOR_BLACK, (int)(game_transition * 255.f)));
+		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f);
 		if (game_transition >= 1.f) {
 			Set_Next_State(STATE_GAME);
