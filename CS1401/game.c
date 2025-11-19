@@ -744,10 +744,12 @@ void Game_RenderUI(void) {
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w, h, 255, -90.f);
 		}
+	}
 
+	if (playable && !all_balls_stopped) {
 		CP_Vector coords = World_To_Screen(1.5f, 1.5f, world_limits.x, world_limits.y);
 		UI_ButtonImageText(coords.x, coords.y, 30.f, 30.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
-		UI_TextLeft(coords.x + 20.f, coords.y, 200.f, 30.f, Get_Color(COLOR_BLACK), "Reset to last", 20.f);
+		UI_TextLeft(coords.x + 20.f, coords.y, 200.f, 30.f, Get_Color(COLOR_BLACK), "Reset to last (+1)", 20.f);
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
@@ -1259,6 +1261,7 @@ void Process_Inputs(void) {
 			golf->vel.x = 0;
 			golf->vel.y = 0;
 		}
+		add_stroke();
 	}
 
 	if (editor_mode) {
