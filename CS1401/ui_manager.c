@@ -33,6 +33,7 @@ typedef struct TextStruct {
 	CP_Color color;
 	char const* text;
 	int priority;
+	CP_POSITION_MODE mode;
 } TextStruct;
 
 typedef struct SliderStruct {
@@ -218,9 +219,6 @@ bool UI_ButtonText(float x, float y, float w, float h, CP_Color background, CP_C
 }
 
 void UI_Text(float x, float y, float w, float h, CP_Color color, char const* text, float size) {
-	float mouse_x = CP_Input_GetMouseX();
-	float mouse_y = CP_Input_GetMouseY();
-
 	// stop if array maxed out
 	if (_ui_elements.texts_length == MAX_UI_OBJECTS)
 		return;
@@ -235,6 +233,25 @@ void UI_Text(float x, float y, float w, float h, CP_Color color, char const* tex
 	_ui_elements.texts[_ui_elements.texts_length - 1].text = text;
 	_ui_elements.texts[_ui_elements.texts_length - 1].size = size;
 	_ui_elements.texts[_ui_elements.texts_length - 1].priority = current_priority;
+	_ui_elements.texts[_ui_elements.texts_length - 1].mode = CP_POSITION_CENTER;
+}
+
+void UI_TextLeft(float x, float y, float w, float h, CP_Color color, char const* text, float size) {
+	// stop if array maxed out
+	if (_ui_elements.texts_length == MAX_UI_OBJECTS)
+		return;
+
+	// append text
+	++_ui_elements.texts_length;
+	_ui_elements.texts[_ui_elements.texts_length - 1].w = w;
+	_ui_elements.texts[_ui_elements.texts_length - 1].h = h;
+	_ui_elements.texts[_ui_elements.texts_length - 1].x = x;
+	_ui_elements.texts[_ui_elements.texts_length - 1].y = y;
+	_ui_elements.texts[_ui_elements.texts_length - 1].color = color;
+	_ui_elements.texts[_ui_elements.texts_length - 1].text = text;
+	_ui_elements.texts[_ui_elements.texts_length - 1].size = size;
+	_ui_elements.texts[_ui_elements.texts_length - 1].priority = current_priority;
+	_ui_elements.texts[_ui_elements.texts_length - 1].mode = CP_POSITION_CORNER;
 }
 
 float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color background, CP_Color highlight, float value, bool dragable) {
@@ -315,6 +332,7 @@ void UI_Render(void) {
 
 	CP_Settings_Save();
 
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	for (int i = 0; i < _ui_elements.elements_length; ++i) {
 		UIType type = _ui_elements.sorted[i].type;
 		if (type == UI_SLIDER) {
@@ -394,10 +412,15 @@ void UI_Render(void) {
 			float h = text->h;
 
 			// render text
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+			if (text->mode == CP_POSITION_CENTER) {
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
+			}
+			else {
+				CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_MIDDLE);
+			}
 			CP_Settings_TextSize(text->size);
 			CP_Settings_Fill(text->color);
-			CP_Font_DrawTextBox(text->text, x - (w * 0.5f), y, w);
+			CP_Font_DrawTextBox(text->text, text->mode == CP_POSITION_CENTER ? x - (w * 0.5f) : x, y, w);
 		}
 	}
 

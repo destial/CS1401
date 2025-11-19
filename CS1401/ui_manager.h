@@ -33,6 +33,18 @@ void UI_Text(float x, float y, float w, float h, CP_Color color, char const* tex
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Create text at the given position with the given dimensions and color
+@param x - The x position of the text left
+@param y - The y position of the text middle
+@param w - The width of the text
+@param h - The height of the text
+@param color - The color of the text
+@param text - The text to display
+*/
+void UI_TextLeft(float x, float y, float w, float h, CP_Color color, char const* text, float size);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Create an image at the given position with the given dimensions
 @param x - The x position of the image center
 @param y - The y position of the image center

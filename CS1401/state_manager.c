@@ -16,7 +16,7 @@
 static GameState current_gamestate = STATE_SPLASH;
 static GameState next_gamestate = STATE_SPLASH;
 
-void Set_Next_State(GameState state) {
+void GameState_SetNext(GameState state) {
 	next_gamestate = state;
 	switch (next_gamestate) {
 	case STATE_SPLASH:
@@ -37,14 +37,14 @@ void Set_Next_State(GameState state) {
 	}
 }
 
-void Set_Current_State(GameState state) {
+void GameState_SetCurrent(GameState state) {
 	current_gamestate = state;
 }
 
-GameState Get_Next_State(void) {
+GameState GameState_GetNext(void) {
 	return next_gamestate;
 }
 
-GameState Get_Current_State(void) {
+GameState GameState_GetCurrent(void) {
 	return current_gamestate;
 }

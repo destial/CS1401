@@ -20,24 +20,24 @@ typedef enum GameStatesEnum {
 @brief Set the next state to update
 @param state - The next game state
 */
-void Set_Next_State(GameState state);
+void GameState_SetNext(GameState state);
 
 /*!
 @brief Set the current state
 @param state - The current game state
 */
-void Set_Current_State(GameState state);
+void GameState_SetCurrent(GameState state);
 
 /*!
 @brief Get the next state that is going to be transitioning to in the next frame
 @return The next game state
 */
-GameState Get_Next_State(void);
+GameState GameState_GetNext(void);
 
 /*!
 @brief Get the current game state in this frame
 @return The current game state
 */
-GameState Get_Current_State(void);
+GameState GameState_GetCurrent(void);
 
 #endif

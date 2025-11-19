@@ -26,7 +26,6 @@
 #include "game_settings.h"
 
 // initialize global variables here
-static CP_Font font;
 static CP_Image golf_ball_image, background_image;
 static CP_Sound hit_sound;
 static void* item_image_cache[ITEM_LAST];
@@ -58,7 +57,7 @@ static float current_time, game_timer, menu_transition = -1.f;
 #define MAX_PUTT_POWER 75.f
 
 // particles
-static ParticleType particle_type = PARTICLE_FLAME;
+static ParticleType particle_type = 0;
 static float particle_counter = 0.f;
 
 // camera
@@ -165,15 +164,15 @@ static void restart_level(void) {
 // Initialize the font, golf positions and wall positions
 void game_init(void)
 {
-	Set_Current_State(STATE_GAME);
+	GameState_SetCurrent(STATE_GAME);
+	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	printf("Init game\n");
-	font = Asset_GetFont(ARIAL_FONT_ASSET);
 	switch (equipped_index) {
 	case 0:
 		golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
 		break;
 	case 1:
-		golf_ball_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
+		golf_ball_image = Asset_GetImage(GOLF_BALL_EYE_ASSET);
 		break;
 
 	case 2:	
@@ -186,13 +185,11 @@ void game_init(void)
 	item_image_cache[ITEM_GROW - 1] = Asset_GetImage(BIG_ITEM_ASSET);
 	item_image_cache[ITEM_SHRINK - 1] = Asset_GetImage(SMALL_ITEM_ASSET);
 	item_image_cache[ITEM_REVERSE - 1] = Asset_GetImage(REVERSE_ITEM_ASSET);
-	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
+	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.25f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 
-	
 	CP_Settings_TextSize(20.f);
-	CP_Font_Set(font);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
 	items.arr = NULL;
@@ -266,7 +263,7 @@ void game_update(void)
 		if (menu_transition >= 0.f) {
 			menu_transition += CP_System_GetDt();
 			if (menu_transition >= 1.f) {
-				Set_Next_State(STATE_MAINMENU);
+				GameState_SetNext(STATE_MAINMENU);
 				return;
 			}
 		}
@@ -494,10 +491,10 @@ void Game_UpdatePhysics(float dt)
 		// spawn the particles every 0.1s
 		if ((particle_counter += dt) >= 0.1f) {
 			int amount = 1;
-			float radius = particle_type == PARTICLE_STAR ? golf->diameter * 0.1f : golf->diameter * 0.5f;
-			float speed = particle_type == PARTICLE_STAR ? 0.f : 1.f;
-			float maxSize = particle_type == PARTICLE_STAR ? 0.25f * golf->diameter : 0.75f * golf->diameter;
-			float duration = particle_type == PARTICLE_STAR ? 1.f : 0.5f;
+			float radius = golf->diameter * 0.5f;
+			float speed = 1.f;
+			float maxSize = 0.75f * golf->diameter;
+			float duration = 0.5f;
 			Particles_Spawn(particle_type, golf->pos, amount, radius, speed, duration, 0.25f * golf->diameter, maxSize);
 			particle_counter = 0.f;
 		}
@@ -576,6 +573,70 @@ void Game_UpdatePhysics(float dt)
 	}
 }
 
+static void pausemenu_render(void) {
+	float mul = Math_CLerpFloat(pause_menu_transition > 1.f ? 1.f : -.5f, pause_menu_transition > 1.f ? 2.5f : 1.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition);
+	UI_SetPriority(-1);
+	// tinted background
+	UI_Quad(
+		CP_System_GetWindowWidth() * 0.5f,
+		CP_System_GetWindowHeight() * 0.5f,
+		(float)CP_System_GetWindowWidth(),
+		(float)CP_System_GetWindowHeight(),
+		Get_ColorAlpha(COLOR_BLACK, (int)Math_CLerpFloat(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
+
+	UI_SetPriority(0);
+	// menu background
+	UI_Image(
+		CP_System_GetWindowWidth() * 0.5f * mul,
+		CP_System_GetWindowHeight() * 0.5f,
+		CP_System_GetWindowWidth() - (1000.f * (CP_System_GetWindowWidth() / 1600.f)),
+		CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
+		Asset_GetImage(SETTING_BACKGROUND_ASSET));
+
+	UI_SetPriority(1);
+	// pause text
+	UI_Text(
+		CP_System_GetWindowWidth() * 0.5f * mul,
+		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
+		300 * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
+		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * (CP_System_GetWindowWidth() / 1600.f));
+
+	// continue button
+	if (UI_ButtonImageText(
+		CP_System_GetWindowWidth() * 0.5f * mul,
+		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
+		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		Asset_GetImage(BUTTON_BLUE_ASSET),
+		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		"CONTINUE")) {
+		//pause_menu_transition = 0.f;
+		pause_menu = !pause_menu;
+	}
+
+	// restart button
+	if (UI_ButtonImageText(
+		CP_System_GetWindowWidth() * 0.5f * mul,
+		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
+		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		Asset_GetImage(BUTTON_BLUE_ASSET),
+		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		"RESTART")) {
+		restart_level();
+		return;
+	}
+
+	// quit button
+	if (UI_ButtonImageText(
+		CP_System_GetWindowWidth() * 0.5f * mul,
+		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f),
+		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		Asset_GetImage(BUTTON_BLUE_ASSET),
+		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		" QUIT ")) {
+		menu_transition = 0.f;
+	}
+}
+
 void Game_Render(void)
 {
 	// Clear background and render the background image
@@ -585,7 +646,6 @@ void Game_Render(void)
 	CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
-	CP_Font_Set(font);
 
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
@@ -607,11 +667,11 @@ void Game_Render(void)
 	// render items
 	Game_RenderItems();
 
-	if (playable) 
-		Particles_Render(Get_World_Limits(), Get_World_Ratios());
-
 	// render golf balls
 	Game_RenderGolfs();
+
+	if (playable)
+		Particles_Render(Get_World_Limits(), Get_World_Ratios());
 
 	// render ui
 	Game_RenderUI();
@@ -621,67 +681,7 @@ void Game_Render(void)
 	}
 
 	if (pause_menu_transition >= 0.f) {
-		float mul = Math_CLerpFloat(pause_menu_transition > 1.f ? 1.f : -.5f, pause_menu_transition > 1.f ? 2.5f : 1.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition);
-		UI_SetPriority(-1);
-		// tinted background
-		UI_Quad(
-			CP_System_GetWindowWidth() * 0.5f,
-			CP_System_GetWindowHeight() * 0.5f,
-			(float)CP_System_GetWindowWidth(),
-			(float)CP_System_GetWindowHeight(),
-			Get_ColorAlpha(COLOR_BLACK, (int) Math_CLerpFloat(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
-
-		UI_SetPriority(0);
-		// menu background
-		UI_Image(
-			CP_System_GetWindowWidth() * 0.5f * mul,
-			CP_System_GetWindowHeight() * 0.5f,
-			CP_System_GetWindowWidth() - (1000.f * (CP_System_GetWindowWidth() / 1600.f)),
-			CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
-			Asset_GetImage(SETTING_BACKGROUND_ASSET));
-
-		UI_SetPriority(1);
-		// pause text
-		UI_Text(
-			CP_System_GetWindowWidth() * 0.5f * mul,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-			300 * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
-			Get_Color(COLOR_BLACK), "Game Paused!", 50.f * (CP_System_GetWindowWidth() / 1600.f));
-
-		// continue button
-		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * mul,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
-			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
-			Asset_GetImage(BUTTON_BLUE_ASSET),
-			Asset_GetImage(BUTTON_YELLOW_ASSET),
-			"CONTINUE")) {
-			//pause_menu_transition = 0.f;
-			pause_menu = !pause_menu;
-		}
-
-		// restart button
-		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * mul,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
-			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
-			Asset_GetImage(BUTTON_BLUE_ASSET),
-			Asset_GetImage(BUTTON_YELLOW_ASSET),
-			"RESTART")) {
-			restart_level();
-			return;
-		}
-
-		// quit button
-		if (UI_ButtonImageText(
-			CP_System_GetWindowWidth() * 0.5f * mul,
-			CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f ),
-			300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
-			Asset_GetImage(BUTTON_BLUE_ASSET),
-			Asset_GetImage(BUTTON_YELLOW_ASSET),
-			" QUIT ")) {
-			menu_transition = 0.f;
-		}
+		pausemenu_render();
 	}
 	else if (!editor_mode) {
 		Tutorial_Render();
@@ -744,6 +744,10 @@ void Game_RenderUI(void) {
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w, h, 255, -90.f);
 		}
+
+		CP_Vector coords = World_To_Screen(1.5f, 1.5f, world_limits.x, world_limits.y);
+		UI_ButtonImageText(coords.x, coords.y, 30.f, 30.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
+		UI_TextLeft(coords.x + 20.f, coords.y, 200.f, 30.f, Get_Color(COLOR_BLACK), "Reset to last", 20.f);
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
@@ -1759,7 +1763,7 @@ void Game_Load(void) {
 		}
 		else {
 			// level loading failed, quit the game because heap allocation went wrong!!
-			Set_Next_State(STATE_EXIT);
+			GameState_SetNext(STATE_EXIT);
 		}
 
 		// free up the loaded level resources (!!!)
@@ -1860,7 +1864,7 @@ void Game_Load(void) {
 	} else {
 
 		// level loading failed, quit the game because heap allocation went wrong!!
-		Set_Next_State(STATE_EXIT);
+		GameState_SetNext(STATE_EXIT);
 	}
 
 	// set a default layout of item powerups

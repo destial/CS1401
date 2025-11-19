@@ -15,7 +15,7 @@ typedef enum TutorialPhaseEnum {
 	TUT_PHASE_DRAG_BALL = 0,
 	TUT_PHASE_ITEM,
 	TUT_PHASE_TERRAIN,
-	//TUT_PHASE_PORTAL,
+	TUT_PHASE_PORTAL,
 	TUT_PHASE_LAST,
 } TutorialPhase;
 

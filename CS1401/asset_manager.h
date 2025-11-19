@@ -23,7 +23,7 @@
 #define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
 #define BORDER_WALL_ASSET "Assets/Images/stone.png"
 #define GOLF_BALL_ASSET "Assets/Images/golf_ball.png"
-#define GOLF_BALL_GOLD_ASSET "Assets/Images/golf_ball_gold.png"
+#define GOLF_BALL_EYE_ASSET "Assets/Images/golf_ball_eye.png"
 #define GOLF_BALL_POOL_ASSET "Assets/Images/golf_ball_pool.png"
 #define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
 #define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
@@ -43,10 +43,7 @@
 #define COIN_ITEM_SPRITE_ASSET "Assets/Images/coin_sprite.png"
 #define BLUE_PORTAL_SPRITE_ASSET "Assets/Images/blue_portal_sprite.png"
 #define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
-#define FLAME_PARTICLE_SPRITE_ASSET "Assets/Images/flame_particle_sheet.png"
 #define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
-#define RAINBOW_SPARKLE_SPRITE_ASSET "Assets/Images/rainbow_sparkle_sheet.png"
-#define HALO_SPRITE_ASSET "Assets/Images/halo_sheet.png"
 #define PUTT_ARROW_ASSET "Assets/Images/putt_arrow.png"
 
 //Scoreboard
@@ -65,6 +62,7 @@
 #define SB_BUTTON_YELLOW "Assets/Images/yellow_button_square_flat.png"
 #define SB_BUTTON_GREEN "Assets/Images/green_button_square_flat.png"
 #define SB_BUTTON_GREY "Assets/Images/grey_button_square_flat.png"
+#define CURSOR_ASSET "Assets/Images/cursor.png"
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
@@ -73,10 +71,6 @@
 #define BACKGROUND_MUSIC_ASSET "Assets/Audio/background_music.wav"
 
 // Fonts
-
-#define ESL_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
-#define ARIAL_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
-//New pixel font
 #define CARTER_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
 
 // Level file
@@ -87,6 +81,7 @@
 #define TUTORIAL_PHASE_1_ASSET "Assets/Images/tut_phase1.png"
 #define TUTORIAL_PHASE_2_ASSET "Assets/Images/tut_phase2.png"
 #define TUTORIAL_PHASE_3_ASSET "Assets/Images/tut_phase3.png"
+#define TUTORIAL_PHASE_4_ASSET "Assets/Images/tut_phase4.png"
 
 typedef enum AssetBlendEnum {
 	BLEND_ADD,

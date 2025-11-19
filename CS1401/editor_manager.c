@@ -515,7 +515,6 @@ void Editor_Render(void) {
 	CP_Vector world_limits = Get_World_Limits();
 	CP_Vector world_ratios = Get_World_Ratios();
 	CP_Settings_ResetMatrix();
-	CP_Font_Set(Asset_GetFont(ARIAL_FONT_ASSET));
 	CP_Settings_Fill(Get_Color(COLOR_CYAN));
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_TOP);
 	CP_Settings_TextSize(50.f);

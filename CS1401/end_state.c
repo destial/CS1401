@@ -14,7 +14,7 @@ static int end_index = 0;
 
 void end_state_init(void) 
 {
-	Set_Current_State(STATE_EXIT);
+	GameState_SetCurrent(STATE_EXIT);
 	printf("Init end\n");
 	end_logo[0] = Asset_GetImage(TEAM_CREDITS_ASSET);
 	end_logo[1] = Asset_GetImage(SPLASH_SCREEN_ASSET);

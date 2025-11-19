@@ -194,7 +194,7 @@ Level Level_Load(int level) {
             }
         }
         else {
-            Set_Next_State(STATE_EXIT);
+            GameState_SetNext(STATE_EXIT);
         }
 
         // we are done loading the level, we can now free up the map

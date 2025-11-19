@@ -8,7 +8,7 @@
 #include "data_manager.h"
 #include "level_manager.h"
 
-#ifndef ASSERT_TEST(test, err)
+#ifndef ASSERT_TEST
 #define ASSERT_TEST(test, err) if(test) {printf(err);exit(1);}
 #endif
 
@@ -23,7 +23,6 @@ static void run_data_tests(void) {
 	Map_EditFloat(map, "b", 1.67f);
 	Map_EditInt(map, "c", 2);
 	Map_EditVector(map, "v", CP_Vector_Set(6.f, 7.f));
-
 
 	char* f_test = Map_GetString(map, "a");
 	ASSERT_TEST(strcmp(f_test, "test"), "Failed test 1!");
@@ -82,7 +81,7 @@ int main(void)
 		run_data_tests();
 	}
 #endif
-	Set_Next_State(STATE_SPLASH);
+	GameState_SetNext(STATE_SPLASH);
 	CP_Engine_Run(0);
 #ifdef _DEBUG
 	FreeConsole();

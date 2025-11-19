@@ -40,26 +40,24 @@ int equipped_index;
 static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
 static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
-static CP_Font button_font;
 
 static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
 static float sfx_limit = 1.0f, music_limit = 1.0f, game_transition = -1.f;
 
 void exit_main_menu(void) {
-	Set_Next_State(STATE_EXIT);
+	GameState_SetNext(STATE_EXIT);
 }
 
 void main_menu_init(void) 
 {
-	Set_Current_State(STATE_MAINMENU);
+	GameState_SetCurrent(STATE_MAINMENU);
 	printf("Init main menu\n");
-	button_font = Asset_GetFont(ARIAL_FONT_ASSET);
+	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	window_size_H = CP_System_GetWindowHeight();
 	window_size_W = CP_System_GetWindowWidth();
 	game_transition = -1.f;
 	is_clicked = 0;
 
-	CP_Font_Set(button_font);
 	sfx_limit = GameSetting_GetFloat("sfx_volume");
 	music_limit = GameSetting_GetFloat("music_volume");
 	is_shadowed = GameSetting_GetBool("high_quality");
@@ -253,7 +251,7 @@ void main_menu_init(void)
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 	shop_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 	golf_ball_default_image = Asset_GetImage(GOLF_BALL_ASSET);
-	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_GOLD_ASSET);
+	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_EYE_ASSET);
 	golf_ball_pool_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
@@ -355,7 +353,7 @@ void main_menu_update(void)
 		CP_Settings_RectMode(CP_POSITION_CENTER);
 		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f);
 		if (game_transition >= 1.f) {
-			Set_Next_State(STATE_GAME);
+			GameState_SetNext(STATE_GAME);
 			return;
 		}
 	}
@@ -898,7 +896,7 @@ void draw_logo_image(void) {
 void change_screen(void) {
 	//is_clicked = 0;
 	game_transition = 0.f;
-	//Set_Next_State(STATE_GAME);
+	//GameState_SetNext(STATE_GAME);
 }
 
 void change_resolution(int num) {

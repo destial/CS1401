@@ -45,11 +45,11 @@ static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
 }
 
 void Particles_Preload(void) {
-	particle_types[PARTICLE_FLAME] = create_particle_data(Asset_GetImage(FLAME_PARTICLE_SPRITE_ASSET), 2, 2);
-	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 5, 5);
-	particle_types[PARTICLE_RAINBOW_SPARKLE] = create_particle_data(Asset_GetImage(RAINBOW_SPARKLE_SPRITE_ASSET), 2, 2);
-	particle_types[PARTICLE_HALO] = create_particle_data(Asset_GetImage(HALO_SPRITE_ASSET), 8, 6);
-	particle_types[PARTICLE_STAR] = create_particle_data(Asset_GetImage(YELLOW_STAR), 1, 1);
+	//particle_types[PARTICLE_FLAME] = create_particle_data(Asset_GetImage(FLAME_PARTICLE_SPRITE_ASSET), 2, 2);
+	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 3, 3);
+	//particle_types[PARTICLE_RAINBOW_SPARKLE] = create_particle_data(Asset_GetImage(RAINBOW_SPARKLE_SPRITE_ASSET), 2, 2);
+	//particle_types[PARTICLE_HALO] = create_particle_data(Asset_GetImage(HALO_SPRITE_ASSET), 8, 6);
+	//particle_types[PARTICLE_STAR] = create_particle_data(Asset_GetImage(YELLOW_STAR), 1, 1);
 }
 
 void Particles_Spawn(ParticleType type, CP_Vector pos, int amount, float radius, float speed, float duration, float minSize, float maxSize) {

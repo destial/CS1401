@@ -66,25 +66,8 @@ void write_content(const char* filename, char* content) {
 // split the given string from (131231,14512) into a proper vector
 // sourced from https://stackoverflow.com/a/54450265
 CP_Vector parse_vector(char* line) {
-    const char* s = line;
     CP_Vector v = CP_Vector_Set(0.f, 0.f);
-    bool x = true;
-    while (*(s += strspn(s, ",")) != '\0') {
-        size_t len = strcspn(s, ",");
-        char b[64];
-        // instead of printing, use the nth parsed token for key sorting
-        sprintf_s(b, 64, "%.*s", (int)len, s);
-        if (x) { // the first one is always the x value
-            v.x = (float)atof(b);
-            x = false;
-        }
-        else { // the next one is always the y value
-            v.y = (float)atof(b);
-            break; // we only need x & y, so break after reading the y
-        }
-
-        s += len;
-    }
+    sscanf_s(line, "%f,%f", &v.x, &v.y);
     return v;
 }
 

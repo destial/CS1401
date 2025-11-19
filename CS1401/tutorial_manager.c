@@ -27,7 +27,7 @@ void Tutorial_Load(bool tut_mode) {
 	if (tut_mode) {
 		switch (curr_tutorial_phase) {
 		case TUT_PHASE_DRAG_BALL:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 14, 5, 5.f);
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 8, 6, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Click and drag a golf ball to aim your shot.\n"
 				"Release to swing.\n"
@@ -35,22 +35,31 @@ void Tutorial_Load(bool tut_mode) {
 				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_ITEM:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 11, 3, 5.f);
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 9, 5, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Roll over power-ups to activate them:\n"
-				"Feather = speed boost,\n"
-				"Big Mushroom = grow,\n"
-				"Small Mushroom = shrink,\n"
-				"Arrows = reverse direction.\n"
+				"Bolt = Speed Boost,\n"
+				"Red Mushroom = Grow,\n"
+				"Blue Mushroom = Shrink,\n"
+				"Arrows = Reverse Direction,\n"
+				"Coins = To buy in the shop.\n"
 				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_TERRAIN:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 6, 6, 5.f);
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 11, 44, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Different terrains affect your ball:\n"
 				"Sand slows down,\n"
 				"Ice makes you slide,\n"
 				"Red pits reset your ball to its previous spot.\n"
+				"Click anywhere to start playing!\n");
+			break;
+		case TUT_PHASE_PORTAL:
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_4_ASSET, 6, 6, 5.f);
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+				"Sometimes there are portals:\n"
+				"Teleport the ball from one\n"
+				"portal to another.\n"
 				"Click anywhere to start playing!\n");
 			break;
 		default: break;

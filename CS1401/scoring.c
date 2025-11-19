@@ -242,25 +242,25 @@ void scoring_update(void) {
 		//click on exit
 		if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, clickbb_x, clickbb_y) == 1) {
 			reward_given = 0;
-			Set_Next_State(STATE_MAINMENU);
+			GameState_SetNext(STATE_MAINMENU);
 		}
 		//click on replay
 		if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, clickbb_x, clickbb_y) == 1) {
 			//Set state to current level
 			//Set_Current_Level(Get_Current_Level());
 			reward_given = 0;
-			Set_Next_State(STATE_GAME);
+			GameState_SetNext(STATE_GAME);
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
 			if ((Game_GetLevel() + 1) == 6) {
 				reward_given = 0;
-				Set_Next_State(STATE_MAINMENU);
+				GameState_SetNext(STATE_MAINMENU);
 			}
 			else {
 				reward_given = 0;
 				Game_SetLevel(Game_GetLevel() + 1);
-				Set_Next_State(STATE_GAME);
+				GameState_SetNext(STATE_GAME);
 			}
 		}
 	}
