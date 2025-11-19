@@ -63,6 +63,8 @@
 #define SB_BUTTON_GREEN "Assets/Images/green_button_square_flat.png"
 #define SB_BUTTON_GREY "Assets/Images/grey_button_square_flat.png"
 #define CURSOR_ASSET "Assets/Images/cursor.png"
+#define CURSOR_GRAB_ASSET "Assets/Images/cursor_grab.png"
+#define CURSOR_POINT_ASSET "Assets/Images/cursor_point.png"
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"

@@ -288,6 +288,7 @@ void main_menu_init(void)
 void main_menu_update(void) 
 {
 	CP_Graphics_ClearBackground(CP_Color_Create(255, 255, 255, 255));
+	GameSetting_SetCursor(CURSOR_DEFAULT);
 	CP_Settings_Scale(1.f, 1.f);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -375,7 +376,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y) && !is_overlayed)
 		{
-
+			GameSetting_SetCursor(CURSOR_POINT);
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 9.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.0f, CP_System_GetDt() * 5);
@@ -413,6 +414,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 
 	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y) && !is_overlayed)
 	{
+		GameSetting_SetCursor(CURSOR_POINT);
 		buttons[9].scale.x = CP_Math_LerpFloat(buttons[9].scale.x, 9.0f, CP_System_GetDt() * 5);
 		buttons[9].scale.y = CP_Math_LerpFloat(buttons[9].scale.y, 4.0f, CP_System_GetDt() * 5);
 		buttons[9].text_size = CP_Math_LerpFloat(buttons[9].text_size, 2.0f, CP_System_GetDt() * 5);
@@ -468,6 +470,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 		{
+			GameSetting_SetCursor(CURSOR_POINT);
 			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
@@ -519,6 +522,7 @@ void volume_bar(float mouse_x, float mouse_y) {
 	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && game_transition < 0.f) {
 		
 		if (check_mouse_pos_volume(mouse_x, mouse_y, 0.22f * CP_System_GetWindowWidth(), 0.4f * CP_System_GetWindowHeight(), 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1)) {
+			GameSetting_SetCursor(CURSOR_GRAB);
 			sfx_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
 			CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
 		}
@@ -528,7 +532,7 @@ void volume_bar(float mouse_x, float mouse_y) {
 	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && game_transition < 0.f) {
 		
 		if (check_mouse_pos_volume(mouse_x, mouse_y, 0.22f * CP_System_GetWindowWidth(), 0.55f * CP_System_GetWindowHeight(), 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1)) {
-
+			GameSetting_SetCursor(CURSOR_GRAB);
 			music_limit = (mouse_x - CP_System_GetWindowWidth() * 0.22f) / (27.0f * CP_System_GetWindowWidth() / world_width1);
 			CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
 		}
@@ -555,6 +559,7 @@ void settings_button(float mouse_x, float mouse_y) {
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 		{
+			GameSetting_SetCursor(CURSOR_POINT);
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
@@ -590,6 +595,7 @@ void settings_button(float mouse_x, float mouse_y) {
 	//telling what the button should do
 	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 	{
+		GameSetting_SetCursor(CURSOR_POINT);
 		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 7.0f, CP_System_GetDt() * 5);
 		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 3.0f, CP_System_GetDt() * 5);
 		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 1.3f, CP_System_GetDt() * 5);
@@ -628,7 +634,7 @@ void shops_button(float mouse_x, float mouse_y)
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 		{
-
+			GameSetting_SetCursor(CURSOR_POINT);
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
@@ -680,6 +686,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 	//telling what the button should do
 	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 	{
+		GameSetting_SetCursor(CURSOR_POINT);
 		buttons[3].scale.x = CP_Math_LerpFloat(buttons[3].scale.x, 3.0f, CP_System_GetDt() * 5);
 		buttons[3].scale.y = CP_Math_LerpFloat(buttons[3].scale.y, 3.0f, CP_System_GetDt() * 5);
 		buttons[3].text_size = CP_Math_LerpFloat(buttons[3].text_size, 3.f, CP_System_GetDt() * 5);
@@ -706,6 +713,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 	//telling what the button should do
 	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 	{
+		GameSetting_SetCursor(CURSOR_POINT);
 		if (is_setting_clicked == 1) {
 			buttons[7].scale.x = CP_Math_LerpFloat(buttons[7].scale.x, 3.0f, CP_System_GetDt() * 5);
 			buttons[7].scale.y = CP_Math_LerpFloat(buttons[7].scale.y, 3.0f, CP_System_GetDt() * 5);
@@ -739,6 +747,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 	//telling what the button should do
 	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 	{
+		GameSetting_SetCursor(CURSOR_POINT);
 		if (is_shop_clicked == 1) {
 			buttons[10].scale.x = CP_Math_LerpFloat(buttons[10].scale.x, 3.0f, CP_System_GetDt() * 5);
 			buttons[10].scale.y = CP_Math_LerpFloat(buttons[10].scale.y, 3.0f, CP_System_GetDt() * 5);

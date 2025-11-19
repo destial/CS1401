@@ -5,20 +5,12 @@
 #include "utils.h"
 #include "asset_manager.h"
 #include "particle_manager.h"
+#include "game_settings.h"
 
 static CP_Image splash_logo;
 static float splash_alpha = 0.f;
 static float splash_duration = 2.f;
 static bool splash_revert = false;
-
-static void render_cursor(void) {
-	CP_System_ShowCursor(!CP_System_GetWindowFocus());
-	if (CP_System_GetWindowFocus()) {
-		CP_Settings_ImageMode(CP_POSITION_CORNER);
-		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-		CP_Image_DrawAdvanced(Asset_GetImage(CURSOR_ASSET), CP_Input_GetMouseX(), CP_Input_GetMouseY(), 24.f, 24.f, 255, 0.f);
-	}
-}
 
 void splash_screen_init(void)
 {
@@ -33,7 +25,7 @@ void splash_screen_init(void)
 	CP_System_SetWindowSize(1600, 900); // requirement
 	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate() * 1.f);
 	CP_System_SetWindowTitle("GGCode - GGGolf Game");
-	CP_Engine_SetPostUpdateFunction(render_cursor);
+	CP_Engine_SetPostUpdateFunction(GameSetting_RenderCursor);
 	hIcon = LoadImageA(0, "Assets/icon.ico", IMAGE_ICON, 0, 0, LR_DEFAULTSIZE | LR_LOADFROMFILE);
 	if (hIcon) {
 		// change both big and small icons to the same icon handle

@@ -5,6 +5,7 @@
 #include "particle_manager.h"
 #include "state_manager.h"
 #include "utils.h"
+#include "game_settings.h"
 
 static CP_Image end_logo[2];
 static float end_alpha = 0.f;
@@ -14,6 +15,7 @@ static int end_index = 0;
 
 void end_state_init(void) 
 {
+	GameSetting_SetCursor(CURSOR_DEFAULT);
 	GameState_SetCurrent(STATE_EXIT);
 	printf("Init end\n");
 	end_logo[0] = Asset_GetImage(TEAM_CREDITS_ASSET);

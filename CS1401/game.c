@@ -165,6 +165,7 @@ static void restart_level(void) {
 void game_init(void)
 {
 	GameState_SetCurrent(STATE_GAME);
+	GameSetting_SetCursor(CURSOR_POINT);
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	printf("Init game\n");
 	switch (equipped_index) {
@@ -231,6 +232,7 @@ void game_init(void)
 
 void game_update(void)
 {
+	GameSetting_SetCursor(CURSOR_DEFAULT);
 	Process_Inputs();
 
 	if (Tutorial_GetMode()) {
@@ -726,6 +728,8 @@ void Game_RenderUI(void) {
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
 		}
+
+		GameSetting_SetCursor(CURSOR_GRAB);
 	}
 	else if (playable && all_balls_stopped && !swinging) { // render red arrow on every ball to indicate playability
 		GolfBall* golf_arr = Get_Golfs();

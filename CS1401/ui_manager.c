@@ -8,6 +8,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "ui_manager.h"
+#include "game_settings.h"
 
 #ifndef MAX_UI_OBJECTS
 #define MAX_UI_OBJECTS 16
@@ -279,6 +280,7 @@ float UI_SliderHorizontal(float x, float y, float w, float h, CP_Color backgroun
 	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
 		float new_val = (mouse_x - (x - (w * 0.5f))) / w;
 		_ui_elements.sliders[_ui_elements.sliders_length - 1].value = new_val;
+		GameSetting_SetCursor(CURSOR_GRAB);
 	}
 	return _ui_elements.sliders[_ui_elements.sliders_length - 1].value;
 }
@@ -308,6 +310,7 @@ float UI_SliderHorizontalImage(float x, float y, float w, float h, CP_Image back
 	if (dragable && CP_Input_MouseDragged(MOUSE_BUTTON_1) && IsSliderHighlight(&_ui_elements.sliders[_ui_elements.sliders_length - 1], mouse_x, mouse_y)) {
 		float new_val = (mouse_x - (x - (w * 0.5f))) / w;
 		_ui_elements.sliders[_ui_elements.sliders_length - 1].value = new_val;
+		GameSetting_SetCursor(CURSOR_GRAB);
 	}
 	return _ui_elements.sliders[_ui_elements.sliders_length - 1].value;
 }
@@ -374,7 +377,9 @@ void UI_Render(void) {
 			float h = button->h;
 
 			CP_BOOL c = IsButtonHighlight(button, mouse_x, mouse_y);
-
+			if (c && (button->hover_image != button->back_image)) {
+				GameSetting_SetCursor(CURSOR_POINT);
+			}
 			// if button color
 			if (button->back_image == NULL) {
 				CP_Settings_RectMode(CP_POSITION_CENTER);

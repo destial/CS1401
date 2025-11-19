@@ -7,8 +7,10 @@
 
 #include "game_settings.h"
 #include "data_manager.h"
+#include "asset_manager.h"
 
 static Map settings_file = NULL;
+static CursorType current_cursor = CURSOR_DEFAULT;
 
 static void load_settings_file(void) {
 	settings_file = Map_Load("user.data");
@@ -18,6 +20,31 @@ static void load_settings_file(void) {
 		settings_file = Map_AddFloat(settings_file, "music_volume", 1.f);
 		settings_file = Map_AddBool(settings_file, "high_quality", false);
 		settings_file = Map_AddInt(settings_file, "coins", 0);
+	}
+}
+
+void GameSetting_SetCursor(CursorType cursor) {
+	current_cursor = cursor;
+}
+
+void GameSetting_RenderCursor(void) {
+	CP_System_ShowCursor(!CP_System_GetWindowFocus());
+	if (CP_System_GetWindowFocus()) {
+		CP_Settings_ImageMode(CP_POSITION_CORNER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+		CP_Image cursor;
+		switch (current_cursor) {
+		case CURSOR_GRAB:
+			cursor = Asset_GetImage(CURSOR_GRAB_ASSET);
+			break;
+		case CURSOR_POINT:
+			cursor = Asset_GetImage(CURSOR_POINT_ASSET);
+			break;
+		default:
+			cursor = Asset_GetImage(CURSOR_ASSET);
+			break;
+		}
+		CP_Image_DrawAdvanced(cursor, CP_Input_GetMouseX(), CP_Input_GetMouseY(), 24.f, 24.f, 255, 0.f);
 	}
 }
 

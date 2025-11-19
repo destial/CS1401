@@ -10,6 +10,17 @@
 #define GAME_SETTINGS_H
 #include "utils.h"
 
+typedef enum CursorEnum {
+	CURSOR_DEFAULT = 0,
+	CURSOR_POINT,
+	CURSOR_GRAB,
+	CURSOR_ROTATE
+} CursorType;
+
+void GameSetting_SetCursor(CursorType cursor);
+
+void GameSetting_RenderCursor(void);
+
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get a game setting value as a boolean

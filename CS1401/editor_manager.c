@@ -10,6 +10,7 @@
 #include "editor_manager.h"
 #include "utils.h"
 #include "asset_manager.h"
+#include "game_settings.h"
 
 typedef enum EditingType {
 	EDIT_NONE = 0,
@@ -387,7 +388,8 @@ void Editor_Update_End(void) {
 	if (current_editing == NULL)
 		return;
 
-	if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) {
+	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT)) {
+		GameSetting_SetCursor(CURSOR_GRAB);
 		if ((current_type == EDIT_WALL || current_type == EDIT_MIDDLE_WALL) && Check_On_Wall((Wall*)current_editing)) {
 			current_dragging = current_editing;
 		}
@@ -404,7 +406,8 @@ void Editor_Update_End(void) {
 			current_dragging = current_editing;
 		}
 	}
-	else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) {
+	else if (CP_Input_MouseDown(MOUSE_BUTTON_RIGHT)) {
+		GameSetting_SetCursor(CURSOR_GRAB);
 		current_dragging = current_editing;
 	}
 	else {
@@ -414,6 +417,7 @@ void Editor_Update_End(void) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 	if (current_dragging != NULL) {
 		if (CP_Input_MouseDragged(MOUSE_BUTTON_LEFT)) { // translate
+			GameSetting_SetCursor(CURSOR_GRAB);
 			if (current_type == EDIT_WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
@@ -443,6 +447,7 @@ void Editor_Update_End(void) {
 			}
 		}
 		else if (CP_Input_MouseDragged(MOUSE_BUTTON_RIGHT)) { // rotate
+			GameSetting_SetCursor(CURSOR_GRAB);
 			if (current_type == EDIT_WALL || current_type == EDIT_MIDDLE_WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->angle = CP_Vector_AngleCW(CP_Vector_Subtract(wall->pos, mouse_world), current_editing_offset);
