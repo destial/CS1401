@@ -46,7 +46,7 @@ void Tutorial_Load(bool tut_mode) {
 				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_TERRAIN:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 11, 44, 5.f);
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 11, 4, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Different terrains affect your ball:\n"
 				"Sand slows down,\n"

@@ -8,7 +8,7 @@
 
 static CP_Image end_logo[2];
 static float end_alpha = 0.f;
-static float end_duration = 2.f;
+static float end_duration = 1.f;
 static bool end_revert = false;
 static int end_index = 0;
 
@@ -28,7 +28,7 @@ void end_state_init(void)
 void end_state_update(void) 
 {
 	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
-	if (end_revert == 0) {
+	if (!end_revert) {
 		end_alpha += CP_System_GetDt() / end_duration;
 		if (end_alpha >= 1.f) {
 			end_revert = true;
@@ -37,9 +37,9 @@ void end_state_update(void)
 	else {
 		end_alpha -= CP_System_GetDt() / end_duration;
 	}
-	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);;
+	end_alpha = CP_Math_ClampFloat(end_alpha, 0.f, 1.f);
 	
-	CP_Image_Draw(end_logo[end_index], 0.f, 0.f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f, (int)(end_alpha * 255.f));
+	CP_Image_Draw(end_logo[end_index], 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int)(end_alpha * 255.f));
 
 	if (end_revert && end_alpha == 0.f) {
 		end_index++;

@@ -36,7 +36,7 @@ void splash_screen_init(void)
 void splash_screen_update(void)
 {
 	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
-	if (splash_revert == 0) {
+	if (!splash_revert) {
 		splash_alpha += 1.5f * CP_System_GetDt() / splash_duration;
 		if (splash_alpha >= 1.f) {
 			splash_revert = true;

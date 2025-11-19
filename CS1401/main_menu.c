@@ -64,6 +64,9 @@ void main_menu_init(void)
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
+	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_MUSIC, music_limit);
+	CP_Sound_SetGroupVolume(CP_SOUND_GROUP_SFX, sfx_limit);
+
 	//play button
 	buttons[0].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	buttons[0].pos.x = world_width1 * 0.5f;

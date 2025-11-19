@@ -758,16 +758,16 @@ void Game_RenderUI(void) {
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.05f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.06f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
 
 		char tm[32]; sprintf_s(tm, 32, "Timer: %.2fs", game_timer);
-		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 5.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
 		
 		UI_SetPriority(-5);
 		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.85f, 40.f * (CP_System_GetWindowWidth() / 1600.f), 300 * (CP_System_GetWindowWidth() / 1600.f), 50 * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), power_color, power_val, false);
@@ -808,11 +808,11 @@ void Game_RenderUI(void) {
 	}
 
 	// render debug text on top of everything
-	CP_Settings_Fill(Get_Color(COLOR_GREEN));
-	CP_Settings_TextSize(30.f);
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
+	CP_Settings_TextSize(25.f);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
-	CP_Font_DrawText(fps, 5, 5);
+	CP_Font_DrawText(fps, 5.f, 5.f);
 	if (debug_enabled) {
 		CP_Settings_TextSize(20.f);
 		Game_RenderDebug();

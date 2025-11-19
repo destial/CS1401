@@ -9,14 +9,13 @@
 #ifndef PARTICLE_MANAGER_H
 #define PARTICLE_MANAGER_H
 #include "cprocessing.h"
-#include "sprite_manager.h"
 
 typedef enum ParticleTypeEnum {
 	//PARTICLE_FLAME = 0,
 	PARTICLE_SPARKLE,
 	//PARTICLE_RAINBOW_SPARKLE,
 	//PARTICLE_HALO,
-	//PARTICLE_STAR,
+	PARTICLE_STAR,
 	PARTICLE_LAST
 } ParticleType;
 
