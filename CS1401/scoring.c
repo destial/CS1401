@@ -473,7 +473,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Font_DrawText(b, coords.x, coords.y);*/
 
 		//Change level clear colour based on user score.
-		CP_Settings_TextSize(50.0f);
+		CP_Settings_TextSize(60.0f);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		sprintf_s(b, 50, "LEVEL CLEARED!");
 		CP_Font_DrawText(b, coords.x, coords.y);
@@ -482,13 +482,14 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		char coin_info[100];
 
 		// Showing coins earned
+		CP_Settings_TextSize(40.0f);
 		sprintf_s(coin_info, 50, "Coins Earned: +%d", coins_earned_last_level);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
-		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.1f);
+		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.13f);
 
 		// Showing total coins
 		sprintf_s(coin_info, 50, "Total Coins:  %d", getCoins());
-		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.2f);
+		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.23f);
 
 		CP_Settings_Fill(Get_Color(COLOR_WHITE));
 
@@ -557,7 +558,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Font_DrawText(a, 0.5f * win_width, 0.165f * win_height);
 
 
-		CP_Settings_TextSize(50.0f);
+		CP_Settings_TextSize(60.0f);
 		//Say Times up!, you lost
 		//try again
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
