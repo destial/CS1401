@@ -13,7 +13,6 @@
 #include "game.h"
 #include "utils.h"
 #include "main_menu.h"
-
 #include "scoring.h"
 #include "level_manager.h"
 #include "asset_manager.h"
@@ -35,7 +34,7 @@ static CP_Vector mouse = { 0, 0 }, mouse_world = { 0, 0 };
 
 // currently dragging ball
 static GolfBall* current;
-static float swinging = 0.f;
+static float swinging;
 
 // scoreboard position
 static CP_Vector sBoard;
@@ -52,9 +51,9 @@ static bool editor_mode = false;
 // editable setting
 static float resistance = 1.25f;
 static float power = 2.f;
-static char current_level = 1;
-static float current_time, game_timer, menu_transition = -1.f;
+static unsigned char current_level = 1;
 #define MAX_PUTT_POWER 75.f
+#define MIN_VEL 0.05f
 
 // particles
 static ParticleType particle_type = 0;
@@ -66,14 +65,14 @@ static CP_Matrix camera_matrix;
 static float camera_scale;
 
 // reset on level loading
-static float scale_transition = 1.f, turn_now = 0.f, turn_now_hold = 0.f, pause_menu_transition = -1.f;
-static bool playable = false, win = false, has_won = false, all_balls_stopped = true, resetting = false, turn_now_revert = false, pause_menu = false;
-#define MIN_VEL 0.05f
+static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, current_time, menu_transition;
+static bool playable, win, has_won, all_balls_stopped, resetting, turn_now_revert, pause_menu;
 
 // load based on level
 static ObjectArray golf_balls, holes, walls, items, terrains;
 
-static CP_Vector world_limits, og_world_limits; // 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
+// 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
+static CP_Vector world_limits, og_world_limits; 
 
 static Wall* Get_Walls() {
 	return walls.arr; // for auto casting
@@ -175,11 +174,11 @@ void game_init(void)
 	case 1:
 		golf_ball_image = Asset_GetImage(GOLF_BALL_EYE_ASSET);
 		break;
-
 	case 2:	
 		golf_ball_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
 		break;
 	}
+
 	background_image = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	hit_sound = Asset_GetAudio(GOLF_HIT_WALL_ASSET);
 	item_image_cache[ITEM_BOOST - 1] = Asset_GetImage(BOOST_ITEM_ASSET);
@@ -190,38 +189,24 @@ void game_init(void)
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 
-	CP_Settings_TextSize(20.f);
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
-
-	items.arr = NULL;
-	walls.arr = NULL;
-	terrains.arr = NULL;
-	holes.arr = NULL;
-	golf_balls.arr = NULL;
+	// null instantiation
+	items.arr = walls.arr = terrains.arr = holes.arr = golf_balls.arr = NULL;
 
 	// load the current level file set from current_level variable
 	Game_Load();
 
 	// reset on level loading
-	scale_transition = 1.f;
-	menu_transition = -1.f;
-	turn_now = 0.f;
-	turn_now_hold = 0.f;
-	turn_now_revert = false;
-	playable = false;
-	win = false;
-	has_won = false;
+	scale_transition = camera_scale = 1.f;
+	menu_transition = pause_menu_transition = -1.f;
+	turn_now = turn_now_hold = swinging = 0.f;
+	turn_now_revert = playable = win = has_won = editor_mode = pause_menu = false;
 	all_balls_stopped = true;
-	editor_mode = false;
-	pause_menu_transition = -1.f;
-	pause_menu = false;
 
 	// fix timestep
 	current_time = CP_System_GetSeconds();
 
 	// camera matrix transformation
 	camera_matrix = CP_Matrix_Identity();
-	camera_scale = 1.f;
 	camera_pos = CP_Vector_Set(0, 0);
 	
 	scoring_init();
@@ -751,9 +736,9 @@ void Game_RenderUI(void) {
 	}
 
 	if (playable && !all_balls_stopped) {
-		CP_Vector coords = World_To_Screen(1.5f, 1.5f, world_limits.x, world_limits.y);
-		UI_ButtonImageText(coords.x, coords.y, 30.f, 30.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
-		UI_TextLeft(coords.x + 20.f, coords.y, 200.f, 30.f, Get_Color(COLOR_BLACK), "Reset to last (+1)", 20.f);
+		CP_Vector coords = World_To_Screen(1.7f, 1.7f, world_limits.x, world_limits.y);
+		UI_ButtonImageText(coords.x, coords.y, 40.f, 40.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
+		UI_TextLeft(coords.x + 30.f, coords.y, 200.f, 40.f, Get_Color(COLOR_BLACK), "Reset to last (+1)", 30.f);
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
