@@ -61,12 +61,18 @@ typedef struct Star {
 	float width;
 	float height;
 } star;
+
+typedef struct TextBox {
+	float x;
+	float y;
+} TextBox;
 //CP_Graphics_DrawRect(0.3 * CP_System_GetWindowWidth(), 0.7f * CP_System_GetWindowHeight(), 8.0f * CP_System_GetWindowWidth() / world_width, 4.f * CP_System_GetWindowHeight() / world_height);
 //Draw exit buttons
 
 bb scorebb[3];
 star scoress[3];
 star scoregs[3];
+TextBox Text[4];
 
 CP_Color white_colour;
 
@@ -221,6 +227,15 @@ void scoring_init() {
 	scoregs[2].height = 0.20f * win_height;
 	scoregs[2].img = Asset_GetImage(YELLOW_STAR);
 
+	//------------------------------------------------------------------------------------------------
+	//Initialise the text pos
+	//Scoreboard text
+	Text[0].x = 0.5f * win_width;
+	Text[0].y = 0.165f * win_height;
+
+	//Game win/lose pos
+
+
 	//reset the clicks
 	clickbb_x = 0; 
 	clickbb_y = 0;
@@ -334,6 +349,17 @@ void scoring_update(void) {
 	scoregs[2].width = gs_width * star_mul;
 	scoregs[2].height = gs_height * star_mul;
 
+	//Initialise the text pos
+	//Scoreboard text
+	Text[0].x = 0.5f * win_width;
+	Text[0].y = 0.165f * win_height;
+
+	char a[50];
+
+	CP_Settings_Fill(Get_Color(COLOR_BLACK));
+	CP_Settings_TextSize(70.0f);
+	sprintf_s(a, 50, "SCOREBOARD");
+	CP_Font_DrawText(a, Text[0].x, Text[0].y);
 
 }
 
@@ -522,7 +548,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
 		CP_Settings_TextSize(70.0f);
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, 0.5f * win_width, 0.165f * win_height);
+		CP_Font_DrawText(a, Text[0].x, Text[0].y);
 
 		//Drawing the grey star points based on the points they get.
 		CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
@@ -555,7 +581,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
 		CP_Settings_TextSize(70.0f);
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, 0.5f * win_width, 0.165f * win_height);
+		CP_Font_DrawText(a, Text[0].x, Text[0].y);
 
 
 		CP_Settings_TextSize(60.0f);
