@@ -251,7 +251,7 @@ void scoring_update(void) {
 	float win_width = (float)CP_System_GetWindowWidth();
 	float win_height = (float)CP_System_GetWindowHeight();
 
-	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT))
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && !GameState_IsTransitioning())
 	{
 		clickbb_x = CP_Input_GetMouseX();
 		clickbb_y = CP_Input_GetMouseY();

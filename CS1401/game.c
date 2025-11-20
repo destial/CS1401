@@ -41,10 +41,8 @@ static CP_Vector sBoard;
 
 #ifdef _DEBUG
 static bool debug_enabled = true;
-static bool _debug_mode = true;
 #else
 static bool debug_enabled = false;
-static bool _debug_mode = false;
 #endif
 static bool editor_mode = false;
 
@@ -660,15 +658,17 @@ static void pausemenu_render(void) {
 		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
 	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
 		600.f * s_scale.x, 40.f * s_scale.y,
-		Get_Color(COLOR_BLACK), "Open up hints page", 30.f * s_scale.x);
+		Get_Color(COLOR_WHITE), "Open up hints page", 30.f * s_scale.x);
 }
 
 // render sidebar hints
 static void hint_render(void) {
 	CP_Vector s_scale = Screen_Scale();
+	float t = hint_transition * 2.f;
+	t = min_max(t, 0.f, 1.f);
 	UI_SetPriority(4);
 	UI_Button(
-		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.5f,
 		300.f * s_scale.x,
 		800.f * s_scale.y,
@@ -677,7 +677,7 @@ static void hint_render(void) {
 	UI_SetPriority(5);
 
 	UI_Text(
-		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.1f,
 		250.f * s_scale.x, 40.f * s_scale.y,
 		Get_Color(COLOR_BLACK), "HINTS", 60.f * s_scale.x);
@@ -685,13 +685,13 @@ static void hint_render(void) {
 	for (int i = 0; i < sizeof(game_hints) / sizeof(Hints); ++i) {
 		Hints* h = &game_hints[i];
 		UI_ButtonImageText(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 110.f * s_scale.x,
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t) - 110.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			40.f * s_scale.x, 40.f * s_scale.y,
 			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
 
 		UI_TextLeft(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 80.f * s_scale.x,
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t) - 80.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			250.f * s_scale.x, 40.f * s_scale.y,
 			Get_Color(COLOR_BLACK), h->text, 30.f * s_scale.x);
@@ -760,7 +760,7 @@ void Game_Render(void)
 	if (!tab) {
 		hint_transition -= CP_System_GetDt();
 	}
-	hint_transition = CP_Math_ClampFloat(hint_transition, 0.f, 1.f);
+	hint_transition = min_max(hint_transition, 0.f, 1.f);
 	
 	// render hints siderbar
 	hint_render();
@@ -780,16 +780,15 @@ void Game_RenderUI(void) {
 	
 	if (current != NULL) { // render the current putt power when user input
 		CP_Vector world_ratios = Get_World_Ratios();
-		int x = (int)(CP_Vector_Length(current->vel) * 2.f * (world_limits.x / world_limits.y));
-		int red = CP_Math_ClampInt(x, 0, 255);
+		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
+		int red = CP_Math_LerpInt(0, 255, power_val);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
-		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
-		power_val = min(1.f, power_val);
 		float w = world_ratios.x * 5.f;
 		float h = world_ratios.x;
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 		GolfBall* golf_arr = Get_Golfs();
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
 			if (ball == NULL || ball->scored)
@@ -798,7 +797,6 @@ void Game_RenderUI(void) {
 			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
 			CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
-			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
 		}
 
@@ -811,15 +809,15 @@ void Game_RenderUI(void) {
 		CP_Vector world_ratios = Get_World_Ratios();
 		float w = world_ratios.x;
 		float h = world_ratios.y;
-		float y_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
+		float y_mul = (sinf(5.f * CP_System_GetSeconds()) / 5.f) + 1.f;
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
 			if (ball == NULL || ball->scored)
 				continue;
 
-			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * y_mul), world_limits.x, world_limits.y);
-			CP_Settings_ImageMode(CP_POSITION_CENTER);
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w, h, 255, -90.f);
+			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * 0.5f), world_limits.x, world_limits.y);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y - (24.f * y_mul * s_scale.y), w, h, 255, -90.f);
 		}
 	}
 
@@ -853,7 +851,7 @@ void Game_RenderUI(void) {
 		UI_SetPriority(0);
 	}
 
-	if ((Game_LevelLost() || Game_LevelWon() || (_debug_mode && CP_Input_KeyDown(KEY_TAB))) && !editor_mode) {
+	if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
@@ -1284,6 +1282,7 @@ void Game_RenderShadows(void) {
 void game_exit(void)
 {
 	// free level allocations
+	walls.length = items.length = terrains.length = golf_balls.length = holes.length = 0;
 	FREE_MEMORY(walls.arr);
 	FREE_MEMORY(items.arr);
 	FREE_MEMORY(terrains.arr);
