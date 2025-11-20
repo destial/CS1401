@@ -438,7 +438,7 @@ void Game_UpdatePhysics(float dt)
 				// item powerup checks here !!!!!
 				for (int j = 0; j < items.length; ++j) {
 					Item* item = item_arr + j;
-					if (item == NULL || item->collected)
+					if (item->collected)
 						continue;
 
 					if (Check_Item(item, golf))
@@ -466,8 +466,8 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// bound the ball at the left border
-			if (golf->pos.x < golf->diameter * 0.5f + (world_limits.x - world_limits.x)) {
-				golf->pos.x = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
+			if (golf->pos.x < golf->diameter * 0.5f) {
+				golf->pos.x = golf->diameter * 0.5f;
 				golf->vel.x = -golf->vel.x / resistance;
 				golf->vel.y = golf->vel.y / resistance;
 				CP_Sound_Play(hit_sound);
@@ -482,8 +482,8 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// bound the ball at the bottom border
-			if (golf->pos.y < golf->diameter * 0.5f + (world_limits.x - world_limits.x)) {
-				golf->pos.y = golf->diameter * 0.5f + (world_limits.x - world_limits.x);
+			if (golf->pos.y < golf->diameter * 0.5f) {
+				golf->pos.y = golf->diameter * 0.5f;
 				golf->vel.y = -golf->vel.y / resistance;
 				golf->vel.x = golf->vel.x / resistance;
 				CP_Sound_Play(hit_sound);
@@ -513,7 +513,7 @@ void Game_UpdatePhysics(float dt)
 		// check ball to ball collision
 		for (int j = i; j < golf_balls.length; ++j) {
 			GolfBall* other = golf_arr + j;
-			if (i == j || other == NULL || other->scored || other->scoring || other->destroyed)
+			if (i == j || other->scored || other->scoring || other->destroyed)
 				continue;
 
 			Check_Ball_Collision(golf, other);
@@ -522,7 +522,7 @@ void Game_UpdatePhysics(float dt)
 		// calculate if golf ball is inside the hole
 		for (int h = 0; h < holes.length; ++h) {
 			Hole* hole = hole_arr + h;
-			if (hole == NULL || hole->destroyed)
+			if (hole->destroyed)
 				continue;
 
 			float dist = CP_Vector_Distance(golf->pos, hole->pos);
@@ -547,7 +547,7 @@ void Game_UpdatePhysics(float dt)
 
 	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
-		if (wall == NULL || wall->destroyed)
+		if (wall->destroyed)
 			continue;
 
 		// update wall's normal
@@ -791,7 +791,7 @@ void Game_RenderUI(void) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
-			if (ball == NULL || ball->scored)
+			if (ball->scored)
 				continue;
 
 			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
@@ -813,7 +813,7 @@ void Game_RenderUI(void) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
-			if (ball == NULL || ball->scored)
+			if (ball->scored)
 				continue;
 
 			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * 0.5f), world_limits.x, world_limits.y);
@@ -911,7 +911,7 @@ void Game_RenderTerrains(void) {
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* terrain = terrain_arr + i;
-		if (terrain == NULL || terrain->destroyed)
+		if (terrain->destroyed)
 			continue;
 
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
@@ -952,7 +952,7 @@ void Game_RenderWalls(void) {
 	// main walls
 	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
-		if (wall == NULL || wall->destroyed)
+		if (wall->destroyed)
 			continue;
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
@@ -1036,7 +1036,7 @@ void Game_RenderHoles(void) {
 
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
-		if (hole == NULL || hole->destroyed)
+		if (hole->destroyed)
 			continue;
 
 		CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
@@ -1067,7 +1067,7 @@ void Game_RenderItems(void) {
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->destroyed || (item->collected && !editor_mode) )
+		if (item->destroyed || (item->collected && !editor_mode) )
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -1200,9 +1200,9 @@ void Game_RenderShadows(void) {
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 
 	// render wall shadows
-	for (int i = 1; i < walls.length; ++i) {
+	for (int i = 0; i < walls.length; ++i) {
 		Wall* wall = wall_arr + i;
-		if (wall == NULL || wall->destroyed)
+		if (wall->destroyed)
 			continue;
 
 		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
@@ -1221,11 +1221,11 @@ void Game_RenderShadows(void) {
 	// render item shadow
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item == NULL || item->destroyed || (item->collected && !editor_mode))
+		if (item->destroyed || (item->collected && !editor_mode))
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
-		//CP_Settings_Fill(shadow);
+		
 		
 		CP_Image image = NULL;
 		switch (item->type) {
@@ -1267,7 +1267,7 @@ void Game_RenderShadows(void) {
 	// render ball shadow
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
-		if (golf == NULL || golf->scored || golf->destroyed) // ignore if golf ball is already scored
+		if (golf->scored || golf->destroyed) // ignore if golf ball is already scored
 			continue;
 
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
@@ -1336,7 +1336,7 @@ void Process_Inputs(void) {
 		GolfBall* golf_arr = Get_Golfs();
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* golf = golf_arr + i;
-			if (golf == NULL || golf->scored || golf->scoring)
+			if (golf->scored || golf->scoring)
 				continue;
 
 			golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
@@ -1539,7 +1539,7 @@ bool Check_Item(Item* item, GolfBall* ball) {
 				for (int i = 0; i < items.length; ++i) {
 					Item* it = item_arr + i;
 					// get the next portal if exists
-					if (it == NULL || it->destroyed || it == item || it->type != ITEM_PORTAL)
+					if (it->destroyed || it == item || it->type != ITEM_PORTAL)
 						continue;
 
 					// teleport the ball to the other portal
@@ -1650,7 +1650,7 @@ float Get_Resistance_At(CP_Vector pos) {
 	for (int i = 0; i < terrains.length; ++i) {
 		// find the terrain(s) at this spot
 		Terrain* terrain = terrain_arr + i;
-		if (terrain == NULL || terrain->destroyed)
+		if (terrain->destroyed)
 			continue;
 
 		// multiply the current resistance by the terrain's resistance
@@ -1731,8 +1731,6 @@ void Game_Load(void) {
 		int ball_index = 0;
 		for (int i = 0; i < loaded_level->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
 			GolfBall* ball = Get_Golfs() + ball_index;
-			if (ball == NULL)
-				continue;
 
 			ball->pos.x = loaded_level->golf_balls[i];
 			ball->pos.y = loaded_level->golf_balls[i + 1];
@@ -1755,8 +1753,6 @@ void Game_Load(void) {
 		int hole_index = 0;
 		for (int i = 0; i < loaded_level->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET) {
 			Hole* hole = Get_Holes() + hole_index;
-			if (hole == NULL)
-				continue;
 
 			hole->pos.x = loaded_level->holes[i];
 			hole->pos.y = loaded_level->holes[i + 1];
@@ -1773,8 +1769,6 @@ void Game_Load(void) {
 			int item_index = 0;
 			for (int i = 0; i < loaded_level->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET) {
 				Item* item = Get_Items() + item_index;
-				if (item == NULL)
-					continue;
 				// load the items according to index in array
 				item->pos.x = loaded_level->items[i];
 				item->pos.y = loaded_level->items[i + 1];
@@ -1799,8 +1793,6 @@ void Game_Load(void) {
 			int terrain_index = 0;
 			for (int i = 0; i < loaded_level->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET) {
 				Terrain* terrain = Get_Terrains() + terrain_index;
-				if (terrain == NULL)
-					continue;
 				// load the items according to index in array
 				terrain->pos.x = loaded_level->terrains[i];
 				terrain->pos.y = loaded_level->terrains[i + 1];
@@ -1827,8 +1819,6 @@ void Game_Load(void) {
 			int wall_index = 5;
 			for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
 				Wall* wall = Get_Walls() + wall_index;
-				if (wall == NULL)
-					continue;
 				// loading walls according to index in array
 				wall->pos.x = loaded_level->walls[i];
 				wall->pos.y = loaded_level->walls[i + 1];
@@ -1915,8 +1905,6 @@ Wall* Game_AddWall(CP_Vector pos) {
 	// object pooling, find an unused wall in memory first, if not we resize the array
 	for (int wall_index = 1; wall_index < walls.length; ++wall_index) {
 		Wall* w = Get_Walls() + wall_index;
-		if (w == NULL)
-			continue;
 		
 		// if there's an unused wall in the array, we overwrite it
 		if (w->destroyed) {
@@ -1954,8 +1942,6 @@ void Game_RemoveWall(Wall* wall) {
 	// make sure the middle wall is always skipped (element 0)
 	for (int wall_index = 1; wall_index < walls.length; ++wall_index) {
 		Wall* w = Get_Walls() + wall_index;
-		if (w == NULL)
-			continue;
 
 		if (w == wall) {
 			w->pos.x = -10.f;
@@ -1974,8 +1960,6 @@ Item* Game_AddItem(CP_Vector pos, ItemType type) {
 	// object pooling, find an unused item in memory first, if not we resize the array
 	for (int item_index = 0; item_index < items.length; ++item_index) {
 		Item* i = Get_Items() + item_index;
-		if (i == NULL)
-			continue;
 
 		// if there's an unused item in the array, we overwrite it
 		if (i->destroyed) {
@@ -2008,8 +1992,6 @@ Item* Game_AddItem(CP_Vector pos, ItemType type) {
 void Game_RemoveItem(Item* item) {
 	for (int item_index = 0; item_index < items.length; ++item_index) {
 		Item* i = Get_Items() + item_index;
-		if (i == NULL)
-			continue;
 
 		if (i == item) {
 			i->pos.x = -10.f;
@@ -2027,8 +2009,6 @@ GolfBall* Game_AddGolf(CP_Vector pos) {
 	// object pooling, find an unused ball in memory first, if not we resize the array
 	for (int ball_index = 0; ball_index < golf_balls.length; ++ball_index) {
 		GolfBall* b = Get_Golfs() + ball_index;
-		if (b == NULL)
-			continue;
 
 		// if there's an unused ball in the array, we overwrite it
 		if (b->destroyed) {
@@ -2072,8 +2052,6 @@ Hole* Game_AddHole(CP_Vector pos) {
 	// object pooling, find an unused hole in memory first, if not we resize the array
 	for (int hole_index = 0; hole_index < holes.length; ++hole_index) {
 		Hole* h = Get_Holes() + hole_index;
-		if (h == NULL)
-			continue;
 
 		// if there's an unused ball in the array, we overwrite it
 		if (h->destroyed) {
@@ -2100,8 +2078,6 @@ Hole* Game_AddHole(CP_Vector pos) {
 void Game_RemoveGolf(GolfBall* ball) {
 	for (int ball_index = 0; ball_index < golf_balls.length; ++ball_index) {
 		GolfBall* b = Get_Golfs() + ball_index;
-		if (b == NULL)
-			continue;
 
 		if (b == ball) {
 			b->pos.x = -10.f;
@@ -2116,8 +2092,6 @@ void Game_RemoveGolf(GolfBall* ball) {
 void Game_RemoveHole(Hole* hole) {
 	for (int hole_index = 0; hole_index < holes.length; ++hole_index) {
 		Hole* h = Get_Holes() + hole_index;
-		if (h == NULL)
-			continue;
 
 		if (h == hole) {
 			h->pos.x = -10.f;
@@ -2132,8 +2106,6 @@ void Game_RemoveHole(Hole* hole) {
 void Game_RemoveTerrain(Terrain* terrain) {
 	for (int terrain_index = 0; terrain_index < terrains.length; ++terrain_index) {
 		Terrain* t = Get_Terrains() + terrain_index;
-		if (t == NULL)
-			continue;
 
 		if (t == terrain) {
 			t->pos.x = -10.f;
@@ -2149,8 +2121,6 @@ Terrain* Game_AddTerrain(CP_Vector pos, TerrainType type) {
 	// object pooling, find an unused terrain in memory first, if not we resize the array
 	for (int terrain_index = 0; terrain_index < terrains.length; ++terrain_index) {
 		Terrain* t = Get_Terrains() + terrain_index;
-		if (t == NULL)
-			continue;
 
 		// if there's an unused terrain in the array, we overwrite it
 		if (t->destroyed) {
@@ -2220,8 +2190,6 @@ void Scale_World(float scale) {
 
 	for (int i = 5; i < walls.length; ++i) {
 		Wall* w = walls_arr + i;
-		if (w == NULL)
-			continue;
 
 		w->pos.x *= (world_limits.x / prev_x);
 		w->pos.y *= (world_limits.y / prev_y);
@@ -2229,8 +2197,6 @@ void Scale_World(float scale) {
 
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* g = golfs_arr + i;
-		if (g == NULL)
-			continue;
 
 		g->pos.x *= (world_limits.x / prev_x);
 		g->pos.y *= (world_limits.y / prev_y);
@@ -2238,8 +2204,6 @@ void Scale_World(float scale) {
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* it = items_arr + i;
-		if (it == NULL)
-			continue;
 
 		it->pos.x *= (world_limits.x / prev_x);
 		it->pos.y *= (world_limits.y / prev_y);
@@ -2247,8 +2211,6 @@ void Scale_World(float scale) {
 
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* h = holes_arr + i;
-		if (h == NULL)
-			continue;
 
 		h->pos.x *= (world_limits.x / prev_x);
 		h->pos.y *= (world_limits.y / prev_y);
@@ -2256,8 +2218,6 @@ void Scale_World(float scale) {
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* t = terrains_arr + i;
-		if (t == NULL)
-			continue;
 		
 		t->pos.x *= (world_limits.x / prev_x);
 		t->pos.y *= (world_limits.y / prev_y);

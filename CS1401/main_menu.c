@@ -44,6 +44,61 @@ static CP_Image background, setting_background, shop_background, golf_ball_defau
 static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
 
+
+static void background_ball_update(void) {
+	static CP_Vector ball_pos = { 2.5f, 2.5f };
+	static CP_Vector ball_vel = { 25.f, 25.f };
+	static float ball_angle = 0.f;
+	static float diameter = 3.f;
+
+	// bound the ball at the right border
+	if (ball_pos.x > world_width1 - diameter * 0.5f) {
+		ball_pos.x = world_width1 - diameter * 0.5f;
+		ball_vel.x = -ball_vel.x;
+		ball_vel.y = ball_vel.y;
+	}
+
+	// bound the ball at the left border
+	if (ball_pos.x < diameter * 0.5f) {
+		ball_pos.x = diameter * 0.5f;
+		ball_vel.x = -ball_vel.x;
+		ball_vel.y = ball_vel.y;
+	}
+
+	// bound the ball at the top border
+	if (ball_pos.y > world_height1 - diameter * 0.5f) {
+		ball_pos.y = world_height1 - diameter * 0.5f;
+		ball_vel.y = -ball_vel.y;
+		ball_vel.x = ball_vel.x;
+	}
+
+	// bound the ball at the bottom border
+	if (ball_pos.y < 1.f) {
+		ball_pos.y = 1.f;
+		ball_vel.y = -ball_vel.y ;
+		ball_vel.x = ball_vel.x;
+	}
+	ball_angle += (CP_Vector_Length(ball_vel) * 0.1f) * (ball_vel.x > 0.f ? 1.f : -1.f);
+	if (ball_angle > 360.f) {
+		ball_angle -= 360.f;
+	}
+	else if (ball_angle < 0.f) {
+		ball_angle += 360.f;
+	}
+	ball_pos = CP_Vector_Add(ball_pos, CP_Vector_Scale(ball_vel, CP_System_GetDt()));
+
+	CP_Vector coords = World_To_Screen(ball_pos.x, ball_pos.y, world_width1, world_height1);
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+	CP_Image_DrawAdvanced(golf_ball_default_image,
+		coords.x,
+		coords.y,
+		diameter * CP_System_GetWindowWidth() / world_width1,
+		diameter * CP_System_GetWindowWidth() / world_width1,
+		255,
+		ball_angle);
+}
+
 void exit_main_menu(void) {
 	GameState_SetNext(STATE_EXIT);
 }
@@ -244,6 +299,8 @@ void main_menu_update(void)
 
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
+
+	background_ball_update();
 
 	main_menu_button(mouse_x, mouse_y);
 	draw_logo_image();
