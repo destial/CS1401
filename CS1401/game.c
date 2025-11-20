@@ -80,7 +80,7 @@ typedef struct HintsStruct {
 	char* asset_path;
 } Hints;
 
-static Hints game_hints[5];
+static Hints game_hints[6];
 
 static Wall* Get_Walls() {
 	return walls.arr; // for auto casting
@@ -210,12 +210,16 @@ void game_init(void)
 	game_hints[2].key = " G ";
 
 	game_hints[3].asset_path = SMALL_BUTTON_GREY_ASSET;
-	game_hints[3].text = "Reset to last (+1)";
-	game_hints[3].key = " R ";
+	game_hints[3].text = "Change particles";
+	game_hints[3].key = " F ";
 
-	game_hints[4].asset_path = MOUSE_SCROLL_ASSET;
-	game_hints[4].text = "Change hit power";
-	game_hints[4].key = "";
+	game_hints[4].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[4].text = "Reset to last (+1)";
+	game_hints[4].key = " R ";
+
+	game_hints[5].asset_path = MOUSE_SCROLL_ASSET;
+	game_hints[5].text = "Change hit power";
+	game_hints[5].key = "";
 
 	// null instantiation
 	items.arr = walls.arr = terrains.arr = holes.arr = golf_balls.arr = NULL;
@@ -585,6 +589,7 @@ void Game_UpdatePhysics(float dt)
 }
 
 static void pausemenu_render(void) {
+	CP_Vector s_scale = Screen_Scale();
 	float mul = Math_CLerpFloat(pause_menu_transition > 1.f ? 1.f : -.5f, pause_menu_transition > 1.f ? 2.5f : 1.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition);
 	UI_SetPriority(1);
 	// tinted background
@@ -600,8 +605,8 @@ static void pausemenu_render(void) {
 	UI_Image(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() * 0.5f,
-		CP_System_GetWindowWidth() - (1000.f * (CP_System_GetWindowWidth() / 1600.f)),
-		CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
+		CP_System_GetWindowWidth() - (1000.f * s_scale.x),
+		CP_System_GetWindowHeight() - (300.f * s_scale.y),
 		Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
 	UI_SetPriority(3);
@@ -609,14 +614,14 @@ static void pausemenu_render(void) {
 	UI_Text(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-		300.f * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
-		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * (CP_System_GetWindowWidth() / 1600.f));
+		300.f * s_scale.x, 200 * s_scale.y,
+		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * s_scale.x);
 
 	// continue button
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
-		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * s_scale.x, 100.f * s_scale.y,
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		"CONTINUE")) {
@@ -627,7 +632,7 @@ static void pausemenu_render(void) {
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
-		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * s_scale.x, 100.f * s_scale.y,
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		"RESTART")) {
@@ -639,7 +644,7 @@ static void pausemenu_render(void) {
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f),
-		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * s_scale.x, 100.f * s_scale.y,
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		" QUIT ")) {
@@ -651,21 +656,22 @@ static void pausemenu_render(void) {
 		1.7f, world_limits.x, world_limits.y);
 	
 	UI_ButtonImageText(coords.x, coords.y, 
-		40.f * (CP_System_GetWindowWidth() / 1600.f), 40.f * (CP_System_GetWindowHeight() / 900.f),
+		40.f * s_scale.x, 40.f * s_scale.y,
 		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
-	UI_TextLeft(coords.x + (30.f * (CP_System_GetWindowWidth() / 1600.f)), coords.y,
-		600.f * (CP_System_GetWindowWidth() / 1600.f), 40.f * (CP_System_GetWindowHeight() / 900.f),
-		Get_Color(COLOR_BLACK), "Open up hints page", 30.f);
+	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
+		600.f * s_scale.x, 40.f * s_scale.y,
+		Get_Color(COLOR_BLACK), "Open up hints page", 30.f * s_scale.x);
 }
 
 // render sidebar hints
 static void hint_render(void) {
+	CP_Vector s_scale = Screen_Scale();
 	UI_SetPriority(4);
 	UI_Button(
 		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
 		CP_System_GetWindowHeight() * 0.5f,
-		300.f * (CP_System_GetWindowWidth() / 1600.f),
-		800.f * (CP_System_GetWindowHeight() / 900.f),
+		300.f * s_scale.x,
+		800.f * s_scale.y,
 		Get_Color(COLOR_GRAY), Get_Color(COLOR_GRAY));
 
 	UI_SetPriority(5);
@@ -673,19 +679,22 @@ static void hint_render(void) {
 	UI_Text(
 		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
 		CP_System_GetWindowHeight() * 0.1f,
-		250.f * (CP_System_GetWindowWidth() / 1600.f), 40.f, Get_Color(COLOR_BLACK), "HINTS", 60.f * (CP_System_GetWindowWidth() / 1600.f));
+		250.f * s_scale.x, 40.f * s_scale.y,
+		Get_Color(COLOR_BLACK), "HINTS", 60.f * s_scale.x);
 
 	for (int i = 0; i < sizeof(game_hints) / sizeof(Hints); ++i) {
 		Hints* h = &game_hints[i];
 		UI_ButtonImageText(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 110.f * (CP_System_GetWindowWidth() / 1600.f),
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 110.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
-			40.f, 40.f,
+			40.f * s_scale.x, 40.f * s_scale.y,
 			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
 
 		UI_TextLeft(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 80.f * (CP_System_GetWindowWidth() / 1600.f),
-			CP_System_GetWindowHeight() * (0.3f + i * 0.1f), 250.f * (CP_System_GetWindowWidth() / 1600.f), 40.f, Get_Color(COLOR_BLACK), h->text, 30.f * (CP_System_GetWindowWidth() / 1600.f));
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 80.f * s_scale.x,
+			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
+			250.f * s_scale.x, 40.f * s_scale.y,
+			Get_Color(COLOR_BLACK), h->text, 30.f * s_scale.x);
 	}
 }
 
@@ -764,6 +773,7 @@ void Game_Render(void)
 }
 
 void Game_RenderUI(void) {
+	CP_Vector s_scale = Screen_Scale();
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
@@ -815,31 +825,31 @@ void Game_RenderUI(void) {
 
 	if (playable && !all_balls_stopped && pause_menu_transition < 0.f) {
 		CP_Vector coords = World_To_Screen(1.7f, 1.7f, world_limits.x, world_limits.y);
-		UI_ButtonImageText(coords.x, coords.y, 40.f, 40.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
-		UI_TextLeft(coords.x + 30.f, coords.y, 200.f, 40.f, Get_Color(COLOR_BLACK), "Reset to last (+1)", 30.f);
+		UI_ButtonImageText(coords.x, coords.y, 40.f * s_scale.x, 40.f * s_scale.y, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
+		UI_TextLeft(coords.x + 30.f, coords.y, 200.f * s_scale.x, 40.f * s_scale.y, Get_Color(COLOR_BLACK), "Reset to last (+1)", 30.f * s_scale.x);
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
 	if (!editor_mode) {
 		// draw current strokes
-		CP_Settings_TextSize(40.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Settings_TextSize(40.f * s_scale.x);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 		char str[32]; sprintf_s(str, 32, "Strokes: %d", get_strokes());
-		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.06f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(str, CP_System_GetWindowWidth() * 0.06f, 20.f * s_scale.x);
 
 		char par[32]; sprintf_s(par, 32, "Par: %d", get_lvl_par());
-		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(par, CP_System_GetWindowWidth() * 0.2f, 20.f * s_scale.x);
 
 		char lvl[32]; sprintf_s(lvl, 32, "Level: %d", Game_GetLevel());
-		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(lvl, CP_System_GetWindowWidth() * 0.35f, 20.f * s_scale.x);
 
 		char tm[32]; sprintf_s(tm, 32, "Timer: %.2fs", game_timer);
-		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
+		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 20.f * s_scale.x);
 		
 		UI_SetPriority(-5);
-		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.8f, 40.f * (CP_System_GetWindowWidth() / 1600.f), 400 * (CP_System_GetWindowWidth() / 1600.f), 50 * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), power_color, power_val, false);
+		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.8f, 40.f * s_scale.y, 400.f * s_scale.x, 50.f * s_scale.y, Get_Color(COLOR_WHITE), power_color, power_val, false);
 		UI_SetPriority(0);
 	}
 
@@ -853,7 +863,7 @@ void Game_RenderUI(void) {
 		if (turn_now >= 0.f) {
 			CP_Settings_Fill(Get_Color(COLOR_CARMINE));
 			CP_Settings_Stroke(Get_Color(COLOR_RED));
-			CP_Settings_TextSize(180.f * turn_now);
+			CP_Settings_TextSize(180.f * turn_now * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 			CP_Font_DrawText("It's your turn now!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.8f);
 			if (turn_now_revert) {
@@ -878,7 +888,7 @@ void Game_RenderUI(void) {
 
 	// render debug text on top of everything
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
-	CP_Settings_TextSize(25.f);
+	CP_Settings_TextSize(25.f * s_scale.x);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 5.f, 5.f);
@@ -899,6 +909,7 @@ void Game_RenderTerrains(void) {
 	CP_Color sand = Get_ColorAlpha(COLOR_ORANGE, 128);
 	CP_Color ice = Get_ColorAlpha(COLOR_LIGHT_BLUE, 128);
 	CP_Color pit = Get_ColorAlpha(COLOR_RED, 128);
+	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < terrains.length; ++i) {
 		Terrain* terrain = terrain_arr + i;
@@ -918,19 +929,19 @@ void Game_RenderTerrains(void) {
 
 		if (debug_enabled) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
-			CP_Settings_TextSize(20.f);
+			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50]; sprintf_s(p, 50, "Index: %d", i);
-			CP_Font_DrawText(p, c.x, c.y + 40);
+			CP_Font_DrawText(p, c.x, c.y + 40.f * s_scale.y);
 
 			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", terrain->pos.x, terrain->pos.y);
-			CP_Font_DrawText(b, c.x, c.y + 60);
+			CP_Font_DrawText(b, c.x, c.y + 60.f * s_scale.y);
 
 			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", terrain->scale.x, terrain->scale.y);
-			CP_Font_DrawText(s, c.x, c.y + 80);
+			CP_Font_DrawText(s, c.x, c.y + 80.f * s_scale.y);
 
 			char a[100]; sprintf_s(a, 100, "Degrees: %.2f | Radians: %.2f", terrain->angle, terrain->angle_radians);
-			CP_Font_DrawText(a, c.x, c.y + 100);
+			CP_Font_DrawText(a, c.x, c.y + 100.f * s_scale.y);
 		}
 	}
 }
@@ -938,6 +949,7 @@ void Game_RenderTerrains(void) {
 void Game_RenderWalls(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Wall* wall_arr = Get_Walls();
+	CP_Vector s_scale = Screen_Scale();
 
 	// main walls
 	for (int i = 0; i < walls.length; ++i) {
@@ -986,20 +998,20 @@ void Game_RenderWalls(void) {
 		if (debug_enabled) {
 			// display wall data on the screen
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
-			CP_Settings_TextSize(20.f);
+			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50]; sprintf_s(p, 50, "Index: %d", i);
-			CP_Font_DrawText(p, c.x, c.y + 40);
+			CP_Font_DrawText(p, c.x, c.y + 40.f * s_scale.y);
 			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", wall->pos.x, wall->pos.y);
-			CP_Font_DrawText(b, c.x, c.y + 60);
+			CP_Font_DrawText(b, c.x, c.y + 60.f * s_scale.y);
 			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", wall->scale.x, wall->scale.y);
-			CP_Font_DrawText(s, c.x, c.y + 80);
+			CP_Font_DrawText(s, c.x, c.y + 80.f * s_scale.y);
 			char n[100]; sprintf_s(n, 100, "Normal: (%.2f, %.2f) (Deg: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
-			CP_Font_DrawText(n, c.x, c.y + 100);
+			CP_Font_DrawText(n, c.x, c.y + 100.f * s_scale.y);
 			char r[100]; sprintf_s(r, 100, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, CP_Math_Radians(wall->angle));
-			CP_Font_DrawText(r, c.x, c.y + 120);
+			CP_Font_DrawText(r, c.x, c.y + 120.f * s_scale.y);
 			char rr[100]; sprintf_s(rr, 100, "Rot Rate: %.2f", wall->rotation_rate);
-			CP_Font_DrawText(rr, c.x, c.y + 140);
+			CP_Font_DrawText(rr, c.x, c.y + 140.f * s_scale.y);
 			if (!editor_mode) {
 				// draw the closest point after rotating it back to original
 				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -CP_Math_Radians(wall->angle));
@@ -1022,6 +1034,8 @@ void Game_RenderWalls(void) {
 void Game_RenderHoles(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Hole* hole_arr = Get_Holes();
+	CP_Vector s_scale = Screen_Scale();
+
 	for (int i = 0; i < holes.length; ++i) {
 		Hole* hole = hole_arr + i;
 		if (hole == NULL || hole->destroyed)
@@ -1039,10 +1053,10 @@ void Game_RenderHoles(void) {
 		if (debug_enabled) {
 			CP_Vector coords = World_To_Screen(hole->pos.x, hole->pos.y, world_limits.x, world_limits.y);
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
-			CP_Settings_TextSize(20.f);
+			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", hole->pos.x, hole->pos.y);
-			CP_Font_DrawText(p, coords.x, coords.y + 50);
+			CP_Font_DrawText(p, coords.x, coords.y + 50.f * s_scale.y);
 		}
 	}
 }
@@ -1051,6 +1065,7 @@ void Game_RenderItems(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Item* item_arr = Get_Items();
 	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
+	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
@@ -1104,13 +1119,13 @@ void Game_RenderItems(void) {
 
 		if (debug_enabled) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
-			CP_Settings_TextSize(20.f);
+			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char in[64]; sprintf_s(in, 64, "Index: %d", i);
-			CP_Font_DrawText(in, coords.x, coords.y + 40);
+			CP_Font_DrawText(in, coords.x, coords.y + 40.f * s_scale.y);
 
 			char p[64]; sprintf_s(p, 64, "Pos: (%.2f, %.2f)", item->pos.x, item->pos.y);
-			CP_Font_DrawText(p, coords.x, coords.y + 60);
+			CP_Font_DrawText(p, coords.x, coords.y + 60.f * s_scale.y);
 
 			CP_Settings_NoFill();
 			CP_Settings_Stroke(Get_Color(COLOR_GREEN));
@@ -1122,6 +1137,7 @@ void Game_RenderItems(void) {
 void Game_RenderGolfs(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	GolfBall* golf_arr = Get_Golfs();
+	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < golf_balls.length; ++i) {
 		GolfBall* golf = golf_arr + i;
@@ -1152,7 +1168,7 @@ void Game_RenderGolfs(void) {
 
 			CP_Settings_Fill(Get_Color(COLOR_WHITE));
 			CP_Settings_Stroke(Get_Color(COLOR_BLACK));
-			CP_Settings_StrokeWeight(1.f);
+			CP_Settings_StrokeWeight(1.f * s_scale.x);
 			CP_Settings_RectMode(CP_POSITION_CENTER);
 			CP_Graphics_DrawRectAdvanced(b.x, b.y, 
 				golf->diameter * world_ratios.x,
@@ -1163,13 +1179,13 @@ void Game_RenderGolfs(void) {
 
 		if (debug_enabled) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
-			CP_Settings_TextSize(20.f);
+			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
 			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", golf->pos.x, golf->pos.y);
-			CP_Font_DrawText(p, coords.x, coords.y + 40);
+			CP_Font_DrawText(p, coords.x, coords.y + 40.f * s_scale.y);
 
 			char b[50]; sprintf_s(b, 50, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
-			CP_Font_DrawText(b, coords.x, coords.y + 60);
+			CP_Font_DrawText(b, coords.x, coords.y + 60.f * s_scale.y);
 		}
 	}
 }
@@ -1656,21 +1672,23 @@ float Get_Resistance_At(CP_Vector pos) {
 
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void Game_RenderDebug(void) {
+	CP_Vector s_scale = Screen_Scale();
 	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
-	CP_Font_DrawText(m, 0, 40);
+	CP_Settings_TextSize(20.f * s_scale.y);
+	CP_Font_DrawText(m, 0, 40.f * s_scale.y);
 
 	CP_Vector world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
 	char wm[50]; sprintf_s(wm, 50, "World Mouse: (%.2f, %.2f)", world.x, world.y);
-	CP_Font_DrawText(wm, 0, 60);
+	CP_Font_DrawText(wm, 0, 60.f * s_scale.y);
 
 	char r[50]; sprintf_s(r, 50, "Resistance: %.2f", resistance);
-	CP_Font_DrawText(r, 0, 80);
+	CP_Font_DrawText(r, 0, 80.f * s_scale.y);
 
 	char po[50]; sprintf_s(po, 50, "Shoot Power: %.2f", power);
-	CP_Font_DrawText(po, 0, 100);
+	CP_Font_DrawText(po, 0, 100.f * s_scale.y);
 
 	char p[50]; sprintf_s(p, 50, "Mouse Wheel: %.2f", CP_Input_MouseWheel());
-	CP_Font_DrawText(p, 0, 120);
+	CP_Font_DrawText(p, 0, 120.f * s_scale.y);
 }
 
 /*!

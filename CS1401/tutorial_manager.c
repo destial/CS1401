@@ -113,19 +113,25 @@ void Tutorial_Render(void) {
 	if (!tut)
 		return;
 
+	CP_Vector s_scale = Screen_Scale();
+
 	UI_SetPriority(1);
 	// tinted background
-	UI_Quad(CP_System_GetWindowWidth() * 0.5f, (float)CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), Get_ColorAlpha(COLOR_BLACK, 192));
+	UI_Quad(CP_System_GetWindowWidth() * 0.5f, (float)CP_System_GetWindowHeight() * 0.5f,
+		(float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), Get_ColorAlpha(COLOR_BLACK, 192));
 	
 	UI_SetPriority(9);
 	// the gif
-	UI_Video(CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), tut->gif);
+	UI_Video(CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f,
+		(float)Sprite_GetWidth(tut->gif) * s_scale.x, (float)Sprite_GetHeight(tut->gif) * s_scale.y, tut->gif);
 
 	// instructions border
-	UI_Quad(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_GRAY));
+	UI_Quad(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.5f,
+		(float)Sprite_GetWidth(tut->gif) * s_scale.x, (float)Sprite_GetHeight(tut->gif) * s_scale.y, Get_Color(COLOR_GRAY));
 
 	// the instructions
 	UI_SetPriority(10);
-	UI_Text(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.35f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), tut->instructions, 50.f);
+	UI_Text(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.32f * s_scale.y,
+		(float)Sprite_GetWidth(tut->gif) * s_scale.x, (float)Sprite_GetHeight(tut->gif) * s_scale.y, Get_Color(COLOR_WHITE), tut->instructions, 50.f);
 	UI_SetPriority(0);
 }

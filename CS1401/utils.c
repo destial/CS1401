@@ -24,6 +24,10 @@ CP_Vector Screen_To_World(float x, float y, float world_width, float world_heigh
 	};
 }
 
+CP_Vector Screen_Scale(void) {
+	return (CP_Vector) { CP_System_GetWindowWidth() / 1600.f, CP_System_GetWindowHeight() / 900.f };
+}
+
 CP_Vector CP_Vector_Project(CP_Vector a, CP_Vector b) {
 	CP_Vector normalized = CP_Vector_Normalize(a);
 	float dot = CP_Vector_DotProduct(normalized, b);

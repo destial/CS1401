@@ -62,6 +62,13 @@ CP_Vector Screen_To_World(float x, float y, float world_width, float world_heigh
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the current screen scale against a 1600x900 default ratio
+@return A vector of { width / 1600.f , height / 900.f }
+*/
+CP_Vector Screen_Scale(void);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Additional vector math for projection
 @param a - The base vector of projection
 @param b - The vector to project
