@@ -116,15 +116,16 @@ void Tutorial_Render(void) {
 	UI_SetPriority(1);
 	// tinted background
 	UI_Quad(CP_System_GetWindowWidth() * 0.5f, (float)CP_System_GetWindowHeight() * 0.5f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), Get_ColorAlpha(COLOR_BLACK, 192));
-	UI_SetPriority(2);
+	
+	UI_SetPriority(9);
 	// the gif
-	UI_Video(CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), tut->gif);
+	UI_Video(CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), tut->gif);
 
 	// instructions border
-	UI_Quad(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), Get_Color(COLOR_GRAY));
+	UI_Quad(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.5f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_GRAY));
 
 	// the instructions
-	UI_SetPriority(3);
-	UI_Text(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.35f, (float)Sprite_GetWidth(tut->gif), (float)Sprite_GetHeight(tut->gif), Get_Color(COLOR_WHITE), tut->instructions, 50.f);
+	UI_SetPriority(10);
+	UI_Text(CP_System_GetWindowWidth() * 0.75f, CP_System_GetWindowHeight() * 0.35f, (float)Sprite_GetWidth(tut->gif) * (CP_System_GetWindowWidth() / 1600.f), (float)Sprite_GetHeight(tut->gif) * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), tut->instructions, 50.f);
 	UI_SetPriority(0);
 }

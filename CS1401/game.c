@@ -65,14 +65,22 @@ static CP_Matrix camera_matrix;
 static float camera_scale;
 
 // reset on level loading
-static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, current_time, menu_transition;
+static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, current_time, hint_transition;
 static bool playable, win, has_won, all_balls_stopped, resetting, turn_now_revert, pause_menu;
 
 // load based on level
 static ObjectArray golf_balls, holes, walls, items, terrains;
 
 // 16x9 aspect ratio cuz its a requirement (x is width, y is height) 
-static CP_Vector world_limits, og_world_limits; 
+static CP_Vector world_limits, og_world_limits;
+
+typedef struct HintsStruct {
+	char* text;
+	char* key;
+	char* asset_path;
+} Hints;
+
+static Hints game_hints[5];
 
 static Wall* Get_Walls() {
 	return walls.arr; // for auto casting
@@ -189,6 +197,26 @@ void game_init(void)
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 
+	game_hints[0].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[0].text = "Open hints page";
+	game_hints[0].key = " TAB ";
+
+	game_hints[1].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[1].text = "Toggle edit mode";
+	game_hints[1].key = " P ";
+
+	game_hints[2].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[2].text = "Toggle debug mode";
+	game_hints[2].key = " G ";
+
+	game_hints[3].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[3].text = "Reset to last (+1)";
+	game_hints[3].key = " R ";
+
+	game_hints[4].asset_path = MOUSE_SCROLL_ASSET;
+	game_hints[4].text = "Change hit power";
+	game_hints[4].key = "";
+
 	// null instantiation
 	items.arr = walls.arr = terrains.arr = holes.arr = golf_balls.arr = NULL;
 
@@ -197,7 +225,8 @@ void game_init(void)
 
 	// reset on level loading
 	scale_transition = camera_scale = 1.f;
-	menu_transition = pause_menu_transition = -1.f;
+	pause_menu_transition = -1.f;
+	hint_transition = 0.f;
 	turn_now = turn_now_hold = swinging = 0.f;
 	turn_now_revert = playable = win = has_won = editor_mode = pause_menu = false;
 	all_balls_stopped = true;
@@ -246,14 +275,7 @@ void game_update(void)
 				}
 			}
 		}
-		
-		if (menu_transition >= 0.f) {
-			menu_transition += CP_System_GetDt();
-			if (menu_transition >= 1.f) {
-				GameState_SetNext(STATE_MAINMENU);
-				return;
-			}
-		}
+
 		else if (pause_menu_transition < 0.f) {
 			float dt;
 			// run timestep for every lost frame if < 60fps
@@ -562,7 +584,7 @@ void Game_UpdatePhysics(float dt)
 
 static void pausemenu_render(void) {
 	float mul = Math_CLerpFloat(pause_menu_transition > 1.f ? 1.f : -.5f, pause_menu_transition > 1.f ? 2.5f : 1.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition);
-	UI_SetPriority(-1);
+	UI_SetPriority(1);
 	// tinted background
 	UI_Quad(
 		CP_System_GetWindowWidth() * 0.5f,
@@ -571,7 +593,7 @@ static void pausemenu_render(void) {
 		(float)CP_System_GetWindowHeight(),
 		Get_ColorAlpha(COLOR_BLACK, (int)Math_CLerpFloat(pause_menu_transition > 1.f ? 192.f : 0.f, pause_menu_transition > 1.f ? 0.f : 192.f, pause_menu_transition > 1.f ? pause_menu_transition - 1.f : pause_menu_transition)));
 
-	UI_SetPriority(0);
+	UI_SetPriority(2);
 	// menu background
 	UI_Image(
 		CP_System_GetWindowWidth() * 0.5f * mul,
@@ -580,23 +602,22 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
 		Asset_GetImage(SETTING_BACKGROUND_ASSET));
 
-	UI_SetPriority(1);
+	UI_SetPriority(3);
 	// pause text
 	UI_Text(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.7f),
-		300 * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * (CP_System_GetWindowWidth() / 1600.f), 200 * (CP_System_GetWindowHeight() / 900.f),
 		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * (CP_System_GetWindowWidth() / 1600.f));
 
 	// continue button
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
-		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		"CONTINUE")) {
-		//pause_menu_transition = 0.f;
 		pause_menu = !pause_menu;
 	}
 
@@ -604,7 +625,7 @@ static void pausemenu_render(void) {
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
-		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		"RESTART")) {
@@ -616,11 +637,53 @@ static void pausemenu_render(void) {
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f),
-		300 * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
+		300.f * (CP_System_GetWindowWidth() / 1600.f), 100 * (CP_System_GetWindowHeight() / 900.f),
 		Asset_GetImage(BUTTON_BLUE_ASSET),
 		Asset_GetImage(BUTTON_YELLOW_ASSET),
 		" QUIT ")) {
-		menu_transition = 0.f;
+		GameState_SetNext(STATE_MAINMENU);
+	}
+
+	CP_Vector coords = World_To_Screen(
+		Math_CLerpFloat(-10.f, 1.7f, pause_menu_transition > 1.f ? 2.f - pause_menu_transition : pause_menu_transition),
+		1.7f, world_limits.x, world_limits.y);
+	
+	UI_ButtonImageText(coords.x, coords.y, 
+		40.f * (CP_System_GetWindowWidth() / 1600.f), 40.f * (CP_System_GetWindowHeight() / 900.f),
+		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
+	UI_TextLeft(coords.x + (30.f * (CP_System_GetWindowWidth() / 1600.f)), coords.y,
+		600.f * (CP_System_GetWindowWidth() / 1600.f), 40.f * (CP_System_GetWindowHeight() / 900.f),
+		Get_Color(COLOR_BLACK), "Open up hints page", 30.f);
+}
+
+// render sidebar hints
+static void hint_render(void) {
+	UI_SetPriority(4);
+	UI_Button(
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
+		CP_System_GetWindowHeight() * 0.5f,
+		300.f * (CP_System_GetWindowWidth() / 1600.f),
+		800.f * (CP_System_GetWindowHeight() / 900.f),
+		Get_Color(COLOR_GRAY), Get_Color(COLOR_GRAY));
+
+	UI_SetPriority(5);
+
+	UI_Text(
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition),
+		CP_System_GetWindowHeight() * 0.1f,
+		250.f * (CP_System_GetWindowWidth() / 1600.f), 40.f, Get_Color(COLOR_BLACK), "HINTS", 60.f * (CP_System_GetWindowWidth() / 1600.f));
+
+	for (int i = 0; i < sizeof(game_hints) / sizeof(Hints); ++i) {
+		Hints* h = &game_hints[i];
+		UI_ButtonImageText(
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 110.f * (CP_System_GetWindowWidth() / 1600.f),
+			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
+			40.f, 40.f,
+			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
+
+		UI_TextLeft(
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, hint_transition) - 80.f * (CP_System_GetWindowWidth() / 1600.f),
+			CP_System_GetWindowHeight() * (0.3f + i * 0.1f), 250.f * (CP_System_GetWindowWidth() / 1600.f), 40.f, Get_Color(COLOR_BLACK), h->text, 30.f * (CP_System_GetWindowWidth() / 1600.f));
 	}
 }
 
@@ -628,14 +691,14 @@ void Game_Render(void)
 {
 	// Clear background and render the background image
 	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
+	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
 
 	// reset the color and stroke settings
 	CP_Settings_Stroke(Get_Color(COLOR_BLACK));
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
 
-	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
-
+	// reset sprite animation frame updates
 	Asset_SpriteStartFrame();
 
 	// render terrains
@@ -657,32 +720,45 @@ void Game_Render(void)
 	// render golf balls
 	Game_RenderGolfs();
 
+	// render particles
 	if (playable)
 		Particles_Render(Get_World_Limits(), Get_World_Ratios());
 
 	// render ui
 	Game_RenderUI();
 
-	if (editor_mode) {
+	if (editor_mode) 
 		Editor_Render();
-	}
 
+	// reset camera matrix because we dont want UI to be affected by the camera
+	CP_Settings_ResetMatrix();
+
+	// render pause menu
+	bool tab = false;
 	if (pause_menu_transition >= 0.f) {
 		pausemenu_render();
+		if (CP_Input_KeyDown(KEY_TAB)) {
+			tab = true;
+			hint_transition += CP_System_GetDt();
+		}
 	}
-	else if (!editor_mode) {
+	else if (!editor_mode) { // render tutorial instructions (if have)
 		Tutorial_Render();
 	}
 
-	CP_Settings_ResetMatrix();
+	if (!tab) {
+		hint_transition -= CP_System_GetDt();
+	}
+	hint_transition = CP_Math_ClampFloat(hint_transition, 0.f, 1.f);
+	
+	// render hints siderbar
+	hint_render();
+
+	// finally render everything in UI manager
 	UI_Render();
 
-	if (menu_transition >= 0.f) {
-		CP_Settings_Fill(Get_ColorAlpha(COLOR_BLACK, (int)(menu_transition * 255.f)));
-		CP_Settings_Stroke(Get_ColorAlpha(COLOR_BLACK, (int)(menu_transition * 255.f)));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f);
-	}
+	// this is to transition between game and main menu states
+	GameState_Update();
 }
 
 void Game_RenderUI(void) {
@@ -735,7 +811,7 @@ void Game_RenderUI(void) {
 		}
 	}
 
-	if (playable && !all_balls_stopped) {
+	if (playable && !all_balls_stopped && pause_menu_transition < 0.f) {
 		CP_Vector coords = World_To_Screen(1.7f, 1.7f, world_limits.x, world_limits.y);
 		UI_ButtonImageText(coords.x, coords.y, 40.f, 40.f, Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " R ");
 		UI_TextLeft(coords.x + 30.f, coords.y, 200.f, 40.f, Get_Color(COLOR_BLACK), "Reset to last (+1)", 30.f);
@@ -761,7 +837,7 @@ void Game_RenderUI(void) {
 		CP_Font_DrawText(tm, CP_System_GetWindowWidth() * 0.5f, 20.f * (CP_System_GetWindowWidth() / 1600.f));
 		
 		UI_SetPriority(-5);
-		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.85f, 40.f * (CP_System_GetWindowWidth() / 1600.f), 300 * (CP_System_GetWindowWidth() / 1600.f), 50 * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), power_color, power_val, false);
+		UI_SliderHorizontal(CP_System_GetWindowWidth() * 0.8f, 40.f * (CP_System_GetWindowWidth() / 1600.f), 400 * (CP_System_GetWindowWidth() / 1600.f), 50 * (CP_System_GetWindowHeight() / 900.f), Get_Color(COLOR_WHITE), power_color, power_val, false);
 		UI_SetPriority(0);
 	}
 
@@ -1239,7 +1315,7 @@ void Process_Inputs(void) {
 	}
 
 	// reset level
-	if (CP_Input_KeyTriggered(KEY_R) && (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL))) {
+	if (CP_Input_KeyTriggered(KEY_R) && pause_menu_transition < 0.f && (!CP_Input_KeyDown(KEY_LEFT_CONTROL) && !CP_Input_KeyDown(KEY_RIGHT_CONTROL))) {
 		GolfBall* golf_arr = Get_Golfs();
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* golf = golf_arr + i;

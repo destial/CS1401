@@ -8,6 +8,7 @@
 #pragma once
 #ifndef STATE_MANAGER_H
 #define STATE_MANAGER_H
+#include "utils.h"
 
 typedef enum GameStatesEnum {
 	STATE_SPLASH = 0,
@@ -21,6 +22,12 @@ typedef enum GameStatesEnum {
 @param state - The next game state
 */
 void GameState_SetNext(GameState state);
+
+void GameState_Update(void);
+
+bool GameState_IsTransitioning(void);
+
+void GameState_GoNext(void);
 
 /*!
 @brief Set the current state

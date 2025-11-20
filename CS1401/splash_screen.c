@@ -41,23 +41,17 @@ void splash_screen_init(void)
 void splash_screen_update(void)
 {
 	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
-	if (!splash_revert) {
-		splash_alpha += 1.5f * CP_System_GetDt() / splash_duration;
-		if (splash_alpha >= 1.f) {
-			splash_revert = true;
-		}
-	}
-	else {
-		splash_alpha -= CP_System_GetDt() / splash_duration;
-	}
+	splash_alpha += 1.5f * CP_System_GetDt() / splash_duration;
 	splash_alpha = CP_Math_ClampFloat(splash_alpha, 0.f, 1.f);
 
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Image_Draw(splash_logo, 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int)(splash_alpha * 255.f));
 
-	if (splash_revert && splash_alpha == 0.f) {
+	if (splash_alpha >= 1.f) {
 		GameState_SetNext(STATE_MAINMENU);
 	}
+
+	GameState_Update();
 }
 
 void splash_screen_exit(void)

@@ -65,6 +65,7 @@
 #define CURSOR_ASSET "Assets/Images/cursor.png"
 #define CURSOR_GRAB_ASSET "Assets/Images/cursor_grab.png"
 #define CURSOR_POINT_ASSET "Assets/Images/cursor_point.png"
+#define MOUSE_SCROLL_ASSET "Assets/Images/mouse_scroll.png"
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"

@@ -8,6 +8,7 @@
 #include "sprite_manager.h"
 #include "state_manager.h"
 #include "currency_manager.h"
+#include "game_settings.h"
 #include <math.h>
 //void scoring_update();
 //void scoring_exit();
@@ -290,46 +291,21 @@ void scoring_update(void) {
 	sbb_iwidth = 50.0f;
 	sbb_iheight = 50.0f;
 
-	if (IsAreaClicked(scorebb[0].x, scorebb[0].y, scorebb[0].width, scorebb[0].height, hover_x, hover_y) == 1) {
-		//button animation
-		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[0].icon_width = CP_Math_LerpFloat(scorebb[0].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[0].icon_height = CP_Math_LerpFloat(scorebb[0].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
-	}
-	else {
-		scorebb[0].width = CP_Math_LerpFloat(scorebb[0].width, sbb_width, CP_System_GetDt() * 10.0f);
-		scorebb[0].height = CP_Math_LerpFloat(scorebb[0].height, sbb_height, CP_System_GetDt() * 10.0f);
-		scorebb[0].icon_width = CP_Math_LerpFloat(scorebb[0].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
-		scorebb[0].icon_height = CP_Math_LerpFloat(scorebb[0].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
-	}
-	//click on replay
-	if (IsAreaClicked(scorebb[1].x, scorebb[1].y, scorebb[1].width, scorebb[1].height, hover_x, hover_y) == 1) {
-		//button animation
-		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[1].icon_width = CP_Math_LerpFloat(scorebb[1].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[1].icon_height = CP_Math_LerpFloat(scorebb[1].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
-	}
-	else {
-		scorebb[1].width = CP_Math_LerpFloat(scorebb[1].width, sbb_width, CP_System_GetDt() * 10.0f);
-		scorebb[1].height = CP_Math_LerpFloat(scorebb[1].height, sbb_height, CP_System_GetDt() * 10.0f);
-		scorebb[1].icon_width = CP_Math_LerpFloat(scorebb[1].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
-		scorebb[1].icon_height = CP_Math_LerpFloat(scorebb[1].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
-	}
-	//click on next level
-	if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, hover_x, hover_y) == 1) {
-		//button animation
-		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[2].icon_width = CP_Math_LerpFloat(scorebb[2].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
-		scorebb[2].icon_height = CP_Math_LerpFloat(scorebb[2].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
-	}
-	else {
-		scorebb[2].width = CP_Math_LerpFloat(scorebb[2].width, sbb_width, CP_System_GetDt() * 10.0f);
-		scorebb[2].height = CP_Math_LerpFloat(scorebb[2].height, sbb_height, CP_System_GetDt() * 10.0f);
-		scorebb[2].icon_width = CP_Math_LerpFloat(scorebb[2].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
-		scorebb[2].icon_height = CP_Math_LerpFloat(scorebb[2].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
+	for (int i = 0; i < 3; ++i) {
+		if (IsAreaClicked(scorebb[i].x, scorebb[i].y, scorebb[i].width, scorebb[i].height, hover_x, hover_y) == 1) {
+			//button animation
+			scorebb[i].width = CP_Math_LerpFloat(scorebb[i].width, sbb_width * 1.2f, CP_System_GetDt() * 10.0f);
+			scorebb[i].height = CP_Math_LerpFloat(scorebb[i].height, sbb_height * 1.2f, CP_System_GetDt() * 10.0f);
+			scorebb[i].icon_width = CP_Math_LerpFloat(scorebb[i].icon_width, sbb_iwidth * 1.2f, CP_System_GetDt() * 10.0f);
+			scorebb[i].icon_height = CP_Math_LerpFloat(scorebb[i].icon_height, sbb_iheight * 1.2f, CP_System_GetDt() * 10.0f);
+			GameSetting_SetCursor(CURSOR_POINT);
+		}
+		else {
+			scorebb[i].width = CP_Math_LerpFloat(scorebb[i].width, sbb_width, CP_System_GetDt() * 10.0f);
+			scorebb[i].height = CP_Math_LerpFloat(scorebb[i].height, sbb_height, CP_System_GetDt() * 10.0f);
+			scorebb[i].icon_width = CP_Math_LerpFloat(scorebb[i].icon_width, sbb_iwidth, CP_System_GetDt() * 10.0f);
+			scorebb[i].icon_height = CP_Math_LerpFloat(scorebb[i].icon_height, sbb_iheight, CP_System_GetDt() * 10.0f);
+		}
 	}
 
 	//Moving stars

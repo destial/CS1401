@@ -83,6 +83,7 @@ int main(void)
 	}
 #endif
 	GameState_SetNext(STATE_SPLASH);
+	GameState_GoNext();
 	CP_Engine_Run(0);
 	if (hIcon) {
 		DestroyIcon(hIcon);

@@ -42,7 +42,7 @@ static Button level_buttons[TOTAL_LEVELS];
 static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
 
 static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
-static float sfx_limit = 1.0f, music_limit = 1.0f, game_transition = -1.f;
+static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 void exit_main_menu(void) {
 	GameState_SetNext(STATE_EXIT);
@@ -55,7 +55,6 @@ void main_menu_init(void)
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	window_size_H = CP_System_GetWindowHeight();
 	window_size_W = CP_System_GetWindowWidth();
-	game_transition = -1.f;
 	is_clicked = 0;
 
 	sfx_limit = GameSetting_GetFloat("sfx_volume");
@@ -350,17 +349,7 @@ void main_menu_update(void)
 	shops_button(mouse_x, mouse_y);
 	back_buttons(mouse_x, mouse_y);
 
-	if (game_transition >= 0.f) {
-		game_transition += CP_System_GetDt();
-		CP_Settings_Fill(Get_ColorAlpha(COLOR_BLACK, (int)(game_transition * 255.f)));
-		CP_Settings_Stroke(Get_ColorAlpha(COLOR_BLACK, (int)(game_transition * 255.f)));
-		CP_Settings_RectMode(CP_POSITION_CENTER);
-		CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() * 1.f, CP_System_GetWindowHeight() * 1.f);
-		if (game_transition >= 1.f) {
-			GameState_SetNext(STATE_GAME);
-			return;
-		}
-	}
+	GameState_Update();
 }
 
 void main_menu_button(float mouse_x, float mouse_y) {
@@ -382,7 +371,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 2.0f, CP_System_GetDt() * 5);
 
 
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				if (buttons[i].func) {
 					buttons[i].func();
@@ -419,7 +408,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		buttons[9].scale.y = CP_Math_LerpFloat(buttons[9].scale.y, 4.0f, CP_System_GetDt() * 5);
 		buttons[9].text_size = CP_Math_LerpFloat(buttons[9].text_size, 2.0f, CP_System_GetDt() * 5);
 
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
 			if (buttons[9].func) {
 
@@ -474,7 +463,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				Game_SetLevel(i + 1);
 				level_buttons[i].func();
@@ -519,7 +508,7 @@ void volume_bar(float mouse_x, float mouse_y) {
 	CP_Graphics_DrawRect(CP_System_GetWindowWidth() * 0.22f, CP_System_GetWindowHeight() * 0.55f, (music_limit * 27.0f) * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1);
 
 	//check if mouse is within the SFX volume bar and if the left mouse is held down
-	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && game_transition < 0.f) {
+	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && !GameState_IsTransitioning()) {
 		
 		if (check_mouse_pos_volume(mouse_x, mouse_y, 0.22f * CP_System_GetWindowWidth(), 0.4f * CP_System_GetWindowHeight(), 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1)) {
 			GameSetting_SetCursor(CURSOR_GRAB);
@@ -529,7 +518,7 @@ void volume_bar(float mouse_x, float mouse_y) {
 	}
 
 	//check if mouse is within the Music volume bar and if the left mouse is held down
-	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && game_transition < 0.f) {
+	if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && !GameState_IsTransitioning()) {
 		
 		if (check_mouse_pos_volume(mouse_x, mouse_y, 0.22f * CP_System_GetWindowWidth(), 0.55f * CP_System_GetWindowHeight(), 27.0f * CP_System_GetWindowWidth() / world_width1, 1.3f * CP_System_GetWindowHeight() / world_height1)) {
 			GameSetting_SetCursor(CURSOR_GRAB);
@@ -563,7 +552,7 @@ void settings_button(float mouse_x, float mouse_y) {
 			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				change_resolution(i - 4);
 			}
@@ -599,7 +588,7 @@ void settings_button(float mouse_x, float mouse_y) {
 		buttons[8].scale.x = CP_Math_LerpFloat(buttons[8].scale.x, 7.0f, CP_System_GetDt() * 5);
 		buttons[8].scale.y = CP_Math_LerpFloat(buttons[8].scale.y, 3.0f, CP_System_GetDt() * 5);
 		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 1.3f, CP_System_GetDt() * 5);
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
 			buttons[8].func();
 		}
@@ -639,7 +628,7 @@ void shops_button(float mouse_x, float mouse_y)
 			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				if (i == 11) {
 					equip_button(11);
@@ -690,7 +679,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 		buttons[3].scale.x = CP_Math_LerpFloat(buttons[3].scale.x, 3.0f, CP_System_GetDt() * 5);
 		buttons[3].scale.y = CP_Math_LerpFloat(buttons[3].scale.y, 3.0f, CP_System_GetDt() * 5);
 		buttons[3].text_size = CP_Math_LerpFloat(buttons[3].text_size, 3.f, CP_System_GetDt() * 5);
-		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
 			buttons[3].func();
 		}
@@ -718,7 +707,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 			buttons[7].scale.x = CP_Math_LerpFloat(buttons[7].scale.x, 3.0f, CP_System_GetDt() * 5);
 			buttons[7].scale.y = CP_Math_LerpFloat(buttons[7].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[7].text_size = CP_Math_LerpFloat(buttons[7].text_size, 2.0f, CP_System_GetDt() * 5);
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				setting_button();
 			}
@@ -752,7 +741,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 			buttons[10].scale.x = CP_Math_LerpFloat(buttons[10].scale.x, 3.0f, CP_System_GetDt() * 5);
 			buttons[10].scale.y = CP_Math_LerpFloat(buttons[10].scale.y, 3.0f, CP_System_GetDt() * 5);
 			buttons[10].text_size = CP_Math_LerpFloat(buttons[10].text_size, 2.0f, CP_System_GetDt() * 5);
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && game_transition < 0.f)
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				shop_button();
 			}
@@ -907,8 +896,8 @@ void draw_logo_image(void) {
 //changes the Main menu screen to the game start state
 void change_screen(void) {
 	//is_clicked = 0;
-	game_transition = 0.f;
-	//GameState_SetNext(STATE_GAME);
+	//game_transition = 0.f;
+	GameState_SetNext(STATE_GAME);
 }
 
 void change_resolution(int num) {
