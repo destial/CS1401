@@ -10,7 +10,7 @@
 #include "level_manager.h"
 
 #ifndef ASSERT_TEST
-#define ASSERT_TEST(test, err) if(test) {printf(err);exit(1);}
+#define ASSERT_TEST(test, err) if(test){printf(err);exit(1);}
 #endif
 
 static void run_data_tests(void) {

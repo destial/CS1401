@@ -882,7 +882,6 @@ bool get_shadow_setting(void) {
 //frees the image when exiting the application
 void main_menu_exit(void) 
 {
-	Assets_Free();
 	Particles_Free();
 	GameSetting_SetFloat("sfx_volume", sfx_limit);
 	GameSetting_SetFloat("music_volume", music_limit);
@@ -892,5 +891,6 @@ void main_menu_exit(void)
 	GameSetting_SetBool("bought1", is_buy1_clicked);
 	GameSetting_SetBool("bought2", is_buy2_clicked);
 	GameSetting_Save();
+	Assets_Free();
 	printf("Exit main menu\n");
 }

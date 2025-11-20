@@ -330,14 +330,6 @@ void scoring_update(void) {
 	//Scoreboard text
 	Text[0].x = 0.5f * win_width;
 	Text[0].y = 0.165f * win_height;
-
-	char a[50];
-
-	CP_Settings_Fill(Get_Color(COLOR_BLACK));
-	CP_Settings_TextSize(70.0f);
-	sprintf_s(a, 50, "SCOREBOARD");
-	CP_Font_DrawText(a, Text[0].x, Text[0].y);
-
 }
 
 
@@ -464,7 +456,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		0.0f);
 
 	if (Game_LevelWon()) {
-		CP_Settings_TextAlignment(coords.x, coords.y);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		char b[50];
 		char a[100];
@@ -476,7 +468,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Font_DrawText(b, coords.x, coords.y);*/
 
 		//Change level clear colour based on user score.
-		CP_Settings_TextSize(60.0f);
+		CP_Settings_TextSize(60.0f * (win_width / 1600.f));
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		sprintf_s(b, 50, "LEVEL CLEARED!");
 		CP_Font_DrawText(b, coords.x, coords.y);
@@ -485,7 +477,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		char coin_info[100];
 
 		// Showing coins earned
-		CP_Settings_TextSize(40.0f);
+		CP_Settings_TextSize(40.0f * (win_width / 1600.f));
 		sprintf_s(coin_info, 50, "Coins Earned: +%d", coins_earned_last_level);
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Font_DrawText(coin_info, coords.x, coords.y * 1.13f);
@@ -523,7 +515,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		//Write scoreboard with banner
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
-		CP_Settings_TextSize(70.0f);
+		CP_Settings_TextSize(70.0f * (win_width / 1600.f));
 		sprintf_s(a, 50, "SCOREBOARD");
 		CP_Font_DrawText(a, Text[0].x, Text[0].y);
 
@@ -551,17 +543,17 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 
 	else if (Game_LevelLost()) {
 		//Draw the game over screen
-		CP_Settings_TextAlignment(coords.x, coords.y);
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_MIDDLE);
 		char a[100];
 
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
-		CP_Settings_TextSize(70.0f);
+		CP_Settings_TextSize(70.0f * (win_width / 1600.f));
 		sprintf_s(a, 50, "SCOREBOARD");
 		CP_Font_DrawText(a, Text[0].x, Text[0].y);
 
 
-		CP_Settings_TextSize(60.0f);
+		CP_Settings_TextSize(60.0f * (win_width / 1600.f));
 		//Say Times up!, you lost
 		//try again
 		CP_Settings_Fill(Get_Color(COLOR_BLACK));

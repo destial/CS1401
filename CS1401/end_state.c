@@ -55,7 +55,8 @@ void end_state_update(void)
 
 void end_state_exit(void) 
 {
-	Assets_Free();
 	Particles_Free();
+	GameSetting_Save();
+	Assets_Free();
 	printf("Exit end\n");
 }

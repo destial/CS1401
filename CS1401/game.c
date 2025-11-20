@@ -285,8 +285,8 @@ void game_update(void)
 				frame_time -= dt;
 			}
 
-			// tab is only for debug purposes, will be removed in the actual build
-			if ((Game_LevelLost() || Game_LevelWon() || (_debug_mode && CP_Input_KeyDown(KEY_TAB))) && !editor_mode)
+			// update scoreboard if game has ended
+			if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode)
 				scoring_update();
 		}
 	}

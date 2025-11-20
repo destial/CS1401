@@ -60,13 +60,7 @@ static void* set_node(Asset node, AssetType type, void* value, const char* filep
 
     size_t l = strlen(filepath) + 1; // +1 for '\0' ending char
     // allocate the memory address for the key
-    node->key = gc_malloc(l);
-    if (node->key) {
-        strcpy_s(node->key, l, filepath);
-    }
-    else {
-        node->key = filepath;
-    }
+    node->key = filepath;
 
     node->type = type;
     node->next = NULL;
@@ -195,10 +189,7 @@ static void free_asset(Asset map) {
     }
 
     // free up the key memory address (we used malloc here)
-    if (map->key) {
-        printf("Freeing up %s\n", map->key);
-        FREE_MEMORY(map->key);
-    }
+    printf("Freeing up %s\n", map->key);
 
     FREE_MEMORY(map);
 }
