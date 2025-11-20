@@ -168,85 +168,33 @@ void main_menu_init(void)
 	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY: 20 Coins";
 
 	//start of level select button
-	level_buttons[0].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[0].pos.x = world_width1 * 1.1f;
-	level_buttons[0].pos.y = world_height1 * .7f;
-	level_buttons[0].ending_pos.x = world_width1 * 0.1f;
-	level_buttons[0].start_pos.x = level_buttons[0].pos.x;
-	level_buttons[0].func = change_screen;
+	int row = 0;
+	int column = 0;
+	for (int i = 0; i < TOTAL_LEVELS; ++i, ++column) {
+		if (i != 0 && i % 9 == 0) {
+			++row;
+			column = 0;
+		}
+		level_buttons[i].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+		level_buttons[i].pos.x = world_width1 * (1.1f + (column * 0.1f));
+		level_buttons[i].pos.y = world_height1 * (.7f - (row * 0.2f));
+		level_buttons[i].ending_pos.x = world_width1 * (0.1f + (column * 0.1f));
+		level_buttons[i].start_pos.x = level_buttons[i].pos.x;
+		level_buttons[i].func = change_screen;
+	}
 	level_buttons[0].text = "1";
-
-	level_buttons[1].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[1].pos.x = world_width1 * 1.2f;
-	level_buttons[1].pos.y = world_height1 * .7f;
-	level_buttons[1].ending_pos.x = world_width1 * 0.2f;
-	level_buttons[1].start_pos.x = level_buttons[1].pos.x;
-	level_buttons[1].func = change_screen;
 	level_buttons[1].text = "2";
-
-	level_buttons[2].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[2].pos.x = world_width1 * 1.3f;
-	level_buttons[2].pos.y = world_height1 * .7f;
-	level_buttons[2].ending_pos.x = world_width1 * 0.3f;
-	level_buttons[2].start_pos.x = level_buttons[2].pos.x;
-	level_buttons[2].func = change_screen;
 	level_buttons[2].text = "3";
-
-	level_buttons[3].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[3].pos.x = world_width1 * 1.4f;
-	level_buttons[3].pos.y = world_height1 * .7f;
-	level_buttons[3].ending_pos.x = world_width1 * 0.4f;
-	level_buttons[3].start_pos.x = level_buttons[3].pos.x;
-	level_buttons[3].func = change_screen;
 	level_buttons[3].text = "4";
-
-	level_buttons[4].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[4].pos.x = world_width1 * 1.5f;
-	level_buttons[4].pos.y = world_height1 * .7f;
-	level_buttons[4].ending_pos.x = world_width1 * 0.5f;
-	level_buttons[4].start_pos.x = level_buttons[4].pos.x;
-	level_buttons[4].func = change_screen;
 	level_buttons[4].text = "5";
-
-	level_buttons[5].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[5].pos.x = world_width1 * 1.6f;
-	level_buttons[5].pos.y = world_height1 * .7f;
-	level_buttons[5].ending_pos.x = world_width1 * 0.6f;
-	level_buttons[5].start_pos.x = level_buttons[5].pos.x;
-	level_buttons[5].func = change_screen;
 	level_buttons[5].text = "6";
-
-	level_buttons[6].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[6].pos.x = world_width1 * 1.7f;
-	level_buttons[6].pos.y = world_height1 * .7f;
-	level_buttons[6].ending_pos.x = world_width1 * 0.7f;
-	level_buttons[6].start_pos.x = level_buttons[6].pos.x;
-	level_buttons[6].func = change_screen;
 	level_buttons[6].text = "7";
-
-	level_buttons[7].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[7].pos.x = world_width1 * 1.8f;
-	level_buttons[7].pos.y = world_height1 * .7f;
-	level_buttons[7].ending_pos.x = world_width1 * 0.8f;
-	level_buttons[7].start_pos.x = level_buttons[7].pos.x;
-	level_buttons[7].func = change_screen;
 	level_buttons[7].text = "8";
-
-	level_buttons[8].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[8].pos.x = world_width1 * 1.9f;
-	level_buttons[8].pos.y = world_height1 * .7f;
-	level_buttons[8].ending_pos.x = world_width1 * 0.9f;
-	level_buttons[8].start_pos.x = level_buttons[8].pos.x;
-	level_buttons[8].func = change_screen;
 	level_buttons[8].text = "9";
-
-	level_buttons[9].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
-	level_buttons[9].pos.x = world_width1 * 1.1f;
-	level_buttons[9].pos.y = world_height1 * .5f;
-	level_buttons[9].ending_pos.x = world_width1 * 0.1f;
-	level_buttons[9].start_pos.x = level_buttons[9].pos.x;
-	level_buttons[9].func = change_screen;
 	level_buttons[9].text = "10";
+#ifdef _DEBUG
+	level_buttons[10].text = "T";
+#endif
 	//end of level select button
 
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);

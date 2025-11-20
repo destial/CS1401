@@ -425,7 +425,7 @@ void Game_UpdatePhysics(float dt)
 					golf->vel.y = 0;
 					continue;
 				}
-				float friction = r - 1;
+				float friction = r - 1.f;
 				if (friction != 0) {
 					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
 				}
@@ -524,15 +524,17 @@ void Game_UpdatePhysics(float dt)
 				continue;
 
 			float dist = CP_Vector_Distance(golf->pos, hole->pos);
-			if (dist < hole->diameter * 0.5f) { // fall into hole
+			if (dist < hole->diameter * 0.5f && !CP_Vector_IsZero(golf->vel)) { // fall into hole
 				CP_Vector dir = CP_Vector_Subtract(hole->pos, golf->pos);
-				float angle = CP_Vector_AngleCCW(golf->vel, dir);
-				if (angle > 180.f) {
-					angle -= 360.f;
-				}
-				golf->vel = CP_Vector_Rotate(golf->vel, -CP_Math_Radians(angle * dt));
+				//float angle = CP_Vector_AngleCCW(golf->vel, dir);
+				//if (angle > 180.f) {
+				//	angle -= 360.f;
+				//}
+				//CP_Vector rot = CP_Vector_Rotate(golf->vel, -CP_Math_Radians(angle * dt));
 				CP_Vector drag_dir = CP_Vector_Scale(CP_Vector_Normalize(dir), (hole->diameter * 0.5f) - dist);
-				golf->vel = CP_Vector_Add(golf->vel, drag_dir);
+				drag_dir = CP_Vector_Subtract(drag_dir, CP_Vector_Scale(drag_dir, (resistance * resistance) - 1.f));
+				if (CP_Vector_LengthSquared(drag_dir) < 0.1f)
+					golf->vel = CP_Vector_Add(golf->vel, drag_dir);
 			}
 
 			if (dist < (hole->diameter * 0.5f) - (golf->diameter * 0.5f)) { // inside hole
@@ -1847,7 +1849,7 @@ void Game_Load(void) {
 
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
-	game_timer = 120.f;
+	game_timer = 10.f;
 	golf_balls.length = holes.length = 2;
 	golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
 	holes.arr = gc_malloc(sizeof(Hole) * holes.length);
@@ -1882,117 +1884,13 @@ void Game_Load(void) {
 	holes_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.75f);
 	holes_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.75f);
 
-	walls.length = 11;
+	walls.length = 5;
 	walls.arr = gc_malloc(sizeof(Wall) * walls.length);
 	if (walls.arr) {
-		int wall_index = 1;
-		// create the random left side walls
-		for (; wall_index < (walls.length * 0.5f); ++wall_index) {
-			Wall* wall = Get_Walls() + wall_index;
-			if (wall == NULL)
-				continue;
-
-			// randomize the values
-			wall->pos.x = CP_Random_RangeFloat(1.f, world_limits.x * 0.5f - 1.f);
-			wall->pos.y = CP_Random_RangeFloat(1.f, world_limits.y - 1.f);
-
-			wall->scale.x = (float)CP_Random_RangeInt(1, 5);
-			wall->scale.y = (float)CP_Random_RangeInt(1, 5);
-
-			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
-			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
-
-			wall->image = Asset_GetImage(WALL_LEFT_ASSET);
-			wall->rotation_rate = 0.f;
-			wall->destroyed = false;
-		}
-
-		// create the random right side walls
-		for (; wall_index < walls.length; ++wall_index) {
-			Wall* wall = Get_Walls() + wall_index;
-			if (wall == NULL)
-				continue;
-
-			// randomize the values
-			wall->pos.x = (world_limits.x * 0.5f) + CP_Random_RangeFloat(1.f, world_limits.x * 0.5f - 1.f);
-			wall->pos.y = CP_Random_RangeFloat(1.f, world_limits.y - 1.f);
-
-			wall->scale.x = (float)CP_Random_RangeInt(1, 5);
-			wall->scale.y = (float)CP_Random_RangeInt(1, 5);
-
-			wall->angle = CP_Random_RangeFloat(0.f, 90.f);
-			wall->color = CP_Color_Create(CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), CP_Random_RangeInt(100, 255), 255);
-
-			wall->image = Asset_GetImage(WALL_RIGHT_ASSET);
-			wall->rotation_rate = 0.f;
-			wall->destroyed = false;
-		}
-
 		load_borders(0.f);
 	} else {
-
 		// level loading failed, quit the game because heap allocation went wrong!!
 		GameState_SetNext(STATE_EXIT);
-	}
-
-	// set a default layout of item powerups
-	items.length = 4;
-	items.arr = gc_malloc(sizeof(Item) * items.length);
-	if (items.arr) {
-		Item* itemarr = Get_Items();
-		// create a boost item
-		itemarr[0].type = ITEM_BOOST;
-		itemarr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
-		itemarr[0].diameter = 1.f;
-		itemarr[0].angle = 0.f;
-		itemarr[0].collected = false;
-		itemarr[0].destroyed = false;
-
-		// create a grow item
-		itemarr[1].type = ITEM_GROW;
-		itemarr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
-		itemarr[1].diameter = 1.f;
-		itemarr[1].angle = 0.f;
-		itemarr[1].collected = false;
-		itemarr[1].destroyed = false;
-
-		// create a shrink item
-		itemarr[2].type = ITEM_SHRINK;
-		itemarr[2].pos = CP_Vector_Set(world_limits.x * 0.65f, world_limits.y * 0.3f);
-		itemarr[2].diameter = 1.f;
-		itemarr[2].angle = 0.f;
-		itemarr[2].collected = false;
-		itemarr[2].destroyed = false;
-
-		// create a reverse item
-		itemarr[3].type = ITEM_REVERSE;
-		itemarr[3].pos = CP_Vector_Set(world_limits.x * 0.45f, world_limits.y * 0.3f);
-		itemarr[3].diameter = 1.f;
-		itemarr[3].angle = 0.f;
-		itemarr[3].collected = false;
-		itemarr[3].destroyed = false;
-	}
-
-	// set a default layout of the terrains
-	terrains.length = 2;
-	terrains.arr = gc_malloc(sizeof(Terrain) * terrains.length);
-	if (terrains.arr) {
-		Terrain* terrain_arr = Get_Terrains();
-		// create a sand terrain
-		terrain_arr[0].type = TERRAIN_SAND;
-		terrain_arr[0].pos = CP_Vector_Set(world_limits.x * 0.25f, world_limits.y * 0.5f);
-		terrain_arr[0].scale = CP_Vector_Set(10.f, 10.f);
-		terrain_arr[0].angle = 0.f;
-		terrain_arr[0].angle_radians = 0.f;
-		terrain_arr[0].destroyed = false;
-
-		// create an ice terrain
-		terrain_arr[1].type = TERRAIN_ICE;
-		terrain_arr[1].pos = CP_Vector_Set(world_limits.x * 0.75f, world_limits.y * 0.5f);
-		terrain_arr[1].scale = CP_Vector_Set(10.f, 10.f);
-		terrain_arr[1].angle = 0.f;
-		terrain_arr[1].angle_radians = 0.f;
-		terrain_arr[1].destroyed = false;
 	}
 }
 
