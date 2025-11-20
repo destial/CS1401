@@ -11,15 +11,14 @@
 #include "game.h"
 #include "end_state.h"
 #include "state_manager.h"
-#include <stdio.h>
 
 static GameState current_gamestate = STATE_SPLASH;
 static GameState next_gamestate = STATE_SPLASH;
 static float state_transition = -1.f;
 
 void GameState_SetNext(GameState state) {
-	next_gamestate = state;
 	if (state_transition < 0.f) {
+		next_gamestate = state;
 		state_transition = 0.f;
 	}
 }

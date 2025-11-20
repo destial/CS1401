@@ -9,6 +9,7 @@
 #include "state_manager.h"
 #include "currency_manager.h"
 #include "game_settings.h"
+#include "level_manager.h"
 #include <math.h>
 //void scoring_update();
 //void scoring_exit();
@@ -269,7 +270,7 @@ void scoring_update(void) {
 		}
 		//click on next level
 		if (IsAreaClicked(scorebb[2].x, scorebb[2].y, scorebb[2].width, scorebb[2].height, clickbb_x, clickbb_y) == 1) {
-			if ((Game_GetLevel() + 1) == 6) {
+			if (Game_GetLevel() == TOTAL_LEVELS) {
 				reward_given = 0;
 				GameState_SetNext(STATE_MAINMENU);
 			}

@@ -17,8 +17,17 @@ typedef enum CursorEnum {
 	CURSOR_ROTATE
 } CursorType;
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Set the current cursor on the screen
+@param cursor - The cursor type
+*/
 void GameSetting_SetCursor(CursorType cursor);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Render the cursor on the screen, already called in PostUpdate function in CProcessing!!!
+*/
 void GameSetting_RenderCursor(void);
 
 /*!

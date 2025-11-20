@@ -18,30 +18,47 @@ typedef enum GameStatesEnum {
 } GameState;
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Set the next state to update
 @param state - The next game state
 */
 void GameState_SetNext(GameState state);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief To be called inside every update function at the end, renders the transition (fade to black)
+*/
 void GameState_Update(void);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief If it is currently transitioning to the next game state
+@returns true if currently in transitioning
+*/
 bool GameState_IsTransitioning(void);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Transition to the next state
+*/
 void GameState_GoNext(void);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Set the current state
 @param state - The current game state
 */
 void GameState_SetCurrent(GameState state);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the next state that is going to be transitioning to in the next frame
 @return The next game state
 */
 GameState GameState_GetNext(void);
 
 /*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Get the current game state in this frame
 @return The current game state
 */
