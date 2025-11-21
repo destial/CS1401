@@ -663,7 +663,9 @@ static void pausemenu_render(void) {
 	
 	UI_ButtonImageText(coords.x, coords.y, 
 		40.f * s_scale.x, 40.f * s_scale.y,
-		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
+		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), 
+		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), 
+		" TAB ");
 	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
 		600.f * s_scale.x, 40.f * s_scale.y,
 		Get_Color(COLOR_WHITE), "Open controls page", 30.f * s_scale.x);
@@ -1278,9 +1280,16 @@ void Game_RenderShadows(void) {
 		case ITEM_COIN:
 			CP_Graphics_DrawEllipse(
 				coords.x,
-				coords.y + shadow_pixel_depth,
+				coords.y + shadow_pixel_depth + 5.f,
 				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition) * anim_mul,
 				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition) * anim_mul);
+			break;
+		case ITEM_PORTAL:
+			CP_Graphics_DrawEllipse(
+				coords.x,
+				coords.y + shadow_pixel_depth + 5.f,
+				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition),
+				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition));
 			break;
 		default:
 			break;
