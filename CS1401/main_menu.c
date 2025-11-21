@@ -987,6 +987,10 @@ bool get_shadow_setting(void) {
 	return is_shadowed;
 }
 
+bool get_inverse_setting(void) {
+	return is_inversed;
+}
+
 //frees the image when exiting the application
 void main_menu_exit(void) 
 {

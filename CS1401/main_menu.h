@@ -36,6 +36,7 @@ void equip_button(int num);
 void is_shadow(void);
 void is_inverse(void);
 bool get_shadow_setting(void);
+bool get_inverse_setting(void);
 void draw_logo_image(void);
 int equipped_index;
 
