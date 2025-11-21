@@ -56,13 +56,13 @@ float CP_Vector_LengthSquared(CP_Vector vect) {
 
 float Math_CLerpFloat(float start, float end, float delta) {
 	delta = min_max(delta, 0.f, 1.f);
-	float p = 1.f - ((cosf(3.1415927f * delta) + 1.f) * 0.5f);
+	float p = 1.f - ((cosf(MATH_PI * delta) + 1.f) * 0.5f);
 	return CP_Math_LerpFloat(start, end, p);
 }
 
 int Math_CLerpInt(int start, int end, float delta) {
 	delta = min_max(delta, 0.f, 1.f);
-	float p = 1.f - ((cosf(3.1415927f * delta) + 1.f) * 0.5f);
+	float p = 1.f - ((cosf(MATH_PI * delta) + 1.f) * 0.5f);
 	return CP_Math_LerpInt(start, end, p);
 }
 

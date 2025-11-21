@@ -18,6 +18,10 @@ typedef unsigned char bool;
 #define true (unsigned char)1
 #define false (unsigned char)0
 
+#ifndef MATH_PI
+#define MATH_PI 3.1415927f
+#endif
+
 typedef enum ColorCodeEnum {
 	COLOR_BLACK = 0,
 	COLOR_RED,
