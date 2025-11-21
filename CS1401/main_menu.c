@@ -40,7 +40,7 @@ static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
 static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
 
-static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked;
+static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 
@@ -190,7 +190,7 @@ void main_menu_init(void)
 
 	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
 	buttons[8].pos.x = world_width1 * 0.75f;
-	buttons[8].pos.y = world_height1 * 0.7f;
+	buttons[8].pos.y = world_height1 * 0.75f;
 	buttons[8].start_pos.x = buttons[8].pos.x;
 	buttons[8].text = "High Details";
 	buttons[8].func = is_shadow;
@@ -228,6 +228,13 @@ void main_menu_init(void)
 	buttons[13].pos.y = world_height1 * 0.32f;
 	buttons[13].start_pos.x = buttons[13].pos.x;
 	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY: 20 Coins";
+
+	buttons[14].button_image = is_inversed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
+	buttons[14].pos.x = world_width1 * 0.75f;
+	buttons[14].pos.y = world_height1 * 0.66f;
+	buttons[14].start_pos.x = buttons[14].pos.x;
+	buttons[14].text = "Inverse Control";
+	buttons[14].func = is_inverse;
 
 	//start of level select button
 	int row = 0;
@@ -613,7 +620,41 @@ void settings_button(float mouse_x, float mouse_y) {
 			buttons[8].scale.y = 0;
 			buttons[8].text_size = 0;
 		}
+	}
 
+	//INVERSE BUTTON
+	coords = defining_position(buttons[14].pos.x, buttons[14].pos.y);
+	local_scale = defining_coords(buttons[14].scale.x, buttons[14].scale.y);
+
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+	//Drawing the button
+	CP_Image_DrawAdvanced(buttons[14].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+	draw_text(buttons[14].text_size, buttons[14].text, coords.x, coords.y);
+
+	//telling what the button should do
+	if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
+	{
+		GameSetting_SetCursor(CURSOR_POINT);
+		buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 7.0f, CP_System_GetDt() * 5);
+		buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 3.0f, CP_System_GetDt() * 5);
+		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 1.1f, CP_System_GetDt() * 5);
+		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+		{
+			buttons[14].func();
+		}
+	}
+	else {
+		if (is_setting_clicked) {
+			buttons[14].scale.x = CP_Math_LerpFloat(buttons[14].scale.x, 6.0f, CP_System_GetDt() * 5);
+			buttons[14].scale.y = CP_Math_LerpFloat(buttons[14].scale.y, 2.0f, CP_System_GetDt() * 5);
+			buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 0.8f, CP_System_GetDt() * 5);
+		}
+		else {
+			buttons[14].scale.x = 0;
+			buttons[14].scale.y = 0;
+			buttons[14].text_size = 0;
+		}
 	}
 }
 
@@ -935,6 +976,11 @@ void change_resolution(int num) {
 void is_shadow(void) {
 	is_shadowed = !is_shadowed;
 	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET): Asset_GetImage(BUTTON_GREY_ASSET);
+}
+
+void is_inverse(void) {
+	is_inversed = !is_inversed;
+	buttons[14].button_image = is_inversed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
 }
 
 bool get_shadow_setting(void) {

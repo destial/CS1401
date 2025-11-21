@@ -34,6 +34,7 @@ void draw_volume(float text_size, float pos_x, float pos_y, float limit);
 void buy_button(int num);
 void equip_button(int num);
 void is_shadow(void);
+void is_inverse(void);
 bool get_shadow_setting(void);
 void draw_logo_image(void);
 int equipped_index;
