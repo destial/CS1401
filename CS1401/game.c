@@ -196,7 +196,7 @@ void game_init(void)
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 
 	game_hints[0].asset_path = SMALL_BUTTON_GREY_ASSET;
-	game_hints[0].text = "Open hints page";
+	game_hints[0].text = "Open controls page";
 	game_hints[0].key = " TAB ";
 
 	game_hints[1].asset_path = SMALL_BUTTON_GREY_ASSET;
@@ -375,7 +375,7 @@ void Game_UpdatePhysics(float dt)
 		if (CP_Input_MouseDown(MOUSE_BUTTON_LEFT) && playable && game_timer > 0.f) {
 
 			// make sure the mouse is on the ball and its currently not moving
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.5) && current == NULL) {
+			if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, golf->pos) <= (golf->diameter * 0.75f) && current == NULL) {
 				if (golf->dragging = all_balls_stopped) { // intentional!!!!!!!!!!!
 					current = golf;
 				}
@@ -658,7 +658,7 @@ static void pausemenu_render(void) {
 		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
 	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
 		600.f * s_scale.x, 40.f * s_scale.y,
-		Get_Color(COLOR_WHITE), "Open up hints page", 30.f * s_scale.x);
+		Get_Color(COLOR_WHITE), "Open controls page", 30.f * s_scale.x);
 }
 
 // render sidebar hints
@@ -668,30 +668,29 @@ static void hint_render(void) {
 	t = min_max(t, 0.f, 1.f);
 	UI_SetPriority(4);
 	UI_Button(
-		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t),
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.5f,
-		300.f * s_scale.x,
+		350.f * s_scale.x,
 		800.f * s_scale.y,
 		Get_Color(COLOR_GRAY), Get_Color(COLOR_GRAY));
 
 	UI_SetPriority(5);
-
 	UI_Text(
-		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t),
+		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.1f,
 		250.f * s_scale.x, 40.f * s_scale.y,
-		Get_Color(COLOR_BLACK), "HINTS", 60.f * s_scale.x);
+		Get_Color(COLOR_BLACK), "CONTROLS", 60.f * s_scale.x);
 
 	for (int i = 0; i < sizeof(game_hints) / sizeof(Hints); ++i) {
 		Hints* h = &game_hints[i];
 		UI_ButtonImageText(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t) - 110.f * s_scale.x,
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 120.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			40.f * s_scale.x, 40.f * s_scale.y,
 			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
 
 		UI_TextLeft(
-			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.1f, CP_System_GetWindowWidth() * .85f, t) - 80.f * s_scale.x,
+			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 90.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			250.f * s_scale.x, 40.f * s_scale.y,
 			Get_Color(COLOR_BLACK), h->text, 30.f * s_scale.x);
@@ -787,7 +786,7 @@ void Game_RenderUI(void) {
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
 		float w = world_ratios.x * 5.f;
-		float h = world_ratios.x;
+		float h = world_ratios.y;
 		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 		GolfBall* golf_arr = Get_Golfs();
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -799,7 +798,7 @@ void Game_RenderUI(void) {
 			CP_Vector normal = CP_Vector_Scale(CP_Vector_Normalize(ball->vel), 4.f * power_val);
 			CP_Vector b = World_To_Screen(ball->pos.x + normal.x, ball->pos.y + normal.y, world_limits.x, world_limits.y);
 			float angle = CP_Vector_AngleCCW(CP_Vector_Set(1, 0), normal);
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h, 255, angle);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y, w * 1.5f * power_val, h * 2.f * power_val, 255, angle);
 		}
 
 		GameSetting_SetCursor(CURSOR_GRAB);
@@ -1193,7 +1192,7 @@ void Game_RenderShadows(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	CP_Vector s_scale = Screen_Scale();
 	static CP_Color shadow = { 0, 0, 0, 64 };
-	float shadow_pixel_depth = 5.f * s_scale.x;
+	float shadow_pixel_depth = 7.5f * s_scale.x;
 
 	Wall* wall_arr = Get_Walls();
 	CP_Settings_Fill(shadow);
@@ -1272,7 +1271,7 @@ void Game_RenderShadows(void) {
 		case ITEM_COIN:
 			CP_Graphics_DrawEllipse(
 				coords.x,
-				coords.y + shadow_pixel_depth + 7.5f,
+				coords.y + shadow_pixel_depth,
 				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition) * anim_mul,
 				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition) * anim_mul);
 			break;

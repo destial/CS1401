@@ -97,7 +97,7 @@ static void background_ball_update(void) {
 	}
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-	CP_Image_DrawAdvanced(golf_ball_default_image,
+	CP_Image_DrawAdvanced(equipped_index == 0 ? golf_ball_default_image : equipped_index == 1 ? golf_ball_gold_image : golf_ball_pool_image,
 		coords.x,
 		coords.y,
 		diameter * CP_System_GetWindowWidth() / world_width1,
