@@ -333,11 +333,10 @@ void UI_Render(void) {
 	// sort ui elements by priority
 	UI_SortPriority();
 
-	CP_Settings_Save();
-
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	for (int i = 0; i < _ui_elements.elements_length; ++i) {
 		UIType type = _ui_elements.sorted[i].type;
+		CP_Settings_Save();
 		if (type == UI_SLIDER) {
 			SliderStruct* slider = _ui_elements.sorted[i].slider;
 			float x = slider->x;
@@ -427,9 +426,9 @@ void UI_Render(void) {
 			CP_Settings_Fill(text->color);
 			CP_Font_DrawTextBox(text->text, text->mode == CP_POSITION_CENTER ? x - (w * 0.5f) : x, y, w);
 		}
-	}
 
-	CP_Settings_Restore();
+		CP_Settings_Restore();
+	}
 
 	// reset ui buffer
 	UI_Start();

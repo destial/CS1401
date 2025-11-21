@@ -33,7 +33,6 @@ typedef struct ButtonStr {
 
 static float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-static int window_size_H, window_size_W;
 static int resolution_number = 0;
 int equipped_index;
 
@@ -108,13 +107,13 @@ void main_menu_init(void)
 	GameState_SetCurrent(STATE_MAINMENU);
 	printf("Init main menu\n");
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
-	window_size_H = CP_System_GetWindowHeight();
-	window_size_W = CP_System_GetWindowWidth();
 	is_clicked = 0;
 
 	sfx_limit = GameSetting_GetFloat("sfx_volume");
 	music_limit = GameSetting_GetFloat("music_volume");
 	is_shadowed = GameSetting_GetBool("high_quality");
+	int res = GameSetting_GetInt("resolution");
+	if (res >= 0) change_resolution(res);
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
@@ -261,10 +260,7 @@ void main_menu_init(void)
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 
-	//setting the button anchor to the center of the world
-	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
-	CP_System_SetWindowSize(window_size_W, window_size_H);
 
 	//title logo screen position
 	logo_start_x = CP_System_GetWindowWidth() * 0.5f;
@@ -917,6 +913,7 @@ void change_resolution(int num) {
 		CP_System_SetWindowSize(1920, 1080);
 		break;
 	}
+	GameSetting_SetInt("resolution", num);
 	logo_start_x = CP_System_GetWindowWidth() * 0.5f;
 	logo_x = CP_System_GetWindowWidth() * 0.5f;
 	logo_y = CP_System_GetWindowHeight() * 0.3f;

@@ -766,6 +766,7 @@ void Game_Render(void)
 	hint_render();
 
 	// finally render everything in UI manager
+	CP_Settings_NoStroke();
 	UI_Render();
 
 	// this is to transition between game and main menu states
@@ -774,12 +775,13 @@ void Game_Render(void)
 
 void Game_RenderUI(void) {
 	CP_Vector s_scale = Screen_Scale();
+	CP_Vector world_ratios = Get_World_Ratios();
 	// store power color here for UI usage
 	CP_Color power_color = { 0 };
 	float power_val = 0.f;
 	
 	if (current != NULL) { // render the current putt power when user input
-		CP_Vector world_ratios = Get_World_Ratios();
+		
 		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
 		int red = CP_Math_LerpInt(0, 255, power_val);
 		int green = 255 - red;
@@ -806,7 +808,6 @@ void Game_RenderUI(void) {
 		GolfBall* golf_arr = Get_Golfs();
 		CP_Image putt_arrow = Asset_GetImage(RED_ARROW);
 		
-		CP_Vector world_ratios = Get_World_Ratios();
 		float w = world_ratios.x;
 		float h = world_ratios.y;
 		float y_mul = (sinf(5.f * CP_System_GetSeconds()) / 5.f) + 1.f;
@@ -888,10 +889,10 @@ void Game_RenderUI(void) {
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));
 	CP_Settings_TextSize(25.f * s_scale.x);
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
-	char fps[50]; sprintf_s(fps, 50, "FPS: %d", (int)(1 / CP_System_GetDt()));
+	char fps[16]; sprintf_s(fps, 16, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 5.f, 5.f);
 	if (debug_enabled) {
-		CP_Settings_TextSize(20.f);
+		CP_Settings_TextSize(20.f * s_scale.x);
 		Game_RenderDebug();
 	}
 
@@ -929,16 +930,16 @@ void Game_RenderTerrains(void) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
 			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50]; sprintf_s(p, 50, "Index: %d", i);
+			char p[32]; sprintf_s(p, 32, "Index: %d", i);
 			CP_Font_DrawText(p, c.x, c.y + 40.f * s_scale.y);
 
-			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", terrain->pos.x, terrain->pos.y);
+			char b[32]; sprintf_s(b, 32, "Pos: (%.2f, %.2f)", terrain->pos.x, terrain->pos.y);
 			CP_Font_DrawText(b, c.x, c.y + 60.f * s_scale.y);
 
-			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", terrain->scale.x, terrain->scale.y);
+			char s[32]; sprintf_s(s, 32, "Scale: (%.2f, %.2f)", terrain->scale.x, terrain->scale.y);
 			CP_Font_DrawText(s, c.x, c.y + 80.f * s_scale.y);
 
-			char a[100]; sprintf_s(a, 100, "Degrees: %.2f | Radians: %.2f", terrain->angle, terrain->angle_radians);
+			char a[64]; sprintf_s(a, 64, "Degrees: %.2f | Radians: %.2f", terrain->angle, terrain->angle_radians);
 			CP_Font_DrawText(a, c.x, c.y + 100.f * s_scale.y);
 		}
 	}
@@ -998,17 +999,17 @@ void Game_RenderWalls(void) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
 			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50]; sprintf_s(p, 50, "Index: %d", i);
+			char p[32]; sprintf_s(p, 32, "Index: %d", i);
 			CP_Font_DrawText(p, c.x, c.y + 40.f * s_scale.y);
-			char b[50]; sprintf_s(b, 50, "Pos: (%.2f, %.2f)", wall->pos.x, wall->pos.y);
+			char b[32]; sprintf_s(b, 32, "Pos: (%.2f, %.2f)", wall->pos.x, wall->pos.y);
 			CP_Font_DrawText(b, c.x, c.y + 60.f * s_scale.y);
-			char s[50]; sprintf_s(s, 50, "Scale: (%.2f, %.2f)", wall->scale.x, wall->scale.y);
+			char s[32]; sprintf_s(s, 32, "Scale: (%.2f, %.2f)", wall->scale.x, wall->scale.y);
 			CP_Font_DrawText(s, c.x, c.y + 80.f * s_scale.y);
-			char n[100]; sprintf_s(n, 100, "Normal: (%.2f, %.2f) (Deg: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
+			char n[64]; sprintf_s(n, 64, "Normal: (%.2f, %.2f) (Deg: %.2f)", wall->normal.x, wall->normal.y, wall->angle);
 			CP_Font_DrawText(n, c.x, c.y + 100.f * s_scale.y);
-			char r[100]; sprintf_s(r, 100, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, CP_Math_Radians(wall->angle));
+			char r[64]; sprintf_s(r, 64, "Right: (%.2f, %.2f) (Rad: %.2f)", wall->right.x, wall->right.y, CP_Math_Radians(wall->angle));
 			CP_Font_DrawText(r, c.x, c.y + 120.f * s_scale.y);
-			char rr[100]; sprintf_s(rr, 100, "Rot Rate: %.2f", wall->rotation_rate);
+			char rr[32]; sprintf_s(rr, 32, "Rot Rate: %.2f", wall->rotation_rate);
 			CP_Font_DrawText(rr, c.x, c.y + 140.f * s_scale.y);
 			if (!editor_mode) {
 				// draw the closest point after rotating it back to original
@@ -1053,7 +1054,7 @@ void Game_RenderHoles(void) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
 			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", hole->pos.x, hole->pos.y);
+			char p[32]; sprintf_s(p, 32, "Pos: (%.2f, %.2f)", hole->pos.x, hole->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 50.f * s_scale.y);
 		}
 	}
@@ -1119,10 +1120,10 @@ void Game_RenderItems(void) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
 			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char in[64]; sprintf_s(in, 64, "Index: %d", i);
+			char in[32]; sprintf_s(in, 32, "Index: %d", i);
 			CP_Font_DrawText(in, coords.x, coords.y + 40.f * s_scale.y);
 
-			char p[64]; sprintf_s(p, 64, "Pos: (%.2f, %.2f)", item->pos.x, item->pos.y);
+			char p[32]; sprintf_s(p, 32, "Pos: (%.2f, %.2f)", item->pos.x, item->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 60.f * s_scale.y);
 
 			CP_Settings_NoFill();
@@ -1179,10 +1180,10 @@ void Game_RenderGolfs(void) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
 			CP_Settings_TextSize(20.f * s_scale.x);
 			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_CENTER, CP_TEXT_ALIGN_V_BOTTOM);
-			char p[50]; sprintf_s(p, 50, "Pos: (%.2f, %.2f)", golf->pos.x, golf->pos.y);
+			char p[32]; sprintf_s(p, 32, "Pos: (%.2f, %.2f)", golf->pos.x, golf->pos.y);
 			CP_Font_DrawText(p, coords.x, coords.y + 40.f * s_scale.y);
 
-			char b[50]; sprintf_s(b, 50, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
+			char b[32]; sprintf_s(b, 32, "Vel: (%.2f, %.2f)", golf->vel.x, golf->vel.y);
 			CP_Font_DrawText(b, coords.x, coords.y + 60.f * s_scale.y);
 		}
 	}
@@ -1672,21 +1673,21 @@ float Get_Resistance_At(CP_Vector pos) {
 // Drawing FPS, mouse positions in screen and world coordinates, and golf data
 void Game_RenderDebug(void) {
 	CP_Vector s_scale = Screen_Scale();
-	char m[50]; sprintf_s(m, 50, "Screen Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
+	char m[64]; sprintf_s(m, 64, "Screen Mouse: (%.0f, %.0f)", mouse.x, mouse.y);
 	CP_Settings_TextSize(20.f * s_scale.y);
 	CP_Font_DrawText(m, 0, 40.f * s_scale.y);
 
 	CP_Vector world = Screen_To_World(mouse.x, mouse.y, world_limits.x, world_limits.y);
-	char wm[50]; sprintf_s(wm, 50, "World Mouse: (%.2f, %.2f)", world.x, world.y);
+	char wm[64]; sprintf_s(wm, 64, "World Mouse: (%.2f, %.2f)", world.x, world.y);
 	CP_Font_DrawText(wm, 0, 60.f * s_scale.y);
 
-	char r[50]; sprintf_s(r, 50, "Resistance: %.2f", resistance);
+	char r[32]; sprintf_s(r, 32, "Resistance: %.2f", resistance);
 	CP_Font_DrawText(r, 0, 80.f * s_scale.y);
 
-	char po[50]; sprintf_s(po, 50, "Shoot Power: %.2f", power);
+	char po[32]; sprintf_s(po, 32, "Shoot Power: %.2f", power);
 	CP_Font_DrawText(po, 0, 100.f * s_scale.y);
 
-	char p[50]; sprintf_s(p, 50, "Mouse Wheel: %.2f", CP_Input_MouseWheel());
+	char p[32]; sprintf_s(p, 32, "Mouse Wheel: %.2f", CP_Input_MouseWheel());
 	CP_Font_DrawText(p, 0, 120.f * s_scale.y);
 }
 
