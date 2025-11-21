@@ -120,6 +120,7 @@ void main_menu_init(void)
 	sfx_limit = GameSetting_GetFloat("sfx_volume");
 	music_limit = GameSetting_GetFloat("music_volume");
 	is_shadowed = GameSetting_GetBool("high_quality");
+	is_inversed = GameSetting_GetBool("inverse_controls");
 	int res = GameSetting_GetInt("resolution");
 	if (res >= 0) change_resolution(res);
 	int c = GameSetting_GetInt("coins");
@@ -1002,6 +1003,7 @@ void main_menu_exit(void)
 	GameSetting_SetInt("equipped", equipped_index + 11);
 	GameSetting_SetBool("bought1", is_buy1_clicked);
 	GameSetting_SetBool("bought2", is_buy2_clicked);
+	GameSetting_SetBool("inverse_controls", is_inversed);
 	GameSetting_Save();
 	Assets_Free();
 	printf("Exit main menu\n");

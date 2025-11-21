@@ -44,7 +44,7 @@ void GameSetting_RenderCursor(void) {
 			cursor = Asset_GetImage(CURSOR_ASSET);
 			break;
 		}
-		CP_Image_DrawAdvanced(cursor, CP_Input_GetMouseX(), CP_Input_GetMouseY(), 24.f, 24.f, 255, 0.f);
+		CP_Image_DrawAdvanced(cursor, CP_Input_GetMouseX(), CP_Input_GetMouseY(), 32.f, 32.f, 255, 0.f);
 	}
 }
 

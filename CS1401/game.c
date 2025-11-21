@@ -383,7 +383,12 @@ void Game_UpdatePhysics(float dt)
 
 			// manipulate the velocity based on the mouse coordinates
 			if (golf->dragging && golf == current) {
-				golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
+				if (get_inverse_setting()) {
+					golf->vel = CP_Vector_Subtract(golf->pos, mouse_world);
+				}
+				else {
+					golf->vel = CP_Vector_Subtract(mouse_world, golf->pos);
+				}
 				golf->vel = CP_Vector_Scale(golf->vel, power);
 				golf->vel = CP_Vector_Max(golf->vel, MAX_PUTT_POWER);
 
