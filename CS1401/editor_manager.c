@@ -29,6 +29,7 @@ static CP_Vector current_editing_offset;
 static EditingType current_type = EDIT_NONE;
 static float editor_saving = 0.f;
 static bool editor_dirty = false;
+static bool editor_mode = false;
 
 bool Check_On_Wall(Wall* wall) {
 	// get bounds of the wall
@@ -53,6 +54,14 @@ bool Check_On_Terrain(Terrain* terrain) {
 
 bool Check_On_Circle(CP_Vector pos, float diameter) {
 	return CP_Vector_Distance(pos, Get_Mouse_WorldSpace()) <= diameter * 0.5f;
+}
+
+void Editor_SetEditMode(bool mode) {
+	editor_mode = mode;
+}
+
+bool Editor_GetEditMode(void) {
+	return editor_mode;
 }
 
 void Editor_Update_Walls(ObjectArray* walls) {

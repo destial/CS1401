@@ -44,7 +44,6 @@ static bool debug_enabled = true;
 #else
 static bool debug_enabled = false;
 #endif
-static bool editor_mode = false;
 
 // editable setting
 static float resistance = 1.25f;
@@ -230,7 +229,7 @@ void game_init(void)
 	pause_menu_transition = -1.f;
 	hint_transition = 0.f;
 	turn_now = turn_now_hold = swinging = 0.f;
-	turn_now_revert = playable = win = has_won = editor_mode = pause_menu = false;
+	turn_now_revert = playable = win = has_won = pause_menu = false;
 	all_balls_stopped = true;
 
 	// fix timestep
@@ -288,7 +287,7 @@ void game_update(void)
 			}
 
 			// update scoreboard if game has ended
-			if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode)
+			if ((Game_LevelLost() || Game_LevelWon()) && !Editor_GetEditMode())
 				scoring_update();
 		}
 	}
@@ -355,7 +354,7 @@ void Game_UpdatePhysics(float dt)
 			continue;
 
 		win = false;
-		if (editor_mode)
+		if (Editor_GetEditMode())
 			continue;
 
 		// golf ball scoring animation
@@ -383,6 +382,10 @@ void Game_UpdatePhysics(float dt)
 
 			// manipulate the velocity based on the mouse coordinates
 			if (golf->dragging && golf == current) {
+				// TODO: Lock mouse cursor when dragging to fix off screen problem.
+				//		 But CProcessing doesn't have that function :(
+				//		 So we need to probably use winapi to do that :(
+				// CP_Vector delta = Screen_To_World(CP_Input_GetMouseDeltaX(), CP_Input_GetMouseDeltaY(), world_limits.x, world_limits.y);
 				if (get_inverse_setting()) {
 					golf->vel = CP_Vector_Subtract(golf->pos, mouse_world);
 				}
@@ -558,7 +561,7 @@ void Game_UpdatePhysics(float dt)
 		// update wall's normal
 		Game_UpdateWall(wall, dt);
 
-		if (editor_mode)
+		if (Editor_GetEditMode())
 			continue;
 
 		for (int j = 0; j < golf_balls.length; ++j) {
@@ -675,8 +678,7 @@ static void hint_render(void) {
 	UI_Button(
 		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.5f,
-		350.f * s_scale.x,
-		800.f * s_scale.y,
+		350.f * s_scale.x, 800.f * s_scale.y,
 		Get_Color(COLOR_GRAY), Get_Color(COLOR_GRAY));
 
 	UI_SetPriority(5);
@@ -742,7 +744,7 @@ void Game_Render(void)
 	// render ui
 	Game_RenderUI();
 
-	if (editor_mode) 
+	if (Editor_GetEditMode())
 		Editor_Render();
 
 	// reset camera matrix because we dont want UI to be affected by the camera
@@ -757,7 +759,7 @@ void Game_Render(void)
 			hint_transition += CP_System_GetDt();
 		}
 	}
-	else if (!editor_mode) { // render tutorial instructions (if have)
+	else if (!Editor_GetEditMode()) { // render tutorial instructions (if have)
 		Tutorial_Render();
 	}
 
@@ -833,7 +835,7 @@ void Game_RenderUI(void) {
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
-	if (!editor_mode) {
+	if (!Editor_GetEditMode()) {
 		// draw current strokes
 		CP_Settings_TextSize(40.f * s_scale.x);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
@@ -856,13 +858,13 @@ void Game_RenderUI(void) {
 		UI_SetPriority(0);
 	}
 
-	if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode) {
+	if ((Game_LevelLost() || Game_LevelWon()) && !Editor_GetEditMode()) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
 		*/
 	}
-	else if (playable && all_balls_stopped && !editor_mode) {
+	else if (playable && all_balls_stopped && !Editor_GetEditMode()) {
 		if (turn_now >= 0.f) {
 			CP_Settings_Fill(Get_Color(COLOR_CARMINE));
 			CP_Settings_Stroke(Get_Color(COLOR_RED));
@@ -1015,7 +1017,7 @@ void Game_RenderWalls(void) {
 			CP_Font_DrawText(r, c.x, c.y + 120.f * s_scale.y);
 			char rr[32]; sprintf_s(rr, 32, "Rot Rate: %.2f", wall->rotation_rate);
 			CP_Font_DrawText(rr, c.x, c.y + 140.f * s_scale.y);
-			if (!editor_mode) {
+			if (!Editor_GetEditMode()) {
 				// draw the closest point after rotating it back to original
 				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -CP_Math_Radians(wall->angle));
 				CP_Vector c = World_To_Screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
@@ -1072,7 +1074,7 @@ void Game_RenderItems(void) {
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item->destroyed || (item->collected && !editor_mode) )
+		if (item->destroyed || (item->collected && !Editor_GetEditMode()) )
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -1254,7 +1256,7 @@ void Game_RenderShadows(void) {
 	// render item shadow
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item->destroyed || (item->collected && !editor_mode))
+		if (item->destroyed || (item->collected && !Editor_GetEditMode()))
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -1354,7 +1356,7 @@ void Process_Inputs(void) {
 
 	// toggle level editor mode
 	if (CP_Input_KeyTriggered(KEY_P)) {
-		editor_mode = !editor_mode;
+		Editor_SetEditMode(!Editor_GetEditMode());
 	}
 
 	if (CP_Input_KeyTriggered(KEY_F)) {
@@ -1378,7 +1380,7 @@ void Process_Inputs(void) {
 		add_stroke();
 	}
 
-	if (editor_mode) {
+	if (Editor_GetEditMode()) {
 		if (CP_Input_KeyTriggered(KEY_E)) { // increase golf ball resistance
 			resistance += 0.1f;
 		}
@@ -1440,7 +1442,7 @@ void Process_Inputs(void) {
 
 // Update the wall's normal based on its angle of rotation
 void Game_UpdateWall(Wall* wall, float dt) {
-	if (!editor_mode) {
+	if (!Editor_GetEditMode()) {
 		// update the wall angle based on rotation rate (if any)
 		wall->angle += wall->rotation_rate * dt;
 	}
