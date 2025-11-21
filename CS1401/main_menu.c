@@ -85,8 +85,16 @@ static void background_ball_update(void) {
 		ball_angle += 360.f;
 	}
 	ball_pos = CP_Vector_Add(ball_pos, CP_Vector_Scale(ball_vel, CP_System_GetDt()));
-
 	CP_Vector coords = World_To_Screen(ball_pos.x, ball_pos.y, world_width1, world_height1);
+	if (is_shadowed) {
+		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 64));
+		CP_Settings_NoStroke();
+		CP_Graphics_DrawEllipse(
+			coords.x,
+			coords.y + 5.f,
+			diameter * CP_System_GetWindowWidth() / world_width1,
+			(diameter * CP_System_GetWindowHeight() / world_height1) + 5.f);
+	}
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Image_DrawAdvanced(golf_ball_default_image,

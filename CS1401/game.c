@@ -1195,7 +1195,7 @@ void Game_RenderShadows(void) {
 
 	Wall* wall_arr = Get_Walls();
 	CP_Settings_Fill(shadow);
-	CP_Settings_Stroke(Get_Color(COLOR_CLEAR));
+	CP_Settings_NoStroke();
 	CP_Settings_RectMode(CP_POSITION_CENTER);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
@@ -1206,15 +1206,41 @@ void Game_RenderShadows(void) {
 		if (wall->destroyed)
 			continue;
 
-		CP_Vector c = World_To_Screen(wall->pos.x, wall->pos.y, world_limits.x, world_limits.y);
-		CP_Graphics_DrawRectAdvanced(
-			c.x,
-			c.y + 5.f,
-			wall->scale.x * world_ratios.x * i > 4 ? (1.f - scale_transition) : 1.f,
-			wall->scale.y * world_ratios.y * i > 4 ? (1.f - scale_transition) : 1.f,
-			wall->angle,
-			0.f
-		);
+		CP_Vector top_l = { -wall->scale.x * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f), wall->scale.y * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f) };
+		CP_Vector top_r = { wall->scale.x * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f), wall->scale.y * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f) };
+		CP_Vector bot_l = { -wall->scale.x * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f), -wall->scale.y * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f) };
+		CP_Vector bot_r = { wall->scale.x * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f), -wall->scale.y * 0.5f * (i > 4 ? (1.f - scale_transition) : 1.f) };
+		CP_Vector points[4] = { top_l, top_r, bot_l, bot_r };
+
+		for (int i = 0; i < 4; ++i) {
+			CP_Vector p = CP_Vector_Rotate(points[i], -CP_Math_Radians(wall->angle));
+			p = CP_Vector_Add(p, wall->pos);
+
+			points[i] = World_To_Screen(p.x, p.y, world_limits.x, world_limits.y);
+		}
+		// top shadow only if top is higher than bot
+		if (points[0].y > points[2].y) {
+			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + 5.f, points[1].x, points[1].y + 5.f);
+			CP_Graphics_DrawTriangle(points[1].x, points[1].y + 5.f, points[0].x, points[0].y, points[1].x, points[1].y);
+		}
+
+		// left shadow only of top l is higher than bot l
+		if (points[0].x < points[2].x) {
+			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + 5.f, points[2].x, points[2].y + 5.f);
+			CP_Graphics_DrawTriangle(points[2].x, points[2].y + 5.f, points[0].x, points[0].y, points[2].x, points[2].y);
+		}
+
+		// right shadow only if top r is higher than bot r
+		if (points[1].x > points[3].x) {
+			CP_Graphics_DrawTriangle(points[1].x, points[1].y, points[1].x, points[1].y + 5.f, points[3].x, points[3].y + 5.f);
+			CP_Graphics_DrawTriangle(points[3].x, points[3].y + 5.f, points[1].x, points[1].y, points[3].x, points[3].y);
+		}
+
+		// bot shadow only if bottom is lower than the top
+		if (points[2].y > points[0].y) {
+			CP_Graphics_DrawTriangle(points[2].x, points[2].y, points[2].x, points[2].y + 5.f, points[3].x, points[3].y + 5.f);
+			CP_Graphics_DrawTriangle(points[3].x, points[3].y + 5.f, points[2].x, points[2].y, points[3].x, points[3].y);
+		}
 	}
 
 	Item* item_arr = Get_Items();
@@ -1226,7 +1252,6 @@ void Game_RenderShadows(void) {
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
-		
 		
 		CP_Image image = NULL;
 		switch (item->type) {
