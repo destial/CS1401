@@ -146,6 +146,7 @@ void Asset_Free_Node(void* value) {
                 else if (todel->type == ASSET_TYPELESS && todel->value != NULL) {
                     FREE_MEMORY(todel->value);
                 }
+                printf("Deleting asset %s\n", todel->key);
                 FREE_MEMORY(todel->key);
                 FREE_MEMORY(todel);
                 break;
@@ -189,11 +190,10 @@ static void free_asset(Asset map) {
     else if (map->type == ASSET_TYPELESS && map->value != NULL) {
         FREE_MEMORY(map->value);
     }
-    FREE_MEMORY(map->key);
 
     // free up the key memory address (we used malloc here)
-    printf("Freeing up %s\n", map->key);
-
+    printf("Freeing up asset %s\n", map->key);
+    FREE_MEMORY(map->key);
     FREE_MEMORY(map);
 }
 

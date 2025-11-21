@@ -1191,7 +1191,9 @@ void Game_RenderGolfs(void) {
 
 void Game_RenderShadows(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
-	CP_Color shadow = CP_Color_Create(0, 0, 0, 64);
+	CP_Vector s_scale = Screen_Scale();
+	static CP_Color shadow = { 0, 0, 0, 64 };
+	float shadow_pixel_depth = 5.f * s_scale.x;
 
 	Wall* wall_arr = Get_Walls();
 	CP_Settings_Fill(shadow);
@@ -1220,26 +1222,26 @@ void Game_RenderShadows(void) {
 		}
 		// top shadow only if top is higher than bot
 		if (points[0].y > points[2].y) {
-			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + 5.f, points[1].x, points[1].y + 5.f);
-			CP_Graphics_DrawTriangle(points[1].x, points[1].y + 5.f, points[0].x, points[0].y, points[1].x, points[1].y);
+			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + shadow_pixel_depth, points[1].x, points[1].y + shadow_pixel_depth);
+			CP_Graphics_DrawTriangle(points[1].x, points[1].y + shadow_pixel_depth, points[0].x, points[0].y, points[1].x, points[1].y);
 		}
 
 		// left shadow only of top l is higher than bot l
 		if (points[0].x < points[2].x) {
-			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + 5.f, points[2].x, points[2].y + 5.f);
-			CP_Graphics_DrawTriangle(points[2].x, points[2].y + 5.f, points[0].x, points[0].y, points[2].x, points[2].y);
+			CP_Graphics_DrawTriangle(points[0].x, points[0].y, points[0].x, points[0].y + shadow_pixel_depth, points[2].x, points[2].y + shadow_pixel_depth);
+			CP_Graphics_DrawTriangle(points[2].x, points[2].y + shadow_pixel_depth, points[0].x, points[0].y, points[2].x, points[2].y);
 		}
 
 		// right shadow only if top r is higher than bot r
 		if (points[1].x > points[3].x) {
-			CP_Graphics_DrawTriangle(points[1].x, points[1].y, points[1].x, points[1].y + 5.f, points[3].x, points[3].y + 5.f);
-			CP_Graphics_DrawTriangle(points[3].x, points[3].y + 5.f, points[1].x, points[1].y, points[3].x, points[3].y);
+			CP_Graphics_DrawTriangle(points[1].x, points[1].y, points[1].x, points[1].y + shadow_pixel_depth, points[3].x, points[3].y + shadow_pixel_depth);
+			CP_Graphics_DrawTriangle(points[3].x, points[3].y + shadow_pixel_depth, points[1].x, points[1].y, points[3].x, points[3].y);
 		}
 
 		// bot shadow only if bottom is lower than the top
 		if (points[2].y > points[0].y) {
-			CP_Graphics_DrawTriangle(points[2].x, points[2].y, points[2].x, points[2].y + 5.f, points[3].x, points[3].y + 5.f);
-			CP_Graphics_DrawTriangle(points[3].x, points[3].y + 5.f, points[2].x, points[2].y, points[3].x, points[3].y);
+			CP_Graphics_DrawTriangle(points[2].x, points[2].y, points[2].x, points[2].y + shadow_pixel_depth, points[3].x, points[3].y + shadow_pixel_depth);
+			CP_Graphics_DrawTriangle(points[3].x, points[3].y + shadow_pixel_depth, points[2].x, points[2].y, points[3].x, points[3].y);
 		}
 	}
 
@@ -1270,7 +1272,7 @@ void Game_RenderShadows(void) {
 		case ITEM_COIN:
 			CP_Graphics_DrawEllipse(
 				coords.x,
-				coords.y + 12.5f,
+				coords.y + shadow_pixel_depth + 7.5f,
 				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition) * anim_mul,
 				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition) * anim_mul);
 			break;
@@ -1281,7 +1283,7 @@ void Game_RenderShadows(void) {
 		if (image != NULL) {
 			CP_Image_DrawAdvanced(image,
 				coords.x,
-				coords.y + 5.f,
+				coords.y + shadow_pixel_depth,
 				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
 				item->diameter * world_ratios.x * anim_mul * (1.f - scale_transition),
 				shadow.a,
@@ -1299,7 +1301,7 @@ void Game_RenderShadows(void) {
 		CP_Vector coords = World_To_Screen(golf->pos.x, golf->pos.y, world_limits.x, world_limits.y);
 		CP_Graphics_DrawEllipse(
 			coords.x,
-			coords.y + 5.f,
+			coords.y + shadow_pixel_depth,
 			golf->diameter * world_ratios.x * (1.f - scale_transition),
 			(golf->diameter * world_ratios.y + 5.f) * (1.f - scale_transition));
 	}
