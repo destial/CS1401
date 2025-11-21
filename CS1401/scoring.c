@@ -517,7 +517,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
 		CP_Settings_TextSize(70.0f * (win_width / 1600.f));
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, Text[0].x, Text[0].y);
+		CP_Font_DrawText(a, Text[0].x, Text[0].y - 10.0f);
 
 		//Drawing the grey star points based on the points they get.
 		CP_Image_DrawAdvanced(scoress[0].img, scoress[0].x, scoress[0].y, scoress[0].width, scoress[0].height, 255, 335.0f);
@@ -550,7 +550,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 		CP_Image_DrawAdvanced(sbb_h, 0.5f * win_width, 0.15f * win_height, 0.65f * win_width, 0.15f * win_height, 255, 0.0f);
 		CP_Settings_TextSize(70.0f * (win_width / 1600.f));
 		sprintf_s(a, 50, "SCOREBOARD");
-		CP_Font_DrawText(a, Text[0].x, Text[0].y);
+		CP_Font_DrawText(a, Text[0].x, Text[0].y - 10.0f);
 
 
 		CP_Settings_TextSize(60.0f * (win_width / 1600.f));
