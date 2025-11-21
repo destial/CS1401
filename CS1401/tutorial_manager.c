@@ -29,6 +29,8 @@ void Tutorial_Load(bool tut_mode) {
 		case TUT_PHASE_DRAG_BALL:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 8, 6, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+				"You control two balls! Each ball is linked.\n"
+				"Whatever you do for one, the other is the same!\n"
 				"Click and drag a golf ball to aim your shot.\n"
 				"Release to swing.\n"
 				"Scroll to adjust power.\n"
