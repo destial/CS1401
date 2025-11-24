@@ -89,7 +89,7 @@ void Particles_Update(float dt) {
 
 		// get the particle data information of this type
 		ParticleData* data = &particle_types[p->type];
-		if (!data || !data->root_image) {
+		if (!data->root_image) {
 			Particles_Preload();
 			data = &particle_types[p->type];
 		}

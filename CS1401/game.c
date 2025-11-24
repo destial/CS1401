@@ -309,7 +309,7 @@ void Game_UpdatePhysics(float dt)
 		playable = true;
 	}
 
-	if (playable && !has_won) {
+	if (playable && !has_won && !Editor_GetEditMode()) {
 		game_timer -= dt;
 		game_timer = max(0.f, game_timer);
 	}
