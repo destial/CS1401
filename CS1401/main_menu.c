@@ -325,13 +325,17 @@ void main_menu_update(void)
 	sprintf_s(coin_count, 50, "%i", coins);
 	CP_Font_DrawText(coin_count, CP_System_GetWindowWidth() * 0.9f, CP_System_GetWindowHeight() * 0.9f);
 
-	SpriteSheet s = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
+	SpriteSheet s = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.25f);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	Sprite_Draw(s, CP_System_GetWindowWidth() * 0.85f, CP_System_GetWindowHeight() * 0.9f, 60.0f, 60.0f, 255);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+	Sprite_Draw(s, CP_System_GetWindowWidth() * 0.85f, CP_System_GetWindowHeight() * 0.9f,
+		60.0f * (CP_System_GetWindowWidth() / 1600.f), 60.0f * (CP_System_GetWindowHeight() / 900.f),
+		255);
 
 	//SETTING PAGE
 	if (is_setting_clicked) {
 		//drawing setting background
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
 		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
 
 		volume_bar(mouse_x, mouse_y);
@@ -340,11 +344,19 @@ void main_menu_update(void)
 	//SHOP PAGE
 	if (is_shop_clicked) {
 		//drawing shop background
-		CP_Image_Draw(shop_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+		CP_Image_Draw(shop_background, 
+			CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f,
+			CP_System_GetWindowWidth() - (500.f * (CP_System_GetWindowWidth() / 1600.f)), CP_System_GetWindowHeight() - (300.f * (CP_System_GetWindowHeight() / 900.f)),
+			255);
 		CP_Image shop_banner = Asset_GetImage(BANNER);
-		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f, 700.0f, 200.0f, 255, 0.0f);
+		CP_Image_DrawAdvanced(shop_banner, 
+			CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f,
+			700.0f * (CP_System_GetWindowWidth() / 1600.f), 200.0f * (CP_System_GetWindowHeight() / 900.f), 255, 0.0f);
 		//shop items would go here
 		draw_text(1.5f, "GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f);
+
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
