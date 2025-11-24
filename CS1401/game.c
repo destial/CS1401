@@ -426,20 +426,32 @@ void Game_UpdatePhysics(float dt)
 		// apply velocity to the golf ball if not being dragged
 		if (!golf->dragging && !golf->halt) {
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
-			if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
-				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
-				float r = Get_Resistance_At(golf->pos);
+			//if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
+				float r = Get_Resistance_At(golf, golf->pos, dt);
 				if (r < 0.f) {
 					golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
 					golf->vel.x = 0;
 					golf->vel.y = 0;
 					continue;
 				}
+
+				// start of hacky support for wind terrain
+				if (r < 5.f && CP_Vector_LengthSquared(golf->vel) <= MIN_VEL) {
+					golf->vel.x = 0;
+					golf->vel.y = 0;
+					continue;
+				}
+				if (r > 5.f) {
+					r /= 10.f;
+				}
+				// end of hacky support
+
+				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
 				float friction = r - 1.f;
 				if (friction != 0) {
 					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
 				}
-
+				
 				golf->pos = CP_Vector_Add(golf->pos, vel);
 
 				bool powerup = false;
@@ -457,13 +469,13 @@ void Game_UpdatePhysics(float dt)
 				if (!powerup && golf->teleported) {
 					golf->teleported = false;
 				}
-			}
-			else {
+			//}
+			//else {
 
 				// hard stop the ball if too slow
-				golf->vel.x = 0;
-				golf->vel.y = 0;
-			}
+			//	golf->vel.x = 0;
+			//	golf->vel.y = 0;
+			//}
 
 			// bound the ball at the right border
 			if (golf->pos.x > world_limits.x - golf->diameter * 0.5f) {
@@ -916,6 +928,9 @@ void Game_RenderTerrains(void) {
 	CP_Color sand = Get_ColorAlpha(COLOR_ORANGE, 128);
 	CP_Color ice = Get_ColorAlpha(COLOR_LIGHT_BLUE, 128);
 	CP_Color pit = Get_ColorAlpha(COLOR_RED, 128);
+	CP_Color wind = Get_ColorAlpha(COLOR_WHITE, 96);
+	CP_Image wind_arrow = Asset_GetBlendedImage(PUTT_ARROW_ASSET, Get_Color(COLOR_GRAY), BLEND_SET);
+	CP_Image wind_fan = Asset_GetImage(FAN_ASSET);
 	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < terrains.length; ++i) {
@@ -924,7 +939,11 @@ void Game_RenderTerrains(void) {
 			continue;
 
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(terrain->type == TERRAIN_SAND ? sand : terrain->type == TERRAIN_ICE ? ice : pit);
+		CP_Settings_Fill(
+			terrain->type == TERRAIN_SAND ? sand
+			: terrain->type == TERRAIN_ICE ? ice
+			: terrain->type == TERRAIN_WIND ? wind
+			: pit);
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y,
@@ -933,6 +952,27 @@ void Game_RenderTerrains(void) {
 			terrain->angle,
 			2.f
 		);
+
+		if (terrain->type == TERRAIN_WIND) {
+			CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(1.5f, 0), -CP_Math_Radians(terrain->angle));
+			dir = CP_Vector_Scale(dir, world_limits.x);
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Image_DrawAdvanced(wind_fan,
+				c.x - dir.x,
+				c.y + dir.y,
+				terrain->scale.x * world_ratios.x * 0.25f * (1.f - scale_transition),
+				terrain->scale.y * world_ratios.y * 0.25f * (1.f - scale_transition),
+				128,
+				CP_System_GetSeconds() * 360.f);
+
+			CP_Image_DrawAdvanced(wind_arrow,
+				c.x,
+				c.y,
+				terrain->scale.x * world_ratios.x * 0.25f * (1.f - scale_transition),
+				terrain->scale.y * world_ratios.y * 0.25f * (1.f - scale_transition),
+				96, 
+				terrain->angle);
+		}
 
 		if (debug_enabled) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
@@ -959,7 +999,7 @@ void Game_RenderWalls(void) {
 	CP_Vector s_scale = Screen_Scale();
 
 	// main walls
-	for (int i = 0; i < walls.length; ++i) {
+	for (int i = walls.length - 1; i >= 0; --i) {
 		Wall* wall = wall_arr + i;
 		if (wall->destroyed)
 			continue;
@@ -1686,7 +1726,7 @@ void Collision_Response_Wall(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vec
 	CP_Sound_Play(hit_sound);
 }
 
-float Get_Resistance_At(CP_Vector pos) {
+float Get_Resistance_At(GolfBall* golf, CP_Vector pos, float dt) {
 	// get default resistance
 	float r = resistance;
 	Terrain* terrain_arr = Get_Terrains();
@@ -1698,7 +1738,16 @@ float Get_Resistance_At(CP_Vector pos) {
 
 		// multiply the current resistance by the terrain's resistance
 		if (Check_Terrain(terrain, pos)) {
-			r *= terrain->type == TERRAIN_SAND ? 2.f : terrain->type == TERRAIN_ICE ? 0.5f : terrain->type == TERRAIN_PIT ? -1.f : 1.f;
+			r *= terrain->type == TERRAIN_SAND ? 2.f
+				: terrain->type == TERRAIN_ICE ? 0.5f
+				: terrain->type == TERRAIN_PIT ? -1.f
+				: terrain->type == TERRAIN_WIND ? 10.f
+				: 1.f;
+
+			if (terrain->type == TERRAIN_WIND) {
+				CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(10, 0), -CP_Math_Radians(terrain->angle));
+				golf->vel = CP_Vector_Add(golf->vel, CP_Vector_Scale(dir, dt));
+			}
 		}
 
 		// returning -1 if its a pit

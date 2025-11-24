@@ -45,6 +45,7 @@
 #define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
 #define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
 #define PUTT_ARROW_ASSET "Assets/Images/putt_arrow.png"
+#define FAN_ASSET "Assets/Images/fan.png"
 
 //Scoreboard
 #define RED_CROSS "Assets/Images/icon_outline_cross.png"

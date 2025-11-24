@@ -119,8 +119,8 @@ void Editor_Update_Walls(ObjectArray* walls) {
 void Editor_Update_Terrains(ObjectArray* terrains) {
 	CP_Vector mouse_world = Get_Mouse_WorldSpace();
 
-	// add an ice terrain when '8' is pressed at the current mouse coordinates
-	if (CP_Input_KeyTriggered(KEY_8)) {
+	// add an ice terrain when '7' is pressed at the current mouse coordinates
+	if (CP_Input_KeyTriggered(KEY_7)) {
 		Terrain* terrain = Game_AddTerrain(mouse_world, TERRAIN_ICE);
 		if (terrain) { // set the current editing object to be the newly added terrain
 			current_editing = terrain;
@@ -130,8 +130,8 @@ void Editor_Update_Terrains(ObjectArray* terrains) {
 		}
 	}
 
-	// add an ice terrain when '9' is pressed at the current mouse coordinates
-	if (CP_Input_KeyTriggered(KEY_9)) {
+	// add a sand terrain when '8' is pressed at the current mouse coordinates
+	if (CP_Input_KeyTriggered(KEY_8)) {
 		Terrain* terrain = Game_AddTerrain(mouse_world, TERRAIN_SAND);
 		if (terrain) { // set the current editing object to be the newly added terrain
 			current_editing = terrain;
@@ -141,9 +141,20 @@ void Editor_Update_Terrains(ObjectArray* terrains) {
 		}
 	}
 
-	// add an ice terrain when '0' is pressed at the current mouse coordinates
-	if (CP_Input_KeyTriggered(KEY_0)) {
+	// add a pit terrain when '9' is pressed at the current mouse coordinates
+	if (CP_Input_KeyTriggered(KEY_9)) {
 		Terrain* terrain = Game_AddTerrain(mouse_world, TERRAIN_PIT);
+		if (terrain) { // set the current editing object to be the newly added terrain
+			current_editing = terrain;
+			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
+			current_type = EDIT_TERRAIN;
+			editor_dirty = true;
+		}
+	}
+
+	// add an wind terrain when '0' is pressed at the current mouse coordinates
+	if (CP_Input_KeyTriggered(KEY_0)) {
+		Terrain* terrain = Game_AddTerrain(mouse_world, TERRAIN_WIND);
 		if (terrain) { // set the current editing object to be the newly added terrain
 			current_editing = terrain;
 			current_editing_offset = CP_Vector_Subtract(terrain->pos, mouse_world);
@@ -543,7 +554,7 @@ void Editor_Render(void) {
 	CP_Font_DrawText("Arrow Left/Right: Change Item / Terrain Type", 5.f, CP_System_GetWindowHeight() - 80.f);
 	char a[100]; sprintf_s(a, 100, "Press 'W' to add Wall | 'H' to add Hole | 'B' to add Ball | '1'-'%d' to add Items", ITEM_LAST - 1);
 	CP_Font_DrawText(a, 5.f, CP_System_GetWindowHeight() - 60.f);
-	CP_Font_DrawText("Press '8'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
+	CP_Font_DrawText("Press '7'-'0' to add Terrains | 'DEL' to delete selected", 5.f, CP_System_GetWindowHeight() - 40.f);
 	CP_Font_DrawText("Press 'S' to Save Level to current file", 5.f, CP_System_GetWindowHeight() - 20.f);
 
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_RIGHT, CP_TEXT_ALIGN_V_TOP);

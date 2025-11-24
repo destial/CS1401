@@ -26,6 +26,7 @@ typedef enum TerrainTypeEnum {
 	TERRAIN_SAND = 0,
 	TERRAIN_ICE,
 	TERRAIN_PIT,
+	TERRAIN_WIND,
 	TERRAIN_LAST
 } TerrainType;
 
@@ -248,7 +249,7 @@ CP_Vector Get_World_Ratios(void);
 /*!
 @brief Get the terrain resistance at this position
 */
-float Get_Resistance_At(CP_Vector pos);
+float Get_Resistance_At(GolfBall* golf, CP_Vector pos, float dt);
 
 /*!
 @brief Add a wall to the level
