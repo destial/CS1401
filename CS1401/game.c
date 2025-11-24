@@ -25,7 +25,7 @@
 #include "game_settings.h"
 
 // initialize global variables here
-static CP_Image golf_ball_image, background_image;
+static CP_Image golf_ball_image, background_image, putt_arrow;
 static CP_Sound hit_sound;
 static void* item_image_cache[ITEM_LAST];
 
@@ -74,7 +74,7 @@ static CP_Vector world_limits, og_world_limits;
 typedef struct HintsStruct {
 	char* text;
 	char* key;
-	char* asset_path;
+	CP_Image icon;
 } Hints;
 
 static Hints game_hints[6];
@@ -193,28 +193,29 @@ void game_init(void)
 	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.25f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+	putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 
-	game_hints[0].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[0].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[0].text = "Open controls page";
 	game_hints[0].key = " TAB ";
 
-	game_hints[1].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[1].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[1].text = "Toggle edit mode";
 	game_hints[1].key = " P ";
 
-	game_hints[2].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[2].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[2].text = "Toggle debug mode";
 	game_hints[2].key = " G ";
 
-	game_hints[3].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[3].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[3].text = "Change particles";
 	game_hints[3].key = " F ";
 
-	game_hints[4].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[4].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[4].text = "Reset to last (+1)";
 	game_hints[4].key = " R ";
 
-	game_hints[5].asset_path = MOUSE_SCROLL_ASSET;
+	game_hints[5].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
 	game_hints[5].text = "Change hit power";
 	game_hints[5].key = "";
 
@@ -635,13 +636,14 @@ static void pausemenu_render(void) {
 		300.f * s_scale.x, 200 * s_scale.y,
 		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * s_scale.x);
 
+	CP_Image blue_button = Asset_GetImage(BUTTON_BLUE_ASSET);
+	CP_Image yellow_button = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	// continue button
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		"CONTINUE")) {
 		pause_menu = !pause_menu;
 	}
@@ -651,8 +653,7 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		"RESTART")) {
 		restart_level();
 		return;
@@ -663,8 +664,7 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		" QUIT ")) {
 		GameState_SetNext(STATE_MAINMENU);
 	}
@@ -672,11 +672,11 @@ static void pausemenu_render(void) {
 	CP_Vector coords = World_To_Screen(
 		Math_CLerpFloat(-10.f, 1.7f, pause_menu_transition > 1.f ? 2.f - pause_menu_transition : pause_menu_transition),
 		1.7f, world_limits.x, world_limits.y);
-	
+
+	CP_Image small_gray_button = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	UI_ButtonImageText(coords.x, coords.y, 
 		40.f * s_scale.x, 40.f * s_scale.y,
-		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), 
-		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), 
+		small_gray_button, small_gray_button,
 		" TAB ");
 	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
 		600.f * s_scale.x, 40.f * s_scale.y,
@@ -708,7 +708,7 @@ static void hint_render(void) {
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 120.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			40.f * s_scale.x, 40.f * s_scale.y,
-			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
+			h->icon, h->icon, h->key);
 
 		UI_TextLeft(
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 90.f * s_scale.x,
@@ -801,14 +801,12 @@ void Game_RenderUI(void) {
 	float power_val = 0.f;
 	
 	if (current != NULL) { // render the current putt power when user input
-		
 		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
 		int red = CP_Math_LerpInt(0, 255, power_val);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
 		float w = world_ratios.x * 5.f;
 		float h = world_ratios.y;
-		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 		GolfBall* golf_arr = Get_Golfs();
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
@@ -826,7 +824,6 @@ void Game_RenderUI(void) {
 	}
 	else if (playable && all_balls_stopped && !swinging) { // render red arrow on every ball to indicate playability
 		GolfBall* golf_arr = Get_Golfs();
-		CP_Image putt_arrow = Asset_GetImage(RED_ARROW);
 		
 		float w = world_ratios.x;
 		float h = world_ratios.y;
@@ -1293,6 +1290,12 @@ void Game_RenderShadows(void) {
 		}
 	}
 
+	CP_Image shadow_images[ITEM_LAST] = {0};
+	shadow_images[ITEM_BOOST] = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_GROW] = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_SHRINK] = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_REVERSE] = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+
 	Item* item_arr = Get_Items();
 	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 	// render item shadow
@@ -1306,16 +1309,10 @@ void Game_RenderShadows(void) {
 		CP_Image image = NULL;
 		switch (item->type) {
 		case ITEM_BOOST:
-			image = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_GROW:
-			image = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_SHRINK:
-			image = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_REVERSE:
-			image = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+			image = shadow_images[item->type];
 			break;
 		case ITEM_COIN:
 			CP_Graphics_DrawEllipse(

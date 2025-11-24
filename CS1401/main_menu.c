@@ -33,7 +33,6 @@ typedef struct ButtonStr {
 
 static float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-static int resolution_number = 0;
 int equipped_index;
 
 static Button buttons[30];
@@ -46,7 +45,7 @@ static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 static void background_ball_update(void) {
 	static CP_Vector ball_pos = { 2.5f, 2.5f };
-	static CP_Vector ball_vel = { 25.f, 25.f };
+	static CP_Vector ball_vel = { 20.f, 20.f };
 	static float ball_angle = 0.f;
 	static float diameter = 3.f;
 
@@ -91,9 +90,9 @@ static void background_ball_update(void) {
 		CP_Settings_NoStroke();
 		CP_Graphics_DrawEllipse(
 			coords.x,
-			coords.y + 5.f,
+			coords.y + 7.5f,
 			diameter * CP_System_GetWindowWidth() / world_width1,
-			(diameter * CP_System_GetWindowHeight() / world_height1) + 5.f);
+			(diameter * CP_System_GetWindowHeight() / world_height1) + 7.5f);
 	}
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
@@ -122,7 +121,9 @@ void main_menu_init(void)
 	is_shadowed = GameSetting_GetBool("high_quality");
 	is_inversed = GameSetting_GetBool("inverse_controls");
 	int res = GameSetting_GetInt("resolution");
-	if (res >= 0) change_resolution(res);
+	if (res >= 0) {
+		change_resolution(res);
+	}
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
@@ -952,7 +953,7 @@ void draw_logo_image(void) {
 		logo_x = CP_Math_LerpFloat(logo_x, logo_start_x, CP_System_GetDt() * 4);
 	}
 	else {
-		logo_x = CP_Math_LerpFloat(logo_x, -500.0f, CP_System_GetDt() * 4);
+		logo_x = CP_Math_LerpFloat(logo_x, -500.0f * (CP_System_GetWindowWidth() / 1600.f), CP_System_GetDt() * 4);
 	}
 }
 
