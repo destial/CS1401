@@ -428,48 +428,48 @@ void Game_UpdatePhysics(float dt)
 		if (!golf->dragging && !golf->halt) {
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
 			//if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
-				float r = Get_Resistance_At(golf, golf->pos, dt);
-				if (r < 0.f) {
-					golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
-					golf->vel.x = 0;
-					golf->vel.y = 0;
-					continue;
-				}
+			float r = Get_Resistance_At(golf, golf->pos, dt);
+			if (r < 0.f) {
+				golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
+				golf->vel.x = 0;
+				golf->vel.y = 0;
+				continue;
+			}
 
-				// start of hacky support for wind terrain
-				if (r < 5.f && CP_Vector_LengthSquared(golf->vel) <= MIN_VEL) {
-					golf->vel.x = 0;
-					golf->vel.y = 0;
-					continue;
-				}
-				if (r > 5.f) {
-					r /= 10.f;
-				}
-				// end of hacky support
+			// start of hacky support for wind terrain
+			if (r < 5.f && CP_Vector_LengthSquared(golf->vel) <= MIN_VEL) {
+				golf->vel.x = 0;
+				golf->vel.y = 0;
+				continue;
+			}
+			if (r > 5.f) {
+				r /= 10.f;
+			}
+			// end of hacky support
 
-				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
-				float friction = r - 1.f;
-				if (friction != 0) {
-					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
-				}
+			CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
+			float friction = r - 1.f;
+			if (friction != 0) {
+				golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
+			}
 				
-				golf->pos = CP_Vector_Add(golf->pos, vel);
+			golf->pos = CP_Vector_Add(golf->pos, vel);
 
-				bool powerup = false;
-				// item powerup checks here !!!!!
-				for (int j = 0; j < items.length; ++j) {
-					Item* item = item_arr + j;
-					if (item->collected)
-						continue;
+			bool powerup = false;
+			// item powerup checks here !!!!!
+			for (int j = 0; j < items.length; ++j) {
+				Item* item = item_arr + j;
+				if (item->collected)
+					continue;
 
-					if (Check_Item(item, golf))
-						powerup = true;
-				}
-				// ensure the ball is no longer in the boundaries of the portal
-				// after teleportation, dont want to teleport every frame
-				if (!powerup && golf->teleported) {
-					golf->teleported = false;
-				}
+				if (Check_Item(item, golf))
+					powerup = true;
+			}
+			// ensure the ball is no longer in the boundaries of the portal
+			// after teleportation, dont want to teleport every frame
+			if (!powerup && golf->teleported) {
+				golf->teleported = false;
+			}
 			//}
 			//else {
 
@@ -511,12 +511,14 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// rotate the ball based on its x-axis velocity
-			golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
-			if (golf->angle > 360.f) {
-				golf->angle -= 360.f;
-			}
-			else if (golf->angle < 0.f) {
-				golf->angle += 360.f;
+			if (friction != 0.f) {
+				golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
+				if (golf->angle > 360.f) {
+					golf->angle -= 360.f;
+				}
+				else if (golf->angle < 0.f) {
+					golf->angle += 360.f;
+				}
 			}
 		}
 
@@ -835,7 +837,7 @@ void Game_RenderUI(void) {
 				continue;
 
 			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * 0.5f), world_limits.x, world_limits.y);
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y - (24.f * y_mul * s_scale.y), w, h, 255, -90.f);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y - (24.f * y_mul * s_scale.y), w, h, 255, 90.f);
 		}
 	}
 
@@ -951,12 +953,12 @@ void Game_RenderTerrains(void) {
 		);
 
 		if (terrain->type == TERRAIN_WIND) {
-			CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(1.5f, 0), -CP_Math_Radians(terrain->angle));
+			CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(1.f * terrain->scale.x * 0.22f, 0.f), -CP_Math_Radians(terrain->angle));
 			dir = CP_Vector_Scale(dir, world_limits.x);
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(wind_fan,
-				c.x - dir.x,
-				c.y + dir.y,
+				c.x - dir.x * (1.f - scale_transition),
+				c.y + dir.y * (1.f - scale_transition),
 				terrain->scale.x * world_ratios.x * 0.25f * (1.f - scale_transition),
 				terrain->scale.y * world_ratios.y * 0.25f * (1.f - scale_transition),
 				128,
