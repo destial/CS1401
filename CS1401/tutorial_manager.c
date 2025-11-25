@@ -13,9 +13,11 @@
 #include "tutorial_manager.h"
 #include "ui_manager.h"
 
+enum { TUTORIAL_INSTR_MAX = 256 };
+
 typedef struct TutorialStruct {
 	SpriteSheet gif;
-	char instructions[256]; // fixed size
+	char instructions[TUTORIAL_INSTR_MAX]; // fixed size
 } Tutorial;
 
 static Tutorial tutorial_phases[TUT_PHASE_LAST];
@@ -28,7 +30,7 @@ void Tutorial_Load(bool tut_mode) {
 		switch (curr_tutorial_phase) {
 		case TUT_PHASE_DRAG_BALL:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_1_ASSET, 8, 6, 5.f);
-			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, TUTORIAL_INSTR_MAX,
 				"You control two balls! Each ball is linked.\n"
 				"Whatever you do for one, the other is the same!\n"
 				"Click and drag a golf ball to aim your shot.\n"
@@ -38,7 +40,7 @@ void Tutorial_Load(bool tut_mode) {
 			break;
 		case TUT_PHASE_ITEM:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_2_ASSET, 9, 5, 5.f);
-			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, TUTORIAL_INSTR_MAX,
 				"Roll over power-ups to activate them:\n"
 				"Bolt = Speed Boost,\n"
 				"Red Mushroom = Grow,\n"
@@ -48,19 +50,20 @@ void Tutorial_Load(bool tut_mode) {
 				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_TERRAIN:
-			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 11, 4, 5.f);
-			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
+			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_3_ASSET, 8, 8, 5.f);
+			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, TUTORIAL_INSTR_MAX,
 				"Different terrains affect your ball:\n"
 				"Sand slows down,\n"
 				"Ice makes you slide,\n"
 				"Red pits reset your ball to its previous spot.\n"
+				"Wind regions pushes your ball away\n"
 				"Click anywhere to start playing!\n");
 			break;
 		case TUT_PHASE_PORTAL:
 			tutorial_phases[curr_tutorial_phase].gif = Asset_GetSprite(TUTORIAL_PHASE_4_ASSET, 6, 6, 5.f);
 			sprintf_s(tutorial_phases[curr_tutorial_phase].instructions, 256,
 				"Sometimes there are portals:\n"
-				"Teleport the ball from one\n"
+				"Teleport your ball from one\n"
 				"portal to another.\n"
 				"Click anywhere to start playing!\n");
 			break;

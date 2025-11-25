@@ -937,6 +937,7 @@ void Game_RenderTerrains(void) {
 		if (terrain->destroyed)
 			continue;
 
+		// draw terrain background
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
 		CP_Settings_Fill(
 			terrain->type == TERRAIN_SAND ? sand
@@ -953,14 +954,17 @@ void Game_RenderTerrains(void) {
 		);
 
 		if (terrain->type == TERRAIN_WIND) {
+			// draw wind terrain fan & direction arrow
 			CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(1.f * terrain->scale.x * 0.22f, 0.f), -CP_Math_Radians(terrain->angle));
 			dir = CP_Vector_Scale(dir, world_limits.x);
+
+			float smallest = terrain->scale.x > terrain->scale.y ? terrain->scale.y : terrain->scale.x;
 			CP_Settings_ImageMode(CP_POSITION_CENTER);
 			CP_Image_DrawAdvanced(wind_fan,
 				c.x - dir.x * (1.f - scale_transition),
 				c.y + dir.y * (1.f - scale_transition),
-				terrain->scale.x * world_ratios.x * 0.25f * (1.f - scale_transition),
-				terrain->scale.y * world_ratios.y * 0.25f * (1.f - scale_transition),
+				smallest * world_ratios.x * 0.25f * (1.f - scale_transition),
+				smallest * world_ratios.y * 0.25f * (1.f - scale_transition),
 				128,
 				CP_System_GetSeconds() * 360.f);
 
