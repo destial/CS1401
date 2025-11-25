@@ -62,7 +62,7 @@ static CP_Matrix camera_matrix;
 static float camera_scale;
 
 // reset on level loading
-static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, current_time, hint_transition;
+static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, og_timer, current_time, hint_transition;
 static bool playable, win, has_won, all_balls_stopped, resetting, turn_now_revert, pause_menu;
 
 // load based on level
@@ -1783,7 +1783,7 @@ void Game_RenderDebug(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void Game_Save(void) {
-	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), 120);
+	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), og_timer);
 }
 
 /*!
@@ -1813,6 +1813,7 @@ void Game_Load(void) {
 		// set the par of the level
 		set_lvl_par(loaded_level->par);
 		game_timer = (float) loaded_level->timer;
+		og_timer = game_timer;
 
 		// load the golf balls in the level
 		golf_balls.length = loaded_level->golf_balls_size;
@@ -1946,6 +1947,7 @@ void Game_Load(void) {
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 	game_timer = 10.f;
+	og_timer = game_timer;
 	golf_balls.length = holes.length = 2;
 	golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
 	holes.arr = gc_malloc(sizeof(Hole) * holes.length);
