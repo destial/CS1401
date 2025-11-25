@@ -168,4 +168,6 @@ bool get_inverse_setting(void);
 */
 void main_menu_exit(void);
 
+int equipped_index;
+
 #endif
