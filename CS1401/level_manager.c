@@ -62,8 +62,7 @@ Level Level_Load(int level) {
                 lvl->golf_balls_size = Map_GetInt(root, "golf_amount", 1);
                 lvl->golf_balls = gc_calloc((size_t)lvl->golf_balls_size * BALL_HOLE_OFFSET, sizeof(float));
 
-                int ball_index = 0;
-                for (int i = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
+                for (int i = 0, ball_index = 0; i < lvl->golf_balls_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++ball_index) {
                     char ball_pos[32];
                     sprintf_s(ball_pos, 32, "golf_%d_pos", ball_index);
                     CP_Vector pos = Map_GetVector(root, ball_pos);
@@ -78,8 +77,7 @@ Level Level_Load(int level) {
                 lvl->holes_size = Map_GetInt(root, "holes_amount", 1);
                 lvl->holes = gc_calloc((size_t)lvl->holes_size * BALL_HOLE_OFFSET, sizeof(float));
 
-                int hole_index = 0;
-                for (int i = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
+                for (int i = 0, hole_index = 0; i < lvl->holes_size * BALL_HOLE_OFFSET; i += BALL_HOLE_OFFSET, ++hole_index) {
                     char hole_pos[32];
                     sprintf_s(hole_pos, 32, "hole_%d_pos", hole_index);
                     CP_Vector pos = Map_GetVector(root, hole_pos);
@@ -99,9 +97,7 @@ Level Level_Load(int level) {
 
             // set the walls position, scaling, angle and rotation rates
             // check if any of them exists first, if not use default values
-            int wall_index = 0;
-            for (int i = 0; i < lvl->walls_size * WALLS_OFFSET; i += WALLS_OFFSET, ++wall_index) {
-
+            for (int i = 0, wall_index = 0; i < lvl->walls_size * WALLS_OFFSET; i += WALLS_OFFSET, ++wall_index) {
                 // set wall position if exists
                 char wall_pos[32];
                 sprintf_s(wall_pos, 32, "wall_%d_pos", wall_index);
@@ -133,9 +129,7 @@ Level Level_Load(int level) {
             lvl->items_size = Map_GetInt(root, "items_amount", 0);
             if (lvl->items_size) {
                 lvl->items = gc_calloc((size_t)lvl->items_size * ITEMS_OFFSET, sizeof(float));
-
-                int item_index = 0;
-                for (int i = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
+                for (int i = 0, item_index = 0; i < lvl->items_size * ITEMS_OFFSET; i += ITEMS_OFFSET, ++item_index) {
                     char item_pos[32];
                     sprintf_s(item_pos, 32, "item_%d_pos", item_index);
                     CP_Vector pos = Map_GetVector(root, item_pos);
@@ -164,9 +158,7 @@ Level Level_Load(int level) {
             lvl->terrains_size = Map_GetInt(root, "terrains_amount", 0);
             if (lvl->terrains_size) {
                 lvl->terrains = gc_calloc((size_t)lvl->terrains_size * TERRAINS_OFFSET, sizeof(float));
-
-                int terrain_index = 0;
-                for (int i = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
+                for (int i = 0, terrain_index = 0; i < lvl->terrains_size * TERRAINS_OFFSET; i += TERRAINS_OFFSET, ++terrain_index) {
                     char terrain_pos[32];
                     sprintf_s(terrain_pos, 32, "terrain_%d_pos", terrain_index);
                     CP_Vector pos = Map_GetVector(root, terrain_pos);
@@ -240,7 +232,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     fprintf(fp, "\ngolf_amount=%d", ball_index);
 
     int hole_index = 0;
-    for (int i = 0; i < holes->length; ++i) {
+    for (int i = 0, hole_index = 0; i < holes->length; ++i) {
         Hole* hole = (Hole*)holes->arr + i;
         if (hole == NULL || hole->destroyed || hole->diameter <= 0.f)
             continue;
