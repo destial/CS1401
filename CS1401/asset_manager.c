@@ -206,6 +206,7 @@ CP_Image Asset_GetImage(const char* filepath) {
             FREE_MEMORY(root_assets);
             return NULL;
         }
+        return image;
     }
     
     // traverse through the map nodes and find the key that matches this filepath (and asset type)
@@ -368,13 +369,10 @@ CP_Sound Asset_GetAudio(const char* filepath) {
 
 SpriteSheet Asset_GetSprite(const char* filepath, int rows, int columns, float duration) {
     if (root_assets == NULL) {
-        root_assets = gc_malloc(sizeof(struct AssetStruct));
-        if (root_assets == NULL) 
-            return NULL;
-        
-        root_assets->key = NULL;
-        root_assets->sprite = NULL;
-        root_assets->next = NULL;
+        if (Asset_GetImage(filepath))
+            return Asset_GetSprite(filepath, rows, columns, duration);
+
+        return NULL;
     }
 
 	// check if this sprite sheet already exists

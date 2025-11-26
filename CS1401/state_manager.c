@@ -5,12 +5,14 @@
 @brief Definition file for controlling the game states
 */
 
+
+#include "state_manager.h"
 #include "cprocessing.h"
 #include "splash_screen.h"
 #include "main_menu.h"
 #include "game.h"
 #include "end_state.h"
-#include "state_manager.h"
+#include "pokemon.h"
 
 static GameState current_gamestate = STATE_SPLASH;
 static GameState next_gamestate = STATE_SPLASH;
@@ -44,7 +46,11 @@ void GameState_GoNext(void) {
 	case STATE_EXIT:
 		CP_Engine_SetNextGameStateForced(end_state_init, end_state_update, end_state_exit);
 		break;
+	case STATE_POKEMON:
+		CP_Engine_SetNextGameStateForced(pokemon_init, pokemon_update, pokemon_end);
+		break;
 	}
+	
 	state_transition = -1.f;
 	current_gamestate = next_gamestate;
 }

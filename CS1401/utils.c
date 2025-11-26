@@ -75,6 +75,7 @@ CP_Color Get_Color(ColorCode code) {
 		colors[COLOR_WHITE] = CP_Color_Create(255, 255, 255, 255);
 		colors[COLOR_RED] = CP_Color_Create(255, 0, 0, 255);
 		colors[COLOR_GREEN] = CP_Color_Create(3, 127, 81, 255);
+		colors[COLOR_DARK_GREEN] = CP_Color_Create(6, 64, 43, 255);
 		colors[COLOR_LIGHT_BLUE] = CP_Color_Create(173, 216, 255, 255);
 		colors[COLOR_BLUE] = CP_Color_Create(0, 0, 255, 255);
 		colors[COLOR_PURPLE] = CP_Color_Create(255, 0, 255, 255);

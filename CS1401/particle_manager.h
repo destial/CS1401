@@ -16,6 +16,7 @@ typedef enum ParticleTypeEnum {
 	//PARTICLE_RAINBOW_SPARKLE,
 	//PARTICLE_HALO,
 	PARTICLE_STAR,
+	PARTICLE_GRASS,
 	PARTICLE_LAST
 } ParticleType;
 

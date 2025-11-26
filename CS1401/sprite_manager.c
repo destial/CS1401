@@ -26,14 +26,10 @@ void Sprite_Draw(SpriteSheet sheet, float x, float y, float w, float h, int alph
 }
 
 void Sprite_DrawAdvanced(SpriteSheet sheet, float x, float y, float w, float h, int alpha, float degrees) {
+	// draw the sprite at this frame
+	Sprite_DrawFrame(sheet, sheet->current_row, sheet->current_column, x, y, w, h, alpha, degrees);
 
-	// texture coordinates starting point
-	int u0 = sheet->current_column * sheet->sub_w;
-	int v0 = sheet->current_row * sheet->sub_h;
-
-	// draw the sub image of this sprite
-	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float) u0, (float) v0, (float) (u0 + sheet->sub_w), (float) (v0 + sheet->sub_h), alpha, degrees);
-
+	// update the sprite frame
 	if (sheet->updated_frame)
 		return;
 
@@ -50,6 +46,18 @@ void Sprite_DrawAdvanced(SpriteSheet sheet, float x, float y, float w, float h, 
 		}
 		sheet->elapsedDuration = 0.f;
 	}
+}
+
+void Sprite_DrawFrame(SpriteSheet sheet, int row, int col, float x, float y, float w, float h, int alpha, float degrees) {
+	int u0 = col * sheet->sub_w;
+	int v0 = row * sheet->sub_h;
+	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h, (float)u0, (float)v0, (float)(u0 + sheet->sub_w), (float)(v0 + sheet->sub_h), alpha, degrees);
+}
+
+void Sprite_DrawCropped(SpriteSheet sheet, int row, int col, float x, float y, float w, float h, float y_bot) {
+	int u0 = col * sheet->sub_w;
+	int v0 = row * sheet->sub_h;
+	CP_Image_DrawSubImageAdvanced(sheet->root_image, x, y, w, h - y_bot, (float)u0, (float)v0, (float)(u0 + sheet->sub_w), (float)(v0 + sheet->sub_h) - y_bot, 255, 0.f);
 }
 
 void Sprite_Free(SpriteSheet spritesheet) {

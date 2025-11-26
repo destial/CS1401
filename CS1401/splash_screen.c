@@ -48,7 +48,7 @@ void splash_screen_update(void)
 	CP_Image_Draw(splash_logo, 0.f, 0.f, (float)CP_System_GetWindowWidth(), (float)CP_System_GetWindowHeight(), (int)(splash_alpha * 255.f));
 
 	if (splash_alpha >= 1.f) {
-		GameState_SetNext(STATE_MAINMENU);
+		GameState_SetNext(STATE_POKEMON);
 	}
 
 	GameState_Update();

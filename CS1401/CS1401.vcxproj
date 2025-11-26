@@ -30,6 +30,7 @@
     <ClCompile Include="main.c" />
     <ClCompile Include="main_menu.c" />
     <ClCompile Include="particle_manager.c" />
+    <ClCompile Include="pokemon.c" />
     <ClCompile Include="state_manager.c" />
     <ClCompile Include="tutorial_manager.c" />
     <ClCompile Include="ui_manager.c" />
@@ -49,6 +50,7 @@
     <ClInclude Include="level_manager.h" />
     <ClInclude Include="main_menu.h" />
     <ClInclude Include="particle_manager.h" />
+    <ClInclude Include="pokemon.h" />
     <ClInclude Include="state_manager.h" />
     <ClInclude Include="tutorial_manager.h" />
     <ClInclude Include="ui_manager.h" />

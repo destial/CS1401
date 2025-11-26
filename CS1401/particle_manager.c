@@ -47,6 +47,7 @@ static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
 void Particles_Preload(void) {
 	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 3, 3);
 	particle_types[PARTICLE_STAR] = create_particle_data(Asset_GetImage(YELLOW_STAR), 1, 1);
+	particle_types[PARTICLE_GRASS] = create_particle_data(Asset_GetImage("Assets/Pokemon/tall_grass.png"), 1, 1);
 }
 
 void Particles_Spawn(ParticleType type, CP_Vector pos, int amount, float radius, float speed, float duration, float minSize, float maxSize) {
@@ -97,6 +98,10 @@ void Particles_Update(float dt) {
 		float edt = p->duration / (float)frameCount;
 
 		// move the particles and fade them away after time
+		if (p->type == PARTICLE_GRASS) {
+			float angle = CP_Vector_AngleCCW(CP_Vector_Set(0, -1), p->vel);
+			p->vel = CP_Vector_Rotate(p->vel, CP_Math_Radians(angle >= 180.f ? angle - 360.f : angle) * dt);
+		}
 		p->pos = CP_Vector_Add(p->pos, CP_Vector_Scale(p->vel, dt));
 		p->scale -= (p->og_scale / (float)frameCount) * dt;
 

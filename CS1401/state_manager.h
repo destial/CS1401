@@ -14,7 +14,8 @@ typedef enum GameStatesEnum {
 	STATE_SPLASH = 0,
 	STATE_MAINMENU,
 	STATE_GAME,
-	STATE_EXIT
+	STATE_EXIT,
+	STATE_POKEMON
 } GameState;
 
 /*!

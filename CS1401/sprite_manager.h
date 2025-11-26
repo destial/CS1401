@@ -50,6 +50,23 @@ void Sprite_DrawAdvanced(SpriteSheet spritesheet, float x, float y, float w, flo
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Draw a sprite frame to the screen
+@param spritesheet - The spritesheet
+@param row - The frame row
+@param col - The frame column
+@param x - Screen x coordinates
+@param y - Screen y coordinates
+@param w - Width of the sprite in screen space
+@param h - Height of the sprite in screen space
+@param alpha - Transparency of sprite
+@param degrees - Rotation of sprite
+*/
+void Sprite_DrawFrame(SpriteSheet spritesheet, int row, int col, float x, float y, float w, float h, int alpha, float degrees);
+
+void Sprite_DrawCropped(SpriteSheet spritesheet, int row, int col, float x, float y, float w, float h, float y_bot);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Free the memory allocated for this spritesheeet
 @param spritesheet - The spritesheet to free
 */
