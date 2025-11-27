@@ -25,7 +25,7 @@
 #include "game_settings.h"
 
 // initialize global variables here
-static CP_Image golf_ball_image, background_image;
+static CP_Image golf_ball_image, background_image, putt_arrow;
 static CP_Sound hit_sound;
 static void* item_image_cache[ITEM_LAST];
 
@@ -44,7 +44,6 @@ static bool debug_enabled = true;
 #else
 static bool debug_enabled = false;
 #endif
-static bool editor_mode = false;
 
 // editable setting
 static float resistance = 1.25f;
@@ -63,7 +62,7 @@ static CP_Matrix camera_matrix;
 static float camera_scale;
 
 // reset on level loading
-static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, current_time, hint_transition;
+static float scale_transition, turn_now, turn_now_hold, pause_menu_transition, game_timer, og_timer, current_time, hint_transition;
 static bool playable, win, has_won, all_balls_stopped, resetting, turn_now_revert, pause_menu;
 
 // load based on level
@@ -75,7 +74,7 @@ static CP_Vector world_limits, og_world_limits;
 typedef struct HintsStruct {
 	char* text;
 	char* key;
-	char* asset_path;
+	CP_Image icon;
 } Hints;
 
 static Hints game_hints[6];
@@ -194,28 +193,29 @@ void game_init(void)
 	item_image_cache[ITEM_COIN - 1] = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.25f);
 	item_image_cache[ITEM_PORTAL - 1] = Asset_GetSprite(BLUE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
 	item_image_cache[ITEM_PORTAL] = Asset_GetSprite(ORANGE_PORTAL_SPRITE_ASSET, 4, 6, 1.5f);
+	putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 
-	game_hints[0].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[0].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[0].text = "Open controls page";
 	game_hints[0].key = " TAB ";
 
-	game_hints[1].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[1].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[1].text = "Toggle edit mode";
 	game_hints[1].key = " P ";
 
-	game_hints[2].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[2].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[2].text = "Toggle debug mode";
 	game_hints[2].key = " G ";
 
-	game_hints[3].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[3].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[3].text = "Change particles";
 	game_hints[3].key = " F ";
 
-	game_hints[4].asset_path = SMALL_BUTTON_GREY_ASSET;
+	game_hints[4].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	game_hints[4].text = "Reset to last (+1)";
 	game_hints[4].key = " R ";
 
-	game_hints[5].asset_path = MOUSE_SCROLL_ASSET;
+	game_hints[5].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
 	game_hints[5].text = "Change hit power";
 	game_hints[5].key = "";
 
@@ -230,7 +230,7 @@ void game_init(void)
 	pause_menu_transition = -1.f;
 	hint_transition = 0.f;
 	turn_now = turn_now_hold = swinging = 0.f;
-	turn_now_revert = playable = win = has_won = editor_mode = pause_menu = false;
+	turn_now_revert = playable = win = has_won = pause_menu = false;
 	all_balls_stopped = true;
 
 	// fix timestep
@@ -288,7 +288,7 @@ void game_update(void)
 			}
 
 			// update scoreboard if game has ended
-			if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode)
+			if ((Game_LevelLost() || Game_LevelWon()) && !Editor_GetEditMode())
 				scoring_update();
 		}
 	}
@@ -310,7 +310,7 @@ void Game_UpdatePhysics(float dt)
 		playable = true;
 	}
 
-	if (playable && !has_won) {
+	if (playable && !has_won && !Editor_GetEditMode()) {
 		game_timer -= dt;
 		game_timer = max(0.f, game_timer);
 	}
@@ -355,7 +355,7 @@ void Game_UpdatePhysics(float dt)
 			continue;
 
 		win = false;
-		if (editor_mode)
+		if (Editor_GetEditMode())
 			continue;
 
 		// golf ball scoring animation
@@ -383,6 +383,10 @@ void Game_UpdatePhysics(float dt)
 
 			// manipulate the velocity based on the mouse coordinates
 			if (golf->dragging && golf == current) {
+				// TODO: Lock mouse cursor when dragging to fix off screen problem.
+				//		 But CProcessing doesn't have that function :(
+				//		 So we need to probably use winapi to do that :(
+				// CP_Vector delta = Screen_To_World(CP_Input_GetMouseDeltaX(), CP_Input_GetMouseDeltaY(), world_limits.x, world_limits.y);
 				if (get_inverse_setting()) {
 					golf->vel = CP_Vector_Subtract(golf->pos, mouse_world);
 				}
@@ -423,44 +427,56 @@ void Game_UpdatePhysics(float dt)
 		// apply velocity to the golf ball if not being dragged
 		if (!golf->dragging && !golf->halt) {
 			// this is to ensure the length cannot be 0 because anything divided by 0 is an error
-			if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
-				CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
-				float r = Get_Resistance_At(golf->pos);
-				if (r < 0.f) {
-					golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
-					golf->vel.x = 0;
-					golf->vel.y = 0;
-					continue;
-				}
-				float friction = r - 1.f;
-				if (friction != 0) {
-					golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
-				}
-
-				golf->pos = CP_Vector_Add(golf->pos, vel);
-
-				bool powerup = false;
-				// item powerup checks here !!!!!
-				for (int j = 0; j < items.length; ++j) {
-					Item* item = item_arr + j;
-					if (item->collected)
-						continue;
-
-					if (Check_Item(item, golf))
-						powerup = true;
-				}
-				// ensure the ball is no longer in the boundaries of the portal
-				// after teleportation, dont want to teleport every frame
-				if (!powerup && golf->teleported) {
-					golf->teleported = false;
-				}
-			}
-			else {
-
-				// hard stop the ball if too slow
+			//if (CP_Vector_LengthSquared(golf->vel) > MIN_VEL) {
+			float r = Get_Resistance_At(golf, golf->pos, dt);
+			if (r < 0.f) {
+				golf->pos = CP_Vector_Set(golf->stroke_pos.x, golf->stroke_pos.y);
 				golf->vel.x = 0;
 				golf->vel.y = 0;
+				continue;
 			}
+
+			// start of hacky support for wind terrain
+			if (r < 5.f && CP_Vector_LengthSquared(golf->vel) <= MIN_VEL) {
+				golf->vel.x = 0;
+				golf->vel.y = 0;
+				continue;
+			}
+			if (r > 5.f) {
+				r /= 10.f;
+			}
+			// end of hacky support
+
+			CP_Vector vel = CP_Vector_Scale(golf->vel, dt);
+			float friction = r - 1.f;
+			if (friction != 0) {
+				golf->vel = CP_Vector_Subtract(golf->vel, CP_Vector_Scale(vel, (r * r) - 1.f));
+			}
+				
+			golf->pos = CP_Vector_Add(golf->pos, vel);
+
+			bool powerup = false;
+			// item powerup checks here !!!!!
+			for (int j = 0; j < items.length; ++j) {
+				Item* item = item_arr + j;
+				if (item->collected)
+					continue;
+
+				if (Check_Item(item, golf))
+					powerup = true;
+			}
+			// ensure the ball is no longer in the boundaries of the portal
+			// after teleportation, dont want to teleport every frame
+			if (!powerup && golf->teleported) {
+				golf->teleported = false;
+			}
+			//}
+			//else {
+
+				// hard stop the ball if too slow
+			//	golf->vel.x = 0;
+			//	golf->vel.y = 0;
+			//}
 
 			// bound the ball at the right border
 			if (golf->pos.x > world_limits.x - golf->diameter * 0.5f) {
@@ -495,12 +511,14 @@ void Game_UpdatePhysics(float dt)
 			}
 
 			// rotate the ball based on its x-axis velocity
-			golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
-			if (golf->angle > 360.f) {
-				golf->angle -= 360.f;
-			}
-			else if (golf->angle < 0.f) {
-				golf->angle += 360.f;
+			if (friction != 0.f) {
+				golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
+				if (golf->angle > 360.f) {
+					golf->angle -= 360.f;
+				}
+				else if (golf->angle < 0.f) {
+					golf->angle += 360.f;
+				}
 			}
 		}
 
@@ -558,7 +576,7 @@ void Game_UpdatePhysics(float dt)
 		// update wall's normal
 		Game_UpdateWall(wall, dt);
 
-		if (editor_mode)
+		if (Editor_GetEditMode())
 			continue;
 
 		for (int j = 0; j < golf_balls.length; ++j) {
@@ -620,13 +638,14 @@ static void pausemenu_render(void) {
 		300.f * s_scale.x, 200 * s_scale.y,
 		Get_Color(COLOR_BLACK), "Game Paused!", 50.f * s_scale.x);
 
+	CP_Image blue_button = Asset_GetImage(BUTTON_BLUE_ASSET);
+	CP_Image yellow_button = Asset_GetImage(BUTTON_YELLOW_ASSET);
 	// continue button
 	if (UI_ButtonImageText(
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.57f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		"CONTINUE")) {
 		pause_menu = !pause_menu;
 	}
@@ -636,8 +655,7 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.425f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		"RESTART")) {
 		restart_level();
 		return;
@@ -648,8 +666,7 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowWidth() * 0.5f * mul,
 		CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.28f),
 		300.f * s_scale.x, 100.f * s_scale.y,
-		Asset_GetImage(BUTTON_BLUE_ASSET),
-		Asset_GetImage(BUTTON_YELLOW_ASSET),
+		blue_button, yellow_button,
 		" QUIT ")) {
 		GameState_SetNext(STATE_MAINMENU);
 	}
@@ -657,10 +674,12 @@ static void pausemenu_render(void) {
 	CP_Vector coords = World_To_Screen(
 		Math_CLerpFloat(-10.f, 1.7f, pause_menu_transition > 1.f ? 2.f - pause_menu_transition : pause_menu_transition),
 		1.7f, world_limits.x, world_limits.y);
-	
+
+	CP_Image small_gray_button = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
 	UI_ButtonImageText(coords.x, coords.y, 
 		40.f * s_scale.x, 40.f * s_scale.y,
-		Asset_GetImage(SMALL_BUTTON_GREY_ASSET), Asset_GetImage(SMALL_BUTTON_GREY_ASSET), " TAB ");
+		small_gray_button, small_gray_button,
+		" TAB ");
 	UI_TextLeft(coords.x + (30.f * s_scale.x), coords.y,
 		600.f * s_scale.x, 40.f * s_scale.y,
 		Get_Color(COLOR_WHITE), "Open controls page", 30.f * s_scale.x);
@@ -675,8 +694,7 @@ static void hint_render(void) {
 	UI_Button(
 		Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t),
 		CP_System_GetWindowHeight() * 0.5f,
-		350.f * s_scale.x,
-		800.f * s_scale.y,
+		350.f * s_scale.x, 800.f * s_scale.y,
 		Get_Color(COLOR_GRAY), Get_Color(COLOR_GRAY));
 
 	UI_SetPriority(5);
@@ -692,7 +710,7 @@ static void hint_render(void) {
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 120.f * s_scale.x,
 			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
 			40.f * s_scale.x, 40.f * s_scale.y,
-			Asset_GetImage(h->asset_path), Asset_GetImage(h->asset_path), h->key);
+			h->icon, h->icon, h->key);
 
 		UI_TextLeft(
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 90.f * s_scale.x,
@@ -742,7 +760,7 @@ void Game_Render(void)
 	// render ui
 	Game_RenderUI();
 
-	if (editor_mode) 
+	if (Editor_GetEditMode())
 		Editor_Render();
 
 	// reset camera matrix because we dont want UI to be affected by the camera
@@ -757,7 +775,7 @@ void Game_Render(void)
 			hint_transition += CP_System_GetDt();
 		}
 	}
-	else if (!editor_mode) { // render tutorial instructions (if have)
+	else if (!Editor_GetEditMode()) { // render tutorial instructions (if have)
 		Tutorial_Render();
 	}
 
@@ -785,14 +803,12 @@ void Game_RenderUI(void) {
 	float power_val = 0.f;
 	
 	if (current != NULL) { // render the current putt power when user input
-		
 		power_val = CP_Vector_Length(current->vel) / MAX_PUTT_POWER;
 		int red = CP_Math_LerpInt(0, 255, power_val);
 		int green = 255 - red;
 		power_color = CP_Color_Create(red, green, 0, 255);
 		float w = world_ratios.x * 5.f;
 		float h = world_ratios.y;
-		CP_Image putt_arrow = Asset_GetImage(PUTT_ARROW_ASSET);
 		GolfBall* golf_arr = Get_Golfs();
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
@@ -810,7 +826,6 @@ void Game_RenderUI(void) {
 	}
 	else if (playable && all_balls_stopped && !swinging) { // render red arrow on every ball to indicate playability
 		GolfBall* golf_arr = Get_Golfs();
-		CP_Image putt_arrow = Asset_GetImage(RED_ARROW);
 		
 		float w = world_ratios.x;
 		float h = world_ratios.y;
@@ -822,7 +837,7 @@ void Game_RenderUI(void) {
 				continue;
 
 			CP_Vector b = World_To_Screen(ball->pos.x, ball->pos.y + (ball->diameter * 0.5f), world_limits.x, world_limits.y);
-			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y - (24.f * y_mul * s_scale.y), w, h, 255, -90.f);
+			CP_Image_DrawAdvanced(putt_arrow, b.x, b.y - (24.f * y_mul * s_scale.y), w, h, 255, 90.f);
 		}
 	}
 
@@ -833,7 +848,7 @@ void Game_RenderUI(void) {
 	}
 	
 	CP_Settings_ResetMatrix(); // make sure the UI is not affected by the camera matrix
-	if (!editor_mode) {
+	if (!Editor_GetEditMode()) {
 		// draw current strokes
 		CP_Settings_TextSize(40.f * s_scale.x);
 		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
@@ -856,13 +871,13 @@ void Game_RenderUI(void) {
 		UI_SetPriority(0);
 	}
 
-	if ((Game_LevelLost() || Game_LevelWon()) && !editor_mode) {
+	if ((Game_LevelLost() || Game_LevelWon()) && !Editor_GetEditMode()) {
 		draw_scoreboard(sBoard, world_limits.x, world_limits.y);
 		/*
 		@todo: add button to cycle to next level or replay the same level
 		*/
 	}
-	else if (playable && all_balls_stopped && !editor_mode) {
+	else if (playable && all_balls_stopped && !Editor_GetEditMode()) {
 		if (turn_now >= 0.f) {
 			CP_Settings_Fill(Get_Color(COLOR_CARMINE));
 			CP_Settings_Stroke(Get_Color(COLOR_RED));
@@ -912,6 +927,9 @@ void Game_RenderTerrains(void) {
 	CP_Color sand = Get_ColorAlpha(COLOR_ORANGE, 128);
 	CP_Color ice = Get_ColorAlpha(COLOR_LIGHT_BLUE, 128);
 	CP_Color pit = Get_ColorAlpha(COLOR_RED, 128);
+	CP_Color wind = Get_ColorAlpha(COLOR_WHITE, 96);
+	CP_Image wind_arrow = Asset_GetBlendedImage(PUTT_ARROW_ASSET, Get_Color(COLOR_GRAY), BLEND_SET);
+	CP_Image wind_fan = Asset_GetImage(FAN_ASSET);
 	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < terrains.length; ++i) {
@@ -919,8 +937,13 @@ void Game_RenderTerrains(void) {
 		if (terrain->destroyed)
 			continue;
 
+		// draw terrain background
 		CP_Vector c = World_To_Screen(terrain->pos.x, terrain->pos.y, world_limits.x, world_limits.y);
-		CP_Settings_Fill(terrain->type == TERRAIN_SAND ? sand : terrain->type == TERRAIN_ICE ? ice : pit);
+		CP_Settings_Fill(
+			terrain->type == TERRAIN_SAND ? sand
+			: terrain->type == TERRAIN_ICE ? ice
+			: terrain->type == TERRAIN_WIND ? wind
+			: pit);
 		CP_Graphics_DrawRectAdvanced(
 			c.x,
 			c.y,
@@ -929,6 +952,30 @@ void Game_RenderTerrains(void) {
 			terrain->angle,
 			2.f
 		);
+
+		if (terrain->type == TERRAIN_WIND) {
+			// draw wind terrain fan & direction arrow
+			CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(1.f * terrain->scale.x * 0.22f, 0.f), -CP_Math_Radians(terrain->angle));
+			dir = CP_Vector_Scale(dir, world_limits.x);
+
+			float smallest = terrain->scale.x > terrain->scale.y ? terrain->scale.y : terrain->scale.x;
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Image_DrawAdvanced(wind_fan,
+				c.x - dir.x * (1.f - scale_transition),
+				c.y + dir.y * (1.f - scale_transition),
+				smallest * world_ratios.x * 0.25f * (1.f - scale_transition),
+				smallest * world_ratios.y * 0.25f * (1.f - scale_transition),
+				128,
+				CP_System_GetSeconds() * 360.f);
+
+			CP_Image_DrawAdvanced(wind_arrow,
+				c.x,
+				c.y,
+				terrain->scale.x * world_ratios.x * 0.25f * (1.f - scale_transition),
+				terrain->scale.y * world_ratios.y * 0.25f * (1.f - scale_transition),
+				96, 
+				terrain->angle);
+		}
 
 		if (debug_enabled) {
 			CP_Settings_Fill(Get_Color(COLOR_GREEN));
@@ -955,7 +1002,7 @@ void Game_RenderWalls(void) {
 	CP_Vector s_scale = Screen_Scale();
 
 	// main walls
-	for (int i = 0; i < walls.length; ++i) {
+	for (int i = walls.length - 1; i >= 0; --i) {
 		Wall* wall = wall_arr + i;
 		if (wall->destroyed)
 			continue;
@@ -1015,7 +1062,7 @@ void Game_RenderWalls(void) {
 			CP_Font_DrawText(r, c.x, c.y + 120.f * s_scale.y);
 			char rr[32]; sprintf_s(rr, 32, "Rot Rate: %.2f", wall->rotation_rate);
 			CP_Font_DrawText(rr, c.x, c.y + 140.f * s_scale.y);
-			if (!editor_mode) {
+			if (!Editor_GetEditMode()) {
 				// draw the closest point after rotating it back to original
 				CP_Vector closest_point = CP_Vector_Rotate(wall->_collision_point, -CP_Math_Radians(wall->angle));
 				CP_Vector c = World_To_Screen(wall->pos.x + closest_point.x, wall->pos.y + closest_point.y, world_limits.x, world_limits.y);
@@ -1072,7 +1119,7 @@ void Game_RenderItems(void) {
 
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item->destroyed || (item->collected && !editor_mode) )
+		if (item->destroyed || (item->collected && !Editor_GetEditMode()) )
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -1249,12 +1296,18 @@ void Game_RenderShadows(void) {
 		}
 	}
 
+	CP_Image shadow_images[ITEM_LAST] = {0};
+	shadow_images[ITEM_BOOST] = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_GROW] = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_SHRINK] = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+	shadow_images[ITEM_REVERSE] = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+
 	Item* item_arr = Get_Items();
 	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
 	// render item shadow
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
-		if (item->destroyed || (item->collected && !editor_mode))
+		if (item->destroyed || (item->collected && !Editor_GetEditMode()))
 			continue;
 
 		CP_Vector coords = World_To_Screen(item->pos.x, item->pos.y, world_limits.x, world_limits.y);
@@ -1262,23 +1315,24 @@ void Game_RenderShadows(void) {
 		CP_Image image = NULL;
 		switch (item->type) {
 		case ITEM_BOOST:
-			image = Asset_GetBlendedImage(BOOST_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_GROW:
-			image = Asset_GetBlendedImage(BIG_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_SHRINK:
-			image = Asset_GetBlendedImage(SMALL_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
-			break;
 		case ITEM_REVERSE:
-			image = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
+			image = shadow_images[item->type];
 			break;
 		case ITEM_COIN:
 			CP_Graphics_DrawEllipse(
 				coords.x,
-				coords.y + shadow_pixel_depth,
+				coords.y + shadow_pixel_depth + 5.f,
 				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition) * anim_mul,
 				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition) * anim_mul);
+			break;
+		case ITEM_PORTAL:
+			CP_Graphics_DrawEllipse(
+				coords.x,
+				coords.y + shadow_pixel_depth + 5.f,
+				(item->diameter * world_ratios.x + 5.f) * (1.f - scale_transition),
+				(item->diameter * world_ratios.y - 20.f) * (1.f - scale_transition));
 			break;
 		default:
 			break;
@@ -1354,7 +1408,7 @@ void Process_Inputs(void) {
 
 	// toggle level editor mode
 	if (CP_Input_KeyTriggered(KEY_P)) {
-		editor_mode = !editor_mode;
+		Editor_SetEditMode(!Editor_GetEditMode());
 	}
 
 	if (CP_Input_KeyTriggered(KEY_F)) {
@@ -1378,7 +1432,7 @@ void Process_Inputs(void) {
 		add_stroke();
 	}
 
-	if (editor_mode) {
+	if (Editor_GetEditMode()) {
 		if (CP_Input_KeyTriggered(KEY_E)) { // increase golf ball resistance
 			resistance += 0.1f;
 		}
@@ -1440,7 +1494,7 @@ void Process_Inputs(void) {
 
 // Update the wall's normal based on its angle of rotation
 void Game_UpdateWall(Wall* wall, float dt) {
-	if (!editor_mode) {
+	if (!Editor_GetEditMode()) {
 		// update the wall angle based on rotation rate (if any)
 		wall->angle += wall->rotation_rate * dt;
 	}
@@ -1675,7 +1729,7 @@ void Collision_Response_Wall(Wall* wall, GolfBall* ball, CP_Vector point, CP_Vec
 	CP_Sound_Play(hit_sound);
 }
 
-float Get_Resistance_At(CP_Vector pos) {
+float Get_Resistance_At(GolfBall* golf, CP_Vector pos, float dt) {
 	// get default resistance
 	float r = resistance;
 	Terrain* terrain_arr = Get_Terrains();
@@ -1687,7 +1741,16 @@ float Get_Resistance_At(CP_Vector pos) {
 
 		// multiply the current resistance by the terrain's resistance
 		if (Check_Terrain(terrain, pos)) {
-			r *= terrain->type == TERRAIN_SAND ? 2.f : terrain->type == TERRAIN_ICE ? 0.5f : terrain->type == TERRAIN_PIT ? -1.f : 1.f;
+			r *= terrain->type == TERRAIN_SAND ? 2.f
+				: terrain->type == TERRAIN_ICE ? 0.5f
+				: terrain->type == TERRAIN_PIT ? -1.f
+				: terrain->type == TERRAIN_WIND ? 10.f
+				: 1.f;
+
+			if (terrain->type == TERRAIN_WIND) {
+				CP_Vector dir = CP_Vector_Rotate(CP_Vector_Set(10, 0), -CP_Math_Radians(terrain->angle));
+				golf->vel = CP_Vector_Add(golf->vel, CP_Vector_Scale(dir, dt));
+			}
 		}
 
 		// returning -1 if its a pit
@@ -1726,7 +1789,7 @@ void Game_RenderDebug(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void Game_Save(void) {
-	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), 120);
+	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), (int) og_timer);
 }
 
 /*!
@@ -1756,6 +1819,7 @@ void Game_Load(void) {
 		// set the par of the level
 		set_lvl_par(loaded_level->par);
 		game_timer = (float) loaded_level->timer;
+		og_timer = game_timer;
 
 		// load the golf balls in the level
 		golf_balls.length = loaded_level->golf_balls_size;
@@ -1889,6 +1953,7 @@ void Game_Load(void) {
 	// initialize standard default values
 	sBoard = CP_Vector_Set(world_limits.x * 0.5f, world_limits.y * 0.5f);
 	game_timer = 10.f;
+	og_timer = game_timer;
 	golf_balls.length = holes.length = 2;
 	golf_balls.arr = gc_malloc(sizeof(GolfBall) * golf_balls.length);
 	holes.arr = gc_malloc(sizeof(Hole) * holes.length);

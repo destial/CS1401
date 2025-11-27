@@ -36,6 +36,20 @@ bool Check_On_Circle(CP_Vector pos, float diameter);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Set the editor mode
+@param mode - true if enable editor mode, false if not
+*/
+void Editor_SetEditMode(bool mode);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get the editor mode
+@return true if editor mode enabled, else false
+*/
+bool Editor_GetEditMode(void);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
 @brief Start process editors
 */
 void Editor_Update_Start(void);

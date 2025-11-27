@@ -596,9 +596,6 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 
 }
 
-
-
-
 void set_lvl_par(int par) {
 	lvl_par = par;
 }

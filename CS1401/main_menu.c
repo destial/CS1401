@@ -17,10 +17,10 @@
 @author Nathan Ng (n.ng@digipen.edu)
 @date 8 September 2025
 @course CSD1401
-@brief this file contains functions and code that handles the UI
+@brief this file contains functions and code that handles the main menu UI
 */
 
-//setting button
+//defining the various variable for a button
 typedef struct ButtonStr {
 	CP_Vector pos;
 	CP_Vector ending_pos, start_pos;
@@ -33,7 +33,6 @@ typedef struct ButtonStr {
 
 static float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-static int resolution_number = 0;
 int equipped_index;
 
 static Button buttons[30];
@@ -43,10 +42,12 @@ static CP_Image background, setting_background, shop_background, golf_ball_defau
 static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
 
-
+/*
+@brief This function is implemented for rendering the background ball that moves around at the main menu screen
+*/
 static void background_ball_update(void) {
 	static CP_Vector ball_pos = { 2.5f, 2.5f };
-	static CP_Vector ball_vel = { 25.f, 25.f };
+	static CP_Vector ball_vel = { 20.f, 20.f };
 	static float ball_angle = 0.f;
 	static float diameter = 3.f;
 
@@ -91,9 +92,9 @@ static void background_ball_update(void) {
 		CP_Settings_NoStroke();
 		CP_Graphics_DrawEllipse(
 			coords.x,
-			coords.y + 5.f,
+			coords.y + 7.5f,
 			diameter * CP_System_GetWindowWidth() / world_width1,
-			(diameter * CP_System_GetWindowHeight() / world_height1) + 5.f);
+			(diameter * CP_System_GetWindowHeight() / world_height1) + 7.5f);
 	}
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
@@ -106,6 +107,9 @@ static void background_ball_update(void) {
 		ball_angle);
 }
 
+/*
+@brief sets the enum to STATE_EXIT and exits the game
+*/
 void exit_main_menu(void) {
 	GameState_SetNext(STATE_EXIT);
 }
@@ -122,7 +126,9 @@ void main_menu_init(void)
 	is_shadowed = GameSetting_GetBool("high_quality");
 	is_inversed = GameSetting_GetBool("inverse_controls");
 	int res = GameSetting_GetInt("resolution");
-	if (res >= 0) change_resolution(res);
+	if (res >= 0) {
+		change_resolution(res);
+	}
 	int c = GameSetting_GetInt("coins");
 	if (c >= 0) set_coins(c);
 
@@ -324,9 +330,12 @@ void main_menu_update(void)
 	sprintf_s(coin_count, 50, "%i", coins);
 	CP_Font_DrawText(coin_count, CP_System_GetWindowWidth() * 0.9f, CP_System_GetWindowHeight() * 0.9f);
 
-	SpriteSheet s = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.5f);
+	SpriteSheet s = Asset_GetSprite(COIN_ITEM_SPRITE_ASSET, 2, 4, 0.25f);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	Sprite_Draw(s, CP_System_GetWindowWidth() * 0.85f, CP_System_GetWindowHeight() * 0.9f, 60.0f, 60.0f, 255);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+	Sprite_Draw(s, CP_System_GetWindowWidth() * 0.85f, CP_System_GetWindowHeight() * 0.9f,
+		60.0f * (CP_System_GetWindowWidth() / 1600.f), 60.0f * (CP_System_GetWindowHeight() / 900.f),
+		255);
 
 	//SETTING PAGE
 	if (is_setting_clicked) {
@@ -374,6 +383,10 @@ void main_menu_update(void)
 	GameState_Update();
 }
 
+/*
+@brief This function is called when rendering and animating the main menu buttons play button, setting button, quit button
+@param takes in the position of the mouse (x and y axis)
+*/
 void main_menu_button(float mouse_x, float mouse_y) {
 	//MAIN MENU SCREEN BUTTON
 	for (int i = 0; i < 3; i++) {
@@ -452,6 +465,10 @@ void main_menu_button(float mouse_x, float mouse_y) {
 	}  
 }
 
+/*
+@brief This function is called when rendering and animating the square level select buttons from 1 - 10
+@param takes in the position of the mouse (x and y axis)
+*/
 void level_select_button(float mouse_x, float mouse_y) {
 
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
@@ -501,6 +518,10 @@ void level_select_button(float mouse_x, float mouse_y) {
 
 }
 
+/*
+@brief This function is called when rendering and animating the two volume bar in the setting page, music and sfx volume
+@param takes in the position of the mouse (x and y axis)
+*/
 void volume_bar(float mouse_x, float mouse_y) {
 	CP_Color sound_bar = Get_Color(COLOR_WHITE);
 	CP_Color sound_bar_background = CP_Color_Create(150, 150, 150, 255);
@@ -554,6 +575,10 @@ void volume_bar(float mouse_x, float mouse_y) {
 	draw_volume(1.0f * CP_System_GetWindowHeight() / world_height1, CP_System_GetWindowWidth() * 0.25f, CP_System_GetWindowHeight() * 0.575f, music_limit);
 }
 
+/*
+@brief This function is called when rendering and animating the 3 resolution buttons, is_shadow button, and is_inverse button
+@param takes in the position of the mouse (x and y axis)
+*/
 void settings_button(float mouse_x, float mouse_y) {
 	//RESOLUTION BUTTONS
 	for (int i = 4; i < 7; i++) {
@@ -664,6 +689,10 @@ void settings_button(float mouse_x, float mouse_y) {
 	}
 }
 
+/*
+@brief This function is called when rendering and animating the shop button at the main menu screen
+@param takes in the position of the mouse (x and y axis)
+*/
 void shops_button(float mouse_x, float mouse_y)
 {
 	for (int i = 11; i < 14; i++) {
@@ -711,6 +740,10 @@ void shops_button(float mouse_x, float mouse_y)
 	}
 }
 
+/*
+@brief This function is called when rendering and animating the back buttons for setting, level select and shop
+@param takes in the position of the mouse (x and y axis)
+*/
 void back_buttons(float mouse_x, float mouse_y) {
 	//BACK BUTTON FOR LEVEL SELECT
 	CP_Vector coords = defining_position(buttons[3].pos.x, buttons[3].pos.y);
@@ -815,10 +848,18 @@ void back_buttons(float mouse_x, float mouse_y) {
 	}
 }
 
+/*
+@brief This function is called to define the position of the various UI elements drawn onto the screen from world to screen space
+@param takes in the position of the mouse (x and y axis)
+*/
 CP_Vector defining_position(float pos_x, float pos_y) {
 	return World_To_Screen(pos_x, pos_y, world_width1, world_height1);
 }
 
+/*
+@brief This function is called to define the size/scale of the various UI elements drawn onto the screen from world to screen space
+@param takes in the scale factor of the object (x and y)
+*/
 CP_Vector defining_coords(float scale_x, float scale_y) {
 	CP_Vector scale = {
 		scale_x * CP_System_GetWindowWidth() / world_width1,
@@ -828,14 +869,26 @@ CP_Vector defining_coords(float scale_x, float scale_y) {
 	return scale;
 }
 
+/*
+@brief This function is called to check if the users mouse is hovering over a button
+@param takes in the mouse position, the buttons position and scale
+*/
 bool check_mouse_pos(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) {
 	return mouse_x >= pos_x - scale_x * .5f && mouse_y >= pos_y - scale_y * .5f && mouse_x <= pos_x + scale_x * .5f && mouse_y <= pos_y + scale_y * .5f;
 }
 
+/*
+@brief This function is called to check if the users mouse is hovering over the volume button
+@param takes in the mouse position, the volume position and scale
+*/
 bool check_mouse_pos_volume(float mouse_x, float mouse_y, float pos_x, float pos_y, float scale_x, float scale_y) {
 	return mouse_x >= pos_x && mouse_x <= pos_x + scale_x && mouse_y >= pos_y && mouse_y <= pos_y + scale_y;
 }
 
+/*
+@brief This function is called to draw text anywhere specified by the pos
+@param takes in the text size, text, and the position you want the text to draw at (x and y)
+*/
 void draw_text(float text_size, char* text, float pos_x, float pos_y) {
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_TextSize(text_size * CP_System_GetWindowHeight() / world_height1);
@@ -843,6 +896,10 @@ void draw_text(float text_size, char* text, float pos_x, float pos_y) {
 	CP_Font_DrawText(text, pos_x, pos_y);
 }
 
+/*
+@brief This function is called to draw text onto the two volume bars and adjust the text according to the scale of the volume bar
+@param takes in the text size, the position, and the limit
+*/
 void draw_volume(float text_size, float pos_x, float pos_y, float limit) {
 	CP_Settings_Fill(Get_Color(COLOR_BLACK));
 	CP_Settings_TextSize(text_size);
@@ -851,20 +908,37 @@ void draw_volume(float text_size, float pos_x, float pos_y, float limit) {
 	CP_Font_DrawText(p, pos_x, pos_y);
 }
 
+/*
+@brief This function is called to lerp in the level select buttons and lerp out the main menu buttons
+@param nothing
+*/
 void play_button(void) {
 	is_clicked = !is_clicked;
 }
 
+/*
+@brief This function is called to open the setting menu
+@param nothing
+*/
 void setting_button(void) {
 	is_setting_clicked = !is_setting_clicked;
 	is_overlayed = !is_overlayed;
 }
 
+/*
+@brief This function is called to open the shop menu
+@param nothing
+*/
 void shop_button(void) {
 	is_shop_clicked = !is_shop_clicked;
 	is_overlayed = !is_overlayed;
 }
 
+/*
+@brief This function is called for the shop buy buttons to check if the player have bought the skin
+	   and deduct the relevant amount of coins
+@param takes in the button number
+*/
 void buy_button(int num) {
 		switch (num) {
 		case 12:
@@ -888,6 +962,10 @@ void buy_button(int num) {
 		}
 }
 
+/*
+@brief This function is called for the shop buy buttons to check if the player have equipped the skin
+@param takes in the button number
+*/
 void equip_button(int num) {
 
 	int index = num - 11;
@@ -933,6 +1011,10 @@ void equip_button(int num) {
 	}
 }
 
+/*
+@brief This function is called to draw the GIF logo at the main menu, and to lerp out when play button is clicked
+@param nothing
+*/
 void draw_logo_image(void) {
 
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
@@ -945,17 +1027,22 @@ void draw_logo_image(void) {
 		logo_x = CP_Math_LerpFloat(logo_x, logo_start_x, CP_System_GetDt() * 4);
 	}
 	else {
-		logo_x = CP_Math_LerpFloat(logo_x, -500.0f, CP_System_GetDt() * 4);
+		logo_x = CP_Math_LerpFloat(logo_x, -500.0f * (CP_System_GetWindowWidth() / 1600.f), CP_System_GetDt() * 4);
 	}
 }
 
-//changes the Main menu screen to the game start state
+/*
+@brief This function is called to change the game state to STATE_GAME which are the various levels.
+@param nothing
+*/
 void change_screen(void) {
-	//is_clicked = 0;
-	//game_transition = 0.f;
 	GameState_SetNext(STATE_GAME);
 }
 
+/*
+@brief This function is called to change the resolution.
+@param resolution button number
+*/
 void change_resolution(int num) {
 	switch (num) {
 	case 0:
@@ -979,25 +1066,44 @@ void change_resolution(int num) {
 	level_select_y = CP_System_GetWindowHeight() * 0.1f;
 }
 
+/*
+@brief This function is called to activate or deactivate the shadow feature for the golf ball.
+@param nothing
+*/
 void is_shadow(void) {
 	is_shadowed = !is_shadowed;
 	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET): Asset_GetImage(BUTTON_GREY_ASSET);
 }
 
+/*
+@brief This function is called to activate or deactivate the inverse contols for the golf ball.
+@param nothing
+*/
 void is_inverse(void) {
 	is_inversed = !is_inversed;
 	buttons[14].button_image = is_inversed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
 }
 
+/*
+@brief This function is called to return the value of is_shadowed (true or false).
+@param nothing
+*/
 bool get_shadow_setting(void) {
 	return is_shadowed;
 }
 
+/*
+@brief This function is called to return the value of is_inverse (true or false).
+@param nothing
+*/
 bool get_inverse_setting(void) {
 	return is_inversed;
 }
 
-//frees the image when exiting the application
+/*
+@brief This function is called to free the images when exiting the application.
+@param nothing
+*/
 void main_menu_exit(void) 
 {
 	Particles_Free();
