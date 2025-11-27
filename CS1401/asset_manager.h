@@ -26,7 +26,7 @@
 #define GOLF_BALL_EYE_ASSET "Assets/Images/golf_ball_eye.png"
 #define GOLF_BALL_POOL_ASSET "Assets/Images/golf_ball_pool.png"
 #define GAME_BACKGROUND_ASSET "Assets/Images/Game Background.png"
-#define SETTING_BACKGROUND_ASSET "Assets/Images/setting_background.png"
+#define MENU_BACKGROUND_ASSET "Assets/Images/setting_background.png"
 #define BUTTON_YELLOW_ASSET "Assets/Images/button_yellow.png"
 #define SMALL_BUTTON_YELLOW_ASSET "Assets/Images/small_button_yellow.png"
 #define BUTTON_BLUE_ASSET "Assets/Images/button_blue.png"

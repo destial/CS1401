@@ -38,7 +38,7 @@ int equipped_index;
 
 static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
-static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner;
+static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner, shop_banner_small;
 
 static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
@@ -190,7 +190,7 @@ void main_menu_init(void)
 	buttons[7].text = "X";
 
 	buttons[8].button_image = is_shadowed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
-	buttons[8].pos.x = world_width1 * 0.75f;
+	buttons[8].pos.x = world_width1 * 0.76f;
 	buttons[8].pos.y = world_height1 * 0.75f;
 	buttons[8].start_pos.x = buttons[8].pos.x;
 	buttons[8].text = "High Details";
@@ -231,7 +231,7 @@ void main_menu_init(void)
 	buttons[13].text = is_equip_clicked ? "EQUIPPED" : is_buy2_clicked ? "EQUIP" : "BUY: 20 Coins";
 
 	buttons[14].button_image = is_inversed ? Asset_GetImage(BUTTON_GREEN_ASSET) : Asset_GetImage(BUTTON_GREY_ASSET);
-	buttons[14].pos.x = world_width1 * 0.75f;
+	buttons[14].pos.x = world_width1 * 0.76f;
 	buttons[14].pos.y = world_height1 * 0.66f;
 	buttons[14].start_pos.x = buttons[14].pos.x;
 	buttons[14].text = "Inverse Control";
@@ -268,13 +268,12 @@ void main_menu_init(void)
 	//end of level select button
 
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
-	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
-	shop_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
+	setting_background = Asset_GetImage(MENU_BACKGROUND_ASSET);
+	shop_background = Asset_GetImage(MENU_BACKGROUND_ASSET);
 	golf_ball_default_image = Asset_GetImage(GOLF_BALL_ASSET);
 	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_EYE_ASSET);
 	golf_ball_pool_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
-	setting_background = Asset_GetImage(SETTING_BACKGROUND_ASSET);
 
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 
@@ -332,7 +331,10 @@ void main_menu_update(void)
 	//SETTING PAGE
 	if (is_setting_clicked) {
 		//drawing setting background
-		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		CP_Image_Draw(setting_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.48f, CP_System_GetWindowWidth() - 200.f, CP_System_GetWindowHeight() - 240.f, 255);
+		CP_Image shop_banner = Asset_GetImage(BANNER);
+		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.16f, 800.0f, 170.0f, 255, 0.0f);
+		draw_text(1.8f, "SETTINGS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
 
 		volume_bar(mouse_x, mouse_y);
 	}
@@ -340,11 +342,14 @@ void main_menu_update(void)
 	//SHOP PAGE
 	if (is_shop_clicked) {
 		//drawing shop background
-		CP_Image_Draw(shop_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, CP_System_GetWindowWidth() - 500.f, CP_System_GetWindowHeight() - 300.f, 255);
+		CP_Image_Draw(shop_background, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.48f, CP_System_GetWindowWidth() - 200.f, CP_System_GetWindowHeight() - 240.f, 255);
+		CP_Image shop_banner_small = Asset_GetImage(HANGING_BANNER);
+		CP_Image_DrawAdvanced(shop_banner_small, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.23f, 270.0f, 200.0f, 255, 0.0f);
 		CP_Image shop_banner = Asset_GetImage(BANNER);
-		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f, 700.0f, 200.0f, 255, 0.0f);
+		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.16f, 800.0f, 170.0f, 255, 0.0f);
 		//shop items would go here
-		draw_text(1.5f, "GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.2f);
+		draw_text(1.8f, "GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
+		draw_text(0.9f, "GOLF BALLS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.25f);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,

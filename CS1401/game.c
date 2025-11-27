@@ -610,7 +610,7 @@ static void pausemenu_render(void) {
 		CP_System_GetWindowHeight() * 0.5f,
 		CP_System_GetWindowWidth() - (1000.f * s_scale.x),
 		CP_System_GetWindowHeight() - (300.f * s_scale.y),
-		Asset_GetImage(SETTING_BACKGROUND_ASSET));
+		Asset_GetImage(MENU_BACKGROUND_ASSET));
 
 	UI_SetPriority(3);
 	// pause text
