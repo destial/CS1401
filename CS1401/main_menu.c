@@ -275,7 +275,7 @@ void main_menu_init(void)
 
 	background = Asset_GetImage(GAME_BACKGROUND_ASSET);
 	setting_background = Asset_GetImage(MENU_BACKGROUND_ASSET);
-	shop_background = Asset_GetImage(MENU_BACKGROUND_ASSET);
+	shop_background = Asset_GetImage(SHOP_BACKGROUND_ASSET);
 	golf_ball_default_image = Asset_GetImage(GOLF_BALL_ASSET);
 	golf_ball_gold_image = Asset_GetImage(GOLF_BALL_EYE_ASSET);
 	golf_ball_pool_image = Asset_GetImage(GOLF_BALL_POOL_ASSET);
