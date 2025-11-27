@@ -1789,7 +1789,7 @@ void Game_RenderDebug(void) {
 @brief Save the current level to text file under "Assets/Levels/level_{current_level}.lvl"
 */
 void Game_Save(void) {
-	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), og_timer);
+	Level_Save(current_level, &walls, &golf_balls, &holes, &items, &terrains, Get_World_Limits(), get_lvl_par(), (int) og_timer);
 }
 
 /*!
