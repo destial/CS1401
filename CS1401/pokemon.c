@@ -69,6 +69,7 @@ void pokemon_init(void) {
 	tilesheet = Asset_GetSprite("Assets/Pokemon/tile_map.png", 31, 28, 0.f);
 	player.moved = -1;
 	player.col = 0;
+	CP_System_SetFrameRate(CP_System_GetDisplayRefreshRate());
 	if (!battle_state) {
 		player.pos = CP_Vector_Set(0, 0);
 		player.prev_pos = CP_Vector_Set(0, 0);
@@ -97,6 +98,7 @@ void pokemon_init(void) {
 				tilemap[(int)y][(int)x].background = Get_Color(COLOR_GREEN);
 				tilemap[(int)y][(int)x].tile = TILE_NORMAL;
 				if (r >= 0.4f) {
+					tilemap[(int)y][(int)x].background = Get_Color(COLOR_DARK_GREEN);
 					tilemap[(int)y][(int)x].tile = TILE_GRASS;
 				}
 			}
@@ -218,10 +220,17 @@ bool roll_grass_encounter(Pokemon* encounter) {
 }
 
 void tile_render(void) {
-	for (float x = -world.x; x < world.x; ++x) {
-		for (float y = -world.y; y < world.y; ++y) {
+	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f)); ++x) {
+		int xx = (int)(x + world.x);
+		if (xx < 0 || xx > world.x - 1)
+			continue;
+		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f)); ++y) {
+			int yy = (int)(y + world.y);
+			if (yy < 0 || yy > world.y - 1)
+				continue;
+
 			CP_Vector t = World_To_Screen(x, y, world.x, world.y);
-			Tile* tile = &tilemap[(int)(y + world.y)][(int)(x + world.x)];
+			Tile* tile = &tilemap[yy][xx];
 			CP_Settings_Fill(tile->background);
 			CP_Graphics_DrawRect(t.x, t.y, ratios.x, ratios.y);
 		}
@@ -229,11 +238,17 @@ void tile_render(void) {
 }
 
 void overworld_render(void) {
-	for (float x = -world.x; x < world.x; ++x) {
+	CP_Vector s_scale = Screen_Scale();
+	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f)); ++x) {
 		int xx = (int)(x + world.x);
-		for (float y = world.y - 1; y >= -world.y; --y) {
-			CP_Vector t = World_To_Screen(x, y, world.x, world.y);
+		if (xx < 0 || xx > world.x - 1)
+			continue;
+		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f)); ++y) {
 			int yy = (int)(y + world.y);
+			if (yy < 0 || yy > world.y - 1)
+				continue;
+
+			CP_Vector t = World_To_Screen(x, y, world.x, world.y);
 			Tile* tile = &tilemap[yy][xx];
 			if (tile->tile == TILE_GRASS) {
 				Sprite_DrawFrame(tilesheet, 30, 21, t.x, t.y, ratios.x, ratios.y, 255, 0.f);
@@ -266,6 +281,12 @@ void overworld_render(void) {
 			else if (tile->tile == TILE_TREE_3_1) {
 				Sprite_DrawFrame(tilesheet, 30, 27, t.x, t.y, ratios.x, ratios.y, 255, 0.f);
 			}
+
+			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
+			CP_Settings_Fill(Get_Color(COLOR_RED));
+			char m[8]; sprintf_s(m, 8, "%d,%d", x, y);
+			CP_Settings_TextSize(20.f);
+			CP_Font_DrawText(m, t.x, t.y);
 		}
 	}
 }
