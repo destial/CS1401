@@ -33,7 +33,7 @@ typedef struct ButtonStr {
 
 static float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-int equipped_index;
+int equipped_index, shop_page;
 
 static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
@@ -302,6 +302,9 @@ void main_menu_init(void)
 	int index = GameSetting_GetInt("equipped");
 	if (index < 0) index = 11;
 	equip_button(index);
+
+	//Sets default shop page
+	shop_page = 0;
 }
 
 void main_menu_update(void) 
@@ -356,7 +359,10 @@ void main_menu_update(void)
 		CP_Image_DrawAdvanced(shop_banner_small, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.23f, 270.0f, 200.0f, 255, 0.0f);
 		CP_Image shop_banner = Asset_GetImage(BANNER);
 		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.16f, 800.0f, 170.0f, 255, 0.0f);
+
 		//shop items would go here
+		switch (shop_page){
+		case 0:
 		draw_text(1.8f, "GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
 		draw_text(0.9f, "GOLF BALLS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.25f);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
@@ -373,7 +379,13 @@ void main_menu_update(void)
 			CP_System_GetWindowWidth() / 10.f,
 			CP_System_GetWindowWidth() / 10.f,
 			255);
-		
+		break;
+
+		case 1:
+			draw_text(1.8f, "COMING SOON!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
+		break;
+		}
+
 	}
 
 	settings_button(mouse_x, mouse_y);
@@ -446,7 +458,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
 			if (buttons[9].func) {
-
+				shop_page = 0;
 				buttons[9].func();
 			}
 		}
@@ -695,48 +707,57 @@ void settings_button(float mouse_x, float mouse_y) {
 */
 void shops_button(float mouse_x, float mouse_y)
 {
-	for (int i = 11; i < 14; i++) {
-		//defining the position of the button
-		CP_Vector coords = defining_position(buttons[i].pos.x, buttons[i].pos.y);
-		CP_Vector local_scale = defining_coords(buttons[i].scale.x, buttons[i].scale.y);
+	switch (shop_page)
+	{
+	case 0:
+		for (int i = 11; i < 14; i++) {
+			//defining the position of the button
+			CP_Vector coords = defining_position(buttons[i].pos.x, buttons[i].pos.y);
+			CP_Vector local_scale = defining_coords(buttons[i].scale.x, buttons[i].scale.y);
 
-		CP_Settings_ImageMode(CP_POSITION_CENTER);
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
 
-		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
-		
-		//telling what the button should do
-		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
-		{
-			GameSetting_SetCursor(CURSOR_POINT);
-			buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
-			buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
-			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
-			
-			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+			//Drawing the button
+			CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+
+			//telling what the button should do
+			if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 			{
-				if (i == 11) {
-					equip_button(11);
+				GameSetting_SetCursor(CURSOR_POINT);
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
+
+				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+				{
+					if (i == 11) {
+						equip_button(11);
+					}
+
+					else {
+						buy_button(i);
+					}
 				}
-				
-				else {
-					buy_button(i);
-				}
-			}
-		}
-		else {
-			if (is_shop_clicked) {
-				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
-				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
-				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
 			}
 			else {
-				buttons[i].scale.x = 0;
-				buttons[i].scale.y = 0;
-				buttons[i].text_size = 0;
+				if (is_shop_clicked) {
+					buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
+					buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
+					buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
+				}
+				else {
+					buttons[i].scale.x = 0;
+					buttons[i].scale.y = 0;
+					buttons[i].text_size = 0;
+				}
 			}
+			draw_text(buttons[i].text_size, buttons[i].text, coords.x, coords.y);
 		}
-		draw_text(buttons[i].text_size, buttons[i].text, coords.x, coords.y);
+		break;
+
+	case 1:
+		//future shop page
+		break;
 	}
 }
 
