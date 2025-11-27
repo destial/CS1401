@@ -1,14 +1,17 @@
 #include "pokemon.h"
+#include "battle.h"
 #include "cprocessing.h"
 #include "asset_manager.h"
 #include "sprite_manager.h"
 #include "particle_manager.h"
+#include "ui_manager.h"
 #include "utils.h"
 #include <stdio.h>
 
 void pokemon_render(void);
 void tile_render(void);
 void overworld_render(void);
+bool roll_grass_encounter(Pokemon* encounter);
 
 typedef enum TileTypeEnum {
 	TILE_NORMAL = 0,
@@ -22,6 +25,11 @@ typedef enum TileTypeEnum {
 	TILE_TREE_3_0,
 	TILE_TREE_3_1,
 } TileType;
+
+enum {
+	WORLD_WIDTH = 50,
+	WORLD_HEIGHT = 30,
+};
 
 typedef struct PlayerStruct {
 	CP_Vector pos;
@@ -46,34 +54,61 @@ static Player player;
 static float movement_speed;
 static const float DT = 1 / 30.f;
 static SpriteSheet tilesheet;
-static Tile tilemap[30][50];
+static Tile tilemap[WORLD_HEIGHT][WORLD_WIDTH];
+
+/////////////////////////////////////////////////
+
+static BattleInfo current_battle;
+static float battle_timer;
+static bool battle_music_loop;
+static bool battle_state = false;
 
 void pokemon_init(void) {
-	player.pos = CP_Vector_Set(0, 0);
-	player.prev_pos = CP_Vector_Set(0, 0);
-	player.tile_pos = CP_Vector_Set(0, 0);
-	player.moved = -1;
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	player.sprite = Asset_GetSprite("Assets/Pokemon/pokemon_player_sprite.png", 4, 4, 0.f);
-	player.col = 0;
-	world = CP_Vector_Set(25, 15);
-	ratios = CP_Vector_Set(CP_System_GetWindowWidth() / world.x, CP_System_GetWindowHeight() / world.y);
 	tilesheet = Asset_GetSprite("Assets/Pokemon/tile_map.png", 31, 28, 0.f);
-	CP_Random_NoiseSeed(100);
+	player.moved = -1;
+	player.col = 0;
+	if (!battle_state) {
+		player.pos = CP_Vector_Set(0, 0);
+		player.prev_pos = CP_Vector_Set(0, 0);
+		player.tile_pos = CP_Vector_Set(0, 0);
+		world = CP_Vector_Set(WORLD_WIDTH / 2, WORLD_HEIGHT / 2);
+		ratios = CP_Vector_Set(CP_System_GetWindowWidth() / world.x, CP_System_GetWindowHeight() / world.y);
+		CP_Random_NoiseSeed(100);
 
-	for (float x = 0.f; x < world.x * 2; ++x) {
-		for (float y = 0.f; y < world.y * 2; ++y) {
-			float r = CP_Random_Noise(x / world.x, y / world.y, 0.5f);
-			tilemap[(int)y][(int)x].background = Get_Color(COLOR_GREEN);
-			tilemap[(int)y][(int)x].tile = TILE_NORMAL;
-			if (r >= 0.4f) {
-				tilemap[(int)y][(int)x].tile = TILE_GRASS;
+		current_battle.player.base_hp = 39;
+		current_battle.player.base_attack = 52;
+		current_battle.player.base_defense = 43;
+		current_battle.player.base_spattack = 60;
+		current_battle.player.base_spdefense = 50;
+		current_battle.player.base_speed = 65;
+		current_battle.player.types[0] = T_FIRE;
+		current_battle.player.moves[0].name = "EMBER";
+		current_battle.player.moves[0].dmg = 40;
+		current_battle.player.moves[0].accuracy = 100;
+		current_battle.player.moves[0].move_type = M_SPECIAL;
+		current_battle.player.moves[0].type = T_FIRE;
+		current_battle.player.species = CHARMANDER;
+
+		for (float x = 0.f; x < world.x * 2; ++x) {
+			for (float y = 0.f; y < world.y * 2; ++y) {
+				float r = CP_Random_Noise(x / world.x, y / world.y, 0.5f);
+				tilemap[(int)y][(int)x].background = Get_Color(COLOR_GREEN);
+				tilemap[(int)y][(int)x].tile = TILE_NORMAL;
+				if (r >= 0.4f) {
+					tilemap[(int)y][(int)x].tile = TILE_GRASS;
+				}
 			}
 		}
 	}
+	battle_state = false;
 }
 
 void pokemon_update(void) {
+	if (battle_state)
+		return;
+
 	if (player.moved < 0.f) {
 		CP_Vector prev_dir = CP_Vector_Set(player.dir.x, player.dir.y);
 		if (CP_Input_KeyDown(KEY_W)) {
@@ -137,7 +172,7 @@ void pokemon_update(void) {
 		}
 		if (!bounds) {
 			player.pos = CP_Vector_Add(player.pos, CP_Vector_Scale(player.dir, DT / movement_speed));
-			if (player.moved >= movement_speed * 0.5f) {
+			if (player.moved >= movement_speed * 0.5f) {	
 				player.tile_pos = CP_Vector_Add(player.prev_pos, player.dir);
 			}
 		}
@@ -145,11 +180,41 @@ void pokemon_update(void) {
 			player.moved = -1.f;
 			if (!bounds) {
 				player.pos = CP_Vector_Add(player.prev_pos, player.dir);
+				if (roll_grass_encounter(&current_battle.opponent)) {
+					battle_state = true;
+					CP_Sound_Play(Asset_GetAudio("Assets/Pokemon/battle_music_start.wav"));
+					CP_Engine_SetNextGameStateForced(battle_init, battle_update, battle_end);
+				}
 			}
 		}
 	}
 
 	pokemon_render();
+}
+
+bool roll_grass_encounter(Pokemon* encounter) {
+	int x = (int)(player.tile_pos.x + world.x);
+	int y = (int)(player.tile_pos.y + world.y);
+	if (tilemap[y][x].tile == TILE_GRASS) {
+		if (CP_Random_GetFloat() > 0.5f) {
+			encounter->base_hp = 39;
+			encounter->base_attack = 52;
+			encounter->base_defense = 43;
+			encounter->base_spattack = 60;
+			encounter->base_spdefense = 50;
+			encounter->base_speed = 65;
+			encounter->types[0] = T_FIRE;
+			encounter->moves[0].name = "EMBER";
+			encounter->moves[0].dmg = 40;
+			encounter->moves[0].accuracy = 100;
+			encounter->moves[0].move_type = M_SPECIAL;
+			encounter->moves[0].type = T_FIRE;
+			encounter->species = CHARMANDER;
+
+			return true;
+		}
+	}
+	return false;
 }
 
 void tile_render(void) {
@@ -257,6 +322,70 @@ void pokemon_render(void) {
 }
 
 void pokemon_end(void) {
+	if (!battle_state) {
+		Assets_Free();
+		Particles_Free();
+	}
+}
+
+void battle_render(void);
+static bool show_moves = false;
+
+void battle_init(void) {
+	battle_music_loop = false;
+	battle_timer = 0.f;
+	current_battle.turn_length = 0;
+	show_moves = false;
+	UI_Start();
+}
+
+void battle_update(void) {
+	if ((battle_timer += CP_System_GetDt()) >= 13.348f && !battle_music_loop) {
+		CP_Sound_PlayMusic(Asset_GetAudio("Assets/Pokemon/battle_music_loop.wav"));
+		battle_music_loop = true;
+	}
+
+	battle_render();
+}
+
+void battle_render(void) {
+	CP_Graphics_ClearBackground(Get_Color(COLOR_GREEN));
+	CP_Settings_ImageMode(CP_POSITION_CORNER);
+	CP_Settings_RectMode(CP_POSITION_CORNER);
+	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
+
+	CP_Settings_Fill(Get_Color(COLOR_WHITE));
+	CP_Settings_Stroke(Get_Color(COLOR_GRAY));
+	CP_Settings_StrokeWeight(5.f);
+	float x = 5.f;
+	float y = CP_System_GetWindowHeight() - (CP_System_GetWindowHeight() * 0.25f) - 5.f;
+	float w = CP_System_GetWindowWidth() - 10.f;
+	float h = (CP_System_GetWindowHeight() * 0.25f) - 10.f;
+
+	CP_Image_Draw(Asset_GetImage("Assets/Pokemon/4_back.png"), x, y - (h * 1.5f), h * 2.f, h * 2.f, 255);
+	CP_Image_Draw(Asset_GetImage("Assets/Pokemon/4_front.png"), w - (h * 1.5f), 10.f, h * 2.f, h * 2.f, 255);
+
+	CP_Graphics_DrawRect(x, y, w, h);
+
+	if (UI_ButtonText(w * 0.9f, y + (h * 0.75f), w * 0.1f, h * 0.45f, Get_Color(COLOR_WHITE), Get_Color(COLOR_GRAY), "RUN")) {
+		CP_Engine_SetNextGameStateForced(pokemon_init, pokemon_update, pokemon_end);
+	}
+
+	if (UI_ButtonText(w * 0.79f, y + (h * 0.25f), w * 0.1f, h * 0.45f, Get_Color(COLOR_WHITE), Get_Color(COLOR_GRAY), "FIGHT")) {
+		show_moves = true;
+	}
+
+	if (show_moves) {
+		// move slot 1
+		if (UI_ButtonText(w * 0.3f, y + (h * 0.25f), w * 0.1f, h * 0.45f, Get_Color(COLOR_WHITE), Get_Color(COLOR_GRAY), current_battle.player.moves[0].name)) {
+			show_moves = true;
+		}
+	}
+
+	UI_Render();
+}
+
+void battle_end(void) {
 	Assets_Free();
 	Particles_Free();
 }

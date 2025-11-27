@@ -81,6 +81,9 @@
     <ClCompile Include="game_settings.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="pokemon.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="utils.h">
@@ -132,6 +135,12 @@
       <Filter>Header Files\Managers</Filter>
     </ClInclude>
     <ClInclude Include="game_settings.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pokemon.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="battle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -41,6 +41,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="asset_manager.h" />
+    <ClInclude Include="battle.h" />
     <ClInclude Include="currency_manager.h" />
     <ClInclude Include="data_manager.h" />
     <ClInclude Include="editor_manager.h" />
