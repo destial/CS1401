@@ -65,6 +65,8 @@ static bool battle_state = false;
 
 void pokemon_init(void) {
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
+	CP_Engine_SetPostUpdateFunction(NULL);
+	CP_System_ShowCursor(true);
 	player.sprite = Asset_GetSprite("Assets/Pokemon/pokemon_player_sprite.png", 4, 4, 0.f);
 	tilesheet = Asset_GetSprite("Assets/Pokemon/tile_map.png", 31, 28, 0.f);
 	player.moved = -1;
@@ -220,13 +222,13 @@ bool roll_grass_encounter(Pokemon* encounter) {
 }
 
 void tile_render(void) {
-	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f)); ++x) {
+	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f + 2)); ++x) {
 		int xx = (int)(x + world.x);
-		if (xx < 0 || xx > world.x - 1)
+		if (xx < 0 || xx > world.x * 2.f - 1)
 			continue;
-		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f)); ++y) {
+		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f + 2)); ++y) {
 			int yy = (int)(y + world.y);
-			if (yy < 0 || yy > world.y - 1)
+			if (yy < 0 || yy > world.y * 2.f - 1)
 				continue;
 
 			CP_Vector t = World_To_Screen(x, y, world.x, world.y);
@@ -239,13 +241,13 @@ void tile_render(void) {
 
 void overworld_render(void) {
 	CP_Vector s_scale = Screen_Scale();
-	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f)); ++x) {
+	for (int x = (int)(player.pos.x - (world.x * 0.5f + 1)); x < (int)(player.pos.x + (world.x * 0.5f + 2)); ++x) {
 		int xx = (int)(x + world.x);
-		if (xx < 0 || xx > world.x - 1)
+		if (xx < 0 || xx > world.x * 2.f - 1)
 			continue;
-		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f)); ++y) {
+		for (int y = (int)(player.pos.y - (world.y * 0.5f + 1)); y < (int)(player.pos.y + (world.y * 0.5f + 2)); ++y) {
 			int yy = (int)(y + world.y);
-			if (yy < 0 || yy > world.y - 1)
+			if (yy < 0 || yy > world.y * 2.f - 1)
 				continue;
 
 			CP_Vector t = World_To_Screen(x, y, world.x, world.y);
@@ -281,18 +283,12 @@ void overworld_render(void) {
 			else if (tile->tile == TILE_TREE_3_1) {
 				Sprite_DrawFrame(tilesheet, 30, 27, t.x, t.y, ratios.x, ratios.y, 255, 0.f);
 			}
-
-			CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
-			CP_Settings_Fill(Get_Color(COLOR_RED));
-			char m[8]; sprintf_s(m, 8, "%d,%d", x, y);
-			CP_Settings_TextSize(20.f);
-			CP_Font_DrawText(m, t.x, t.y);
 		}
 	}
 }
 
 void pokemon_render(void) {
-	CP_Graphics_ClearBackground(Get_Color(COLOR_GREEN));
+	CP_Graphics_ClearBackground(Get_Color(COLOR_GRAY));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_RectMode(CP_POSITION_CORNER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
