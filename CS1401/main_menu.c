@@ -31,7 +31,7 @@ typedef struct ButtonStr {
 	float text_size;
 } Button;
 
-static const float world_width1 = 48, const world_height1 = 27;
+static const float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
 int equipped_ball_index, equipped_effect_index, shop_page;
 
@@ -366,7 +366,7 @@ void main_menu_update(void)
 
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
-
+	Sprite_SetDt(CP_System_GetDt());
 	background_ball_update();
 	Particles_Update(CP_System_GetDt());
 	CP_Vector world_limits = (CP_Vector){ world_width1, world_height1 };
@@ -552,7 +552,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Image_DrawAdvanced(Asset_GetImage(HANGING_BANNER), level_select_x, level_select_y, 0.3f * CP_System_GetWindowWidth(), 0.15f * CP_System_GetWindowHeight(), 255, 0.f);
 	draw_text(2, "Level Select", level_select_x, level_select_y);
-	
+	int level_highlight = 0;
 	//LEVEL SELECT BUTTONS
 	for (int i = 0; i < TOTAL_LEVELS; i++) {
 		//defining the position of the button
@@ -576,6 +576,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 		//telling what the button should do
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 		{
+			level_highlight = i + 1;
 			GameSetting_SetCursor(CURSOR_POINT);
 			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
@@ -595,6 +596,25 @@ void level_select_button(float mouse_x, float mouse_y) {
 
 	}
 
+	// render level personal best scoreboard
+	static float y = -1.f;
+	if (y < 0.f) {
+		y = CP_System_GetWindowHeight() * 1.1f;
+	}
+	if (level_highlight != 0) {
+		y = CP_Math_LerpFloat(y, CP_System_GetWindowHeight() * 0.9f, CP_System_GetDt() * 5.f);
+	}
+	else {
+		y = CP_Math_LerpFloat(y, CP_System_GetWindowHeight() * 1.1f, CP_System_GetDt() * 5.f);
+	}
+	CP_Image_Draw(shop_background, level_select_x, y, 0.2f * CP_System_GetWindowWidth(), 0.15f * CP_System_GetWindowHeight(), 255);
+	char pb[16]; sprintf_s(pb, 16, "pb_level_%d", level_highlight);
+	CP_Vector personal_best = GameSetting_GetVect(pb);
+	char pb_stroke[32]; sprintf_s(pb_stroke, 32, "Personal best: %d", (int)personal_best.x);
+	draw_text(1.f, pb_stroke, level_select_x, y - (0.5f * CP_System_GetWindowHeight() / world_height1));
+
+	char pb_time[32]; sprintf_s(pb_time, 32, "Time: %0.2fs", personal_best.y);
+	draw_text(1.f, pb_time, level_select_x, y + (0.5f * CP_System_GetWindowHeight() / world_height1));
 }
 
 /*
