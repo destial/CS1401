@@ -14,7 +14,7 @@
 #include <string.h>
 
 /*!
-@author Nathan Ng (n.ng@digipen.edu)
+@author Nathan Ng (n.ng@digipen.edu), Ethan Chua (chua.e@digipen.edu)
 @date 8 September 2025
 @course CSD1401
 @brief this file contains functions and code that handles the main menu UI
@@ -254,6 +254,19 @@ void main_menu_init(void)
 	buttons[14].text = "Inverse Control";
 	buttons[14].func = is_inverse;
 
+	//Shop Page Buttons
+	buttons[15].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	buttons[15].pos.x = world_width1 * 0.7f;
+	buttons[15].pos.y = world_height1 * 0.32f;
+	buttons[15].start_pos.x = buttons[15].pos.x;
+	buttons[15].text = ">";
+
+	buttons[16].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	buttons[16].pos.x = world_width1 * 0.7f;
+	buttons[16].pos.y = world_height1 * 0.32f;
+	buttons[16].start_pos.x = buttons[16].pos.x;
+	buttons[16].text = "<";
+
 	//start of level select button
 	int row = 0;
 	int column = 0;
@@ -405,6 +418,7 @@ void main_menu_update(void)
 
 	settings_button(mouse_x, mouse_y);
 	shops_button(mouse_x, mouse_y);
+	shop_page_buttons(mouse_x, mouse_y);
 	back_buttons(mouse_x, mouse_y);
 
 	GameState_Update();
@@ -779,6 +793,78 @@ void shops_button(float mouse_x, float mouse_y)
 
 	case 1:
 		//future shop page
+		break;
+	}
+}
+
+void shop_page_buttons(float mouse_x, float mouse_y) {
+	//SHOP PAGE CHANGE BUTTON
+
+	CP_Vector coords = defining_position(buttons[15].pos.x, buttons[15].pos.y);
+	CP_Vector local_scale = defining_coords(buttons[15].scale.x, buttons[15].scale.y);
+
+	CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+	switch (shop_page)
+	{
+	case 0:
+		//Drawing the button
+		CP_Image_DrawAdvanced(buttons[15].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		draw_text(buttons[15].text_size, buttons[15].text, coords.x, coords.y);
+		//telling what the button should do
+		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
+		{
+			GameSetting_SetCursor(CURSOR_POINT);
+			if (is_shop_clicked == 1) {
+				buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 3.0f, CP_System_GetDt() * 5);
+				buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 3.0f, CP_System_GetDt() * 5);
+				buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 2.0f, CP_System_GetDt() * 5);
+				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+				{
+					shop_page = 1;
+				}
+			}
+		}
+		if (is_shop_clicked) {
+			buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 2.0f, CP_System_GetDt() * 5);
+			buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 2.0f, CP_System_GetDt() * 5);
+			buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 1.3f, CP_System_GetDt() * 5);
+		}
+		else {
+			buttons[15].scale.x = 0;
+			buttons[15].scale.y = 0;
+			buttons[15].text_size = 0;
+		}
+		break;
+
+	case 1:
+		//Drawing the button
+		CP_Image_DrawAdvanced(buttons[16].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
+		draw_text(buttons[16].text_size, buttons[16].text, coords.x, coords.y);
+		//telling what the button should do
+		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
+		{
+			GameSetting_SetCursor(CURSOR_POINT);
+			if (is_shop_clicked == 1) {
+				buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 3.0f, CP_System_GetDt() * 5);
+				buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 3.0f, CP_System_GetDt() * 5);
+				buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 2.0f, CP_System_GetDt() * 5);
+				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+				{
+					shop_page = 0;
+				}
+			}
+		}
+		if (is_shop_clicked) {
+			buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 2.0f, CP_System_GetDt() * 5);
+			buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 2.0f, CP_System_GetDt() * 5);
+			buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 1.3f, CP_System_GetDt() * 5);
+		}
+		else {
+			buttons[16].scale.x = 0;
+			buttons[16].scale.y = 0;
+			buttons[16].text_size = 0;
+		}
 		break;
 	}
 }
