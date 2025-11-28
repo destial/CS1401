@@ -8,6 +8,7 @@
 #include "particle_manager.h"
 #include "asset_manager.h"
 #include "utils.h"
+#include "main_menu.h"
 
 typedef struct ParticleDataStruct {
 	CP_Image root_image; // the root image of the particle
@@ -45,7 +46,21 @@ static ParticleData create_particle_data(CP_Image root, int rows, int columns) {
 }
 
 void Particles_Preload(void) {
-	particle_types[PARTICLE_SPARKLE] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 3, 3);
+	;
+	Asset_GetBlendedImage(LIGHTNING_SPRITE_ASSET, Get_Color(COLOR_YELLOW), BLEND_SET);
+	switch (equipped_effect_index) {
+		case 0:
+			particle_types[PARTICLE_EFFECT] = create_particle_data(Asset_GetImage(SPARKLE_SPRITE_ASSET), 3, 3);
+		break;
+
+		case 1:
+			particle_types[PARTICLE_EFFECT] = create_particle_data(Asset_GetImage(FLAME_SPRITE_ASSET), 4, 4);
+		break;
+
+		case 2:
+			particle_types[PARTICLE_EFFECT] = create_particle_data(Asset_GetImage(LIGHTNING_SPRITE_ASSET), 4, 4);
+		break;
+	}
 	particle_types[PARTICLE_STAR] = create_particle_data(Asset_GetImage(YELLOW_STAR), 1, 1);
 }
 

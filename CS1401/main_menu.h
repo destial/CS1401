@@ -47,6 +47,8 @@ void settings_button(float mouse_x, float mouse_y);
 */
 void shops_button(float mouse_x, float mouse_y);
 
+void shop_page_buttons(float mouse_x, float mouse_y);
+
 /*
 @brief This function is called when rendering and animating the back buttons for setting, level select and shop
 @param takes in the position of the mouse (x and y axis)
@@ -118,7 +120,8 @@ void buy_button(int num);
 @brief This function is called for the shop buy buttons to check if the player have equipped the skin
 @param takes in the button number
 */
-void equip_button(int num);
+void equip_ball_button(int num);
+void equip_effect_button(int num);
 
 /*
 @brief This function is called to draw the GIF logo at the main menu, and to lerp out when play button is clicked
@@ -168,6 +171,8 @@ bool get_inverse_setting(void);
 */
 void main_menu_exit(void);
 
-int equipped_index;
+int equipped_ball_index;
+
+int equipped_effect_index;
 
 #endif

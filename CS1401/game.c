@@ -172,7 +172,7 @@ void game_init(void)
 	GameSetting_SetCursor(CURSOR_POINT);
 	CP_Font_Set(Asset_GetFont(CARTER_FONT_ASSET));
 	printf("Init game\n");
-	switch (equipped_index) {
+	switch (equipped_ball_index) {
 	case 0:
 		golf_ball_image = Asset_GetImage(GOLF_BALL_ASSET);
 		break;

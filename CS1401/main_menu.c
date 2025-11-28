@@ -33,13 +33,13 @@ typedef struct ButtonStr {
 
 static const float world_width1 = 48, const world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-int equipped_index, shop_page;
+int equipped_ball_index, equipped_effect_index, shop_page;
 
 static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
 static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner, shop_banner_small;
 
-static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
+static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_buy3_clicked = false, is_buy4_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 /*
@@ -103,7 +103,7 @@ static void background_ball_update(void) {
 	// render ball based on equipped texture
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
-	CP_Image_DrawAdvanced(equipped_index == 0 ? golf_ball_default_image : equipped_index == 1 ? golf_ball_gold_image : golf_ball_pool_image,
+	CP_Image_DrawAdvanced(equipped_ball_index == 0 ? golf_ball_default_image : equipped_ball_index == 1 ? golf_ball_gold_image : golf_ball_pool_image,
 		coords.x,
 		coords.y,
 		diameter * CP_System_GetWindowWidth() / world_width1,
@@ -156,7 +156,7 @@ void main_menu_init(void)
 
 	//setting button
 	buttons[1].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
-	buttons[1].pos.x = world_width1 * 0.5f;
+	buttons[1].pos.x = world_width1 * 0.4f;
 	buttons[1].pos.y = world_height1 * 0.35f;
 	buttons[1].start_pos.x = buttons[1].pos.x;
 	buttons[1].func = setting_button;
@@ -215,7 +215,7 @@ void main_menu_init(void)
 
 	//Shop Button
 	buttons[9].button_image = Asset_GetImage(BUTTON_BLUE_ASSET);
-	buttons[9].pos.x = world_width1 * 0.7f;
+	buttons[9].pos.x = world_width1 * 0.6f;
 	buttons[9].pos.y = world_height1 * 0.35f;
 	buttons[9].start_pos.x = buttons[9].pos.x;
 	buttons[9].func = shop_button;
@@ -255,17 +255,35 @@ void main_menu_init(void)
 	buttons[14].func = is_inverse;
 
 	//Shop Page Buttons
-	buttons[15].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	buttons[15].pos.x = world_width1 * 0.7f;
-	buttons[15].pos.y = world_height1 * 0.32f;
+	buttons[15].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	buttons[15].pos.x = world_width1 * 0.8f;
+	buttons[15].pos.y = world_height1 * 0.5f;
 	buttons[15].start_pos.x = buttons[15].pos.x;
 	buttons[15].text = ">";
 
-	buttons[16].button_image = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	buttons[16].pos.x = world_width1 * 0.7f;
-	buttons[16].pos.y = world_height1 * 0.32f;
+	buttons[16].button_image = Asset_GetImage(SMALL_BUTTON_YELLOW_ASSET);
+	buttons[16].pos.x = world_width1 * 0.2f;
+	buttons[16].pos.y = world_height1 * 0.5f;
 	buttons[16].start_pos.x = buttons[16].pos.x;
 	buttons[16].text = "<";
+
+	buttons[17].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : Asset_GetImage(BUTTON_YELLOW_ASSET);
+	buttons[17].pos.x = world_width1 * 0.3f;
+	buttons[17].pos.y = world_height1 * 0.32f;
+	buttons[17].start_pos.x = buttons[17].pos.x;
+	buttons[17].text = is_equip_clicked ? "EQUIPPED" : "EQUIP";
+
+	buttons[18].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy1_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[18].pos.x = world_width1 * 0.5f;
+	buttons[18].pos.y = world_height1 * 0.32f;
+	buttons[18].start_pos.x = buttons[18].pos.x;
+	buttons[18].text = is_equip_clicked ? "EQUIPPED" : is_buy3_clicked ? "EQUIP" : "BUY: 10 Coins";
+
+	buttons[19].button_image = is_equip_clicked ? Asset_GetImage(BUTTON_GREY_ASSET) : is_buy1_clicked ? Asset_GetImage(BUTTON_YELLOW_ASSET) : Asset_GetImage(BUTTON_GREEN_ASSET);
+	buttons[19].pos.x = world_width1 * 0.7f;
+	buttons[19].pos.y = world_height1 * 0.32f;
+	buttons[19].start_pos.x = buttons[19].pos.x;
+	buttons[19].text = is_equip_clicked ? "EQUIPPED" : is_buy4_clicked ? "EQUIP" : "BUY: 20 Coins";
 
 	//start of level select button
 	int row = 0;
@@ -325,10 +343,15 @@ void main_menu_init(void)
 	is_buy2_clicked = GameSetting_GetBool("bought2");
 	int index = GameSetting_GetInt("equipped");
 	if (index < 0) index = 11;
-	equip_button(index);
+	equip_ball_button(index);
+	//Sets the default golf effect
+	int index2 = GameSetting_GetInt("equipped_effect");
+	if (index2 < 0) index2 = 17;
+	equip_effect_button(index2);
 
 	//Sets default shop page
 	shop_page = 0;
+	
 }
 
 void main_menu_update(void) 
@@ -379,6 +402,7 @@ void main_menu_update(void)
 		volume_bar(mouse_x, mouse_y);
 	}
 
+	
 	//SHOP PAGE
 	if (is_shop_clicked) {
 		//drawing shop background
@@ -388,10 +412,12 @@ void main_menu_update(void)
 		CP_Image shop_banner = Asset_GetImage(BANNER);
 		CP_Image_DrawAdvanced(shop_banner, CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.16f, 800.0f, 170.0f, 255, 0.0f);
 
+		shop_page_buttons(mouse_x, mouse_y);
+
 		//shop items would go here
 		switch (shop_page){
 		case 0:
-		draw_text(1.8f, "GOLF SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
+		draw_text(1.8f, "CUSTOMIZATION SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
 		draw_text(0.9f, "GOLF BALLS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.25f);
 		CP_Image_Draw(golf_ball_default_image, CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f,
 			CP_System_GetWindowWidth() / 10.f,
@@ -410,17 +436,26 @@ void main_menu_update(void)
 		break;
 
 		case 1:
-			draw_text(1.8f, "COMING SOON!", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
+		draw_text(1.8f, "CUSTOMIZATION SHOP", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.155f);
+		draw_text(0.9f, "EFFECTS", CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.25f);
+		CP_Image_Draw(Asset_GetImage(SPARKLE_IMAGE_ASSET), CP_System_GetWindowWidth() * 0.3f, CP_System_GetWindowHeight() * 0.5f, 
+			CP_System_GetWindowWidth() / 10.f, 
+			CP_System_GetWindowWidth() / 10.f, 255);
+
+		CP_Image_Draw(Asset_GetImage(FLAME_IMAGE_ASSET), CP_System_GetWindowWidth() * 0.5f, CP_System_GetWindowHeight() * 0.5f, 
+			CP_System_GetWindowWidth() / 10.f, 
+			CP_System_GetWindowWidth() / 10.f, 255);
+
+		CP_Image_Draw(Asset_GetImage(LIGHTNING_IMAGE_ASSET), CP_System_GetWindowWidth() * 0.7f, CP_System_GetWindowHeight() * 0.5f, 
+			CP_System_GetWindowWidth() / 10.f, 
+			CP_System_GetWindowWidth() / 10.f, 255);
 		break;
 		}
 
 	}
-
-	settings_button(mouse_x, mouse_y);
 	shops_button(mouse_x, mouse_y);
-	shop_page_buttons(mouse_x, mouse_y);
+	settings_button(mouse_x, mouse_y);
 	back_buttons(mouse_x, mouse_y);
-
 	GameState_Update();
 }
 
@@ -767,7 +802,7 @@ void shops_button(float mouse_x, float mouse_y)
 				{
 					CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 					if (i == 11) {
-						equip_button(11);
+						equip_ball_button(11);
 					}
 
 					else {
@@ -792,81 +827,131 @@ void shops_button(float mouse_x, float mouse_y)
 		break;
 
 	case 1:
-		//future shop page
+		for (int i = 17; i < 20; i++) {
+			//defining the position of the button
+			CP_Vector coords = defining_position(buttons[i].pos.x, buttons[i].pos.y);
+			CP_Vector local_scale = defining_coords(buttons[i].scale.x, buttons[i].scale.y);
+
+			CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+			//Drawing the button
+			CP_Image_DrawAdvanced(buttons[i].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0);
+
+			//telling what the button should do
+			if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
+			{
+				GameSetting_SetCursor(CURSOR_POINT);
+				buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 7.0f, CP_System_GetDt() * 5);
+				buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 3.0f, CP_System_GetDt() * 5);
+				buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
+
+				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+				{
+					CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
+					if (i == 17) {
+						equip_effect_button(17);
+					}
+
+					else {
+						buy_button(i);
+					}
+				}
+			}
+			else {
+				if (is_shop_clicked) {
+					buttons[i].scale.x = CP_Math_LerpFloat(buttons[i].scale.x, 6.0f, CP_System_GetDt() * 5);
+					buttons[i].scale.y = CP_Math_LerpFloat(buttons[i].scale.y, 2.0f, CP_System_GetDt() * 5);
+					buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 0.95f, CP_System_GetDt() * 5);
+				}
+				else {
+					buttons[i].scale.x = 0;
+					buttons[i].scale.y = 0;
+					buttons[i].text_size = 0;
+				}
+			}
+			draw_text(buttons[i].text_size, buttons[i].text, coords.x, coords.y);
+		}
 		break;
 	}
 }
 
 void shop_page_buttons(float mouse_x, float mouse_y) {
 	//SHOP PAGE CHANGE BUTTON
+		CP_Vector coords1 = defining_position(buttons[15].pos.x, buttons[15].pos.y);
+		CP_Vector local_scale1 = defining_coords(buttons[15].scale.x, buttons[15].scale.y);
 
-	CP_Vector coords = defining_position(buttons[15].pos.x, buttons[15].pos.y);
-	CP_Vector local_scale = defining_coords(buttons[15].scale.x, buttons[15].scale.y);
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
 
-	CP_Settings_ImageMode(CP_POSITION_CENTER);
+		CP_Vector coords2 = defining_position(buttons[16].pos.x, buttons[16].pos.y);
+		CP_Vector local_scale2 = defining_coords(buttons[16].scale.x, buttons[16].scale.y);
 
-	switch (shop_page)
-	{
-	case 0:
-		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[15].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
-		draw_text(buttons[15].text_size, buttons[15].text, coords.x, coords.y);
-		//telling what the button should do
-		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
-		{
-			GameSetting_SetCursor(CURSOR_POINT);
-			if (is_shop_clicked == 1) {
-				buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 3.0f, CP_System_GetDt() * 5);
-				buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 3.0f, CP_System_GetDt() * 5);
-				buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 2.0f, CP_System_GetDt() * 5);
-				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
-				{
-					shop_page = 1;
+		CP_Settings_ImageMode(CP_POSITION_CENTER);
+
+		switch (shop_page) {
+		case 0:
+
+			CP_Image_DrawAdvanced(buttons[15].button_image, coords1.x, coords1.y, local_scale1.x, local_scale1.y, 255, 0.f);
+			draw_text(buttons[15].text_size, buttons[15].text, coords1.x, coords1.y);
+			//telling what the button should do
+			if (check_mouse_pos(mouse_x, mouse_y, coords1.x, coords1.y, local_scale1.x, local_scale1.y))
+			{
+				GameSetting_SetCursor(CURSOR_POINT);
+				if (is_shop_clicked == 1) {
+					buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 3.0f, CP_System_GetDt() * 5);
+					buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 3.0f, CP_System_GetDt() * 5);
+					buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 2.0f, CP_System_GetDt() * 5);
+					if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+					{
+						shop_page = 1;
+					}
 				}
 			}
-		}
-		if (is_shop_clicked) {
-			buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 2.0f, CP_System_GetDt() * 5);
-			buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 2.0f, CP_System_GetDt() * 5);
-			buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 1.3f, CP_System_GetDt() * 5);
-		}
-		else {
-			buttons[15].scale.x = 0;
-			buttons[15].scale.y = 0;
-			buttons[15].text_size = 0;
-		}
+			if (is_shop_clicked) {
+				buttons[15].scale.x = CP_Math_LerpFloat(buttons[15].scale.x, 2.0f, CP_System_GetDt() * 5);
+				buttons[15].scale.y = CP_Math_LerpFloat(buttons[15].scale.y, 2.0f, CP_System_GetDt() * 5);
+				buttons[15].text_size = CP_Math_LerpFloat(buttons[15].text_size, 1.3f, CP_System_GetDt() * 5);
+			}
+			else {
+				buttons[15].scale.x = 0;
+				buttons[15].scale.y = 0;
+				buttons[15].text_size = 0;
+			}
 		break;
 
-	case 1:
-		//Drawing the button
-		CP_Image_DrawAdvanced(buttons[16].button_image, coords.x, coords.y, local_scale.x, local_scale.y, 255, 0.f);
-		draw_text(buttons[16].text_size, buttons[16].text, coords.x, coords.y);
-		//telling what the button should do
-		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
-		{
-			GameSetting_SetCursor(CURSOR_POINT);
-			if (is_shop_clicked == 1) {
-				buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 3.0f, CP_System_GetDt() * 5);
-				buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 3.0f, CP_System_GetDt() * 5);
-				buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 2.0f, CP_System_GetDt() * 5);
-				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+		case 1:
+
+			if (shop_page == 1) {
+				//Drawing the button
+				CP_Image_DrawAdvanced(buttons[16].button_image, coords2.x, coords2.y, local_scale2.x, local_scale2.y, 255, 0.f);
+				draw_text(buttons[16].text_size, buttons[16].text, coords2.x, coords2.y);
+				//telling what the button should do
+				if (check_mouse_pos(mouse_x, mouse_y, coords2.x, coords2.y, local_scale2.x, local_scale2.y))
 				{
-					shop_page = 0;
+					GameSetting_SetCursor(CURSOR_POINT);
+					if (is_shop_clicked == 1) {
+						buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 3.0f, CP_System_GetDt() * 5);
+						buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 3.0f, CP_System_GetDt() * 5);
+						buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 2.0f, CP_System_GetDt() * 5);
+						if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
+						{
+							shop_page = 0;
+						}
+					}
+				}
+				if (is_shop_clicked) {
+					buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 2.0f, CP_System_GetDt() * 5);
+					buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 2.0f, CP_System_GetDt() * 5);
+					buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 1.3f, CP_System_GetDt() * 5);
+				}
+				else {
+					buttons[16].scale.x = 0;
+					buttons[16].scale.y = 0;
+					buttons[16].text_size = 0;
 				}
 			}
+			break;
+
 		}
-		if (is_shop_clicked) {
-			buttons[16].scale.x = CP_Math_LerpFloat(buttons[16].scale.x, 2.0f, CP_System_GetDt() * 5);
-			buttons[16].scale.y = CP_Math_LerpFloat(buttons[16].scale.y, 2.0f, CP_System_GetDt() * 5);
-			buttons[16].text_size = CP_Math_LerpFloat(buttons[16].text_size, 1.3f, CP_System_GetDt() * 5);
-		}
-		else {
-			buttons[16].scale.x = 0;
-			buttons[16].scale.y = 0;
-			buttons[16].text_size = 0;
-		}
-		break;
-	}
 }
 
 /*
@@ -1072,42 +1157,62 @@ void shop_button(void) {
 @param takes in the button number
 */
 void buy_button(int num) {
-		switch (num) {
-		case 12:
-			if (coins >= 10) {
-				if (!is_buy1_clicked) {
-					deduct_coins(10);
-				}
-				is_buy1_clicked = true;
-				equip_button(num);
+	switch (num) {
+	case 12:
+		if (coins >= 10) {
+			if (!is_buy1_clicked) {
+				deduct_coins(10);
 			}
-			break;
-		case 13:
-			if (coins >= 20) {
-				if (!is_buy2_clicked) {
-					deduct_coins(20);
-				}
-				is_buy2_clicked = true;
-				equip_button(num);
-			}
-			break;
+			is_buy1_clicked = true;
+			equip_ball_button(num);
 		}
+		break;
+	case 13:
+		if (coins >= 20) {
+			if (!is_buy2_clicked) {
+				deduct_coins(20);
+			}
+			is_buy2_clicked = true;
+			equip_ball_button(num);
+		}
+		break;
+
+	case 18:
+		if (coins >= 10) {
+			if (!is_buy3_clicked) {
+				deduct_coins(10);
+			}
+			is_buy3_clicked = true;
+			equip_effect_button(num);
+		}
+		break;
+
+	case 19:
+		if (coins >= 20) {
+			if (!is_buy4_clicked) {
+				deduct_coins(20);
+			}
+			is_buy4_clicked = true;
+			equip_effect_button(num);
+		}
+		break;
+	}
 }
 
 /*
 @brief This function is called for the shop buy buttons to check if the player have equipped the skin
 @param takes in the button number
 */
-void equip_button(int num) {
+void equip_ball_button(int num) {
 
 	int index = num - 11;
 
 	if (num == 12 && !is_buy1_clicked) return; 
 	if (num == 13 && !is_buy2_clicked) return;  
 
-	equipped_index = index;
+	equipped_ball_index = index;
 
-	if (equipped_index == 0) {
+	if (equipped_ball_index == 0) {
 		buttons[11].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 		buttons[11].text = "EQUIPPED";
 	}
@@ -1120,7 +1225,7 @@ void equip_button(int num) {
 		buttons[12].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
 		buttons[12].text = "BUY: 10 Coins";
 	}
-	else if (equipped_index == 1) {
+	else if (equipped_ball_index == 1) {
 		buttons[12].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 		buttons[12].text = "EQUIPPED";
 	}
@@ -1133,7 +1238,7 @@ void equip_button(int num) {
 		buttons[13].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
 		buttons[13].text = "BUY: 20 Coins";
 	}
-	else if (equipped_index == 2) {
+	else if (equipped_ball_index == 2) {
 		buttons[13].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
 		buttons[13].text = "EQUIPPED";
 	}
@@ -1141,6 +1246,53 @@ void equip_button(int num) {
 		buttons[13].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
 		buttons[13].text = "EQUIP";
 	}
+
+}
+
+void equip_effect_button(int num) {
+
+	int index = num - 17;
+
+	if (num == 18 && !is_buy3_clicked) return;
+	if (num == 19 && !is_buy4_clicked) return;
+
+	equipped_effect_index = index;
+
+	if (equipped_effect_index == 0) {
+		buttons[17].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[17].text = "EQUIPPED";
+	}
+	else {
+		buttons[17].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[17].text = "EQUIP";
+	}
+
+	if (!is_buy3_clicked) {
+		buttons[18].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+		buttons[18].text = "BUY: 10 Coins";
+	}
+	else if (equipped_effect_index == 1) {
+		buttons[18].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[18].text = "EQUIPPED";
+	}
+	else {
+		buttons[18].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[18].text = "EQUIP";
+	}
+
+	if (!is_buy4_clicked) {
+		buttons[19].button_image = Asset_GetImage(BUTTON_GREEN_ASSET);
+		buttons[19].text = "BUY: 20 Coins";
+	}
+	else if (equipped_effect_index == 2) {
+		buttons[19].button_image = Asset_GetImage(BUTTON_GREY_ASSET);
+		buttons[19].text = "EQUIPPED";
+	}
+	else {
+		buttons[19].button_image = Asset_GetImage(BUTTON_YELLOW_ASSET);
+		buttons[19].text = "EQUIP";
+	}
+
 }
 
 /*
@@ -1243,7 +1395,7 @@ void main_menu_exit(void)
 	GameSetting_SetFloat("music_volume", music_limit);
 	GameSetting_SetBool("high_quality", is_shadowed);
 	GameSetting_SetInt("coins", getCoins());
-	GameSetting_SetInt("equipped", equipped_index + 11);
+	GameSetting_SetInt("equipped", equipped_ball_index + 11);
 	GameSetting_SetBool("bought1", is_buy1_clicked);
 	GameSetting_SetBool("bought2", is_buy2_clicked);
 	GameSetting_SetBool("inverse_controls", is_inversed);

@@ -45,6 +45,11 @@
 #define BLUE_PORTAL_SPRITE_ASSET "Assets/Images/blue_portal_sprite.png"
 #define ORANGE_PORTAL_SPRITE_ASSET "Assets/Images/orange_portal_sprite.png"
 #define SPARKLE_SPRITE_ASSET "Assets/Images/sparkle_sheet.png"
+#define FLAME_SPRITE_ASSET "Assets/Images/flame_sheet.png"
+#define LIGHTNING_SPRITE_ASSET "Assets/Images/lightning_sheet.png"
+#define SPARKLE_IMAGE_ASSET "Assets/Images/sparkle_image.png"
+#define FLAME_IMAGE_ASSET "Assets/Images/flame_image.png"
+#define LIGHTNING_IMAGE_ASSET "Assets/Images/lightning_image.png"
 #define PUTT_ARROW_ASSET "Assets/Images/putt_arrow.png"
 #define FAN_ASSET "Assets/Images/fan.png"
 
