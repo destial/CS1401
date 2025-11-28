@@ -330,7 +330,7 @@ void main_menu_update(void)
 
 	float mouse_x = CP_Input_GetMouseX();
 	float mouse_y = CP_Input_GetMouseY();
-
+	Sprite_SetDt(CP_System_GetDt());
 	background_ball_update();
 	Particles_Update(CP_System_GetDt());
 	CP_Vector world_limits = (CP_Vector){ world_width1, world_height1 };

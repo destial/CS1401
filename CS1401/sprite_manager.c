@@ -16,6 +16,12 @@ typedef struct SpriteSheetStruct {
 	bool updated_frame;
 } *SpriteSheet;
 
+static float sprite_dt;
+
+void Sprite_SetDt(float dt) {
+	sprite_dt = dt;
+}
+
 void Sprite_ResetFrame(SpriteSheet sheet) {
 	sheet->updated_frame = false;
 }
@@ -40,7 +46,7 @@ void Sprite_DrawAdvanced(SpriteSheet sheet, float x, float y, float w, float h, 
 	sheet->updated_frame = true;
 	// increment the animation frame based on the time elapsed
 	int frameCount = sheet->rows * sheet->columns;
-	if ((sheet->elapsedDuration += CP_System_GetDt()) > sheet->duration / frameCount) {
+	if ((sheet->elapsedDuration += sprite_dt) > sheet->duration / frameCount) {
 		if (++sheet->current_column >= sheet->columns) {
 			sheet->current_column = 0;
 

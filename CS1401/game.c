@@ -47,6 +47,7 @@ static bool debug_enabled = false;
 
 // editable setting
 static float resistance = 1.25f;
+static float speed_up = 1.f;
 static float power = 2.f;
 static unsigned char current_level = 1;
 #define MAX_PUTT_POWER 75.f
@@ -288,7 +289,7 @@ void game_update(void)
 			// run timestep for every lost frame if < 60fps
 			while (frame_time > 0.f) {
 				dt = min(frame_time, 1 / 60.f);
-				Game_UpdatePhysics(dt);
+				Game_UpdatePhysics(speed_up * dt);
 				frame_time -= dt;
 			}
 
@@ -517,7 +518,7 @@ void Game_UpdatePhysics(float dt)
 
 			// rotate the ball based on its x-axis velocity
 			if (friction != 0.f) {
-				golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1);
+				golf->angle += (CP_Vector_Length(golf->vel) * 0.5f) * (golf->vel.x > 0 ? 1 : -1) * speed_up;
 				if (golf->angle > 360.f) {
 					golf->angle -= 360.f;
 				}
@@ -604,6 +605,16 @@ void Game_UpdatePhysics(float dt)
 			continue;
 
 		ball->prev_pos = CP_Vector_Set(ball->pos.x, ball->pos.y);
+	}
+
+	// update items
+	Item* items_arr = Get_Items();
+	for (int i = 0; i < items.length; ++i) {
+		Item* item = items_arr + i;
+		if (item->type == ITEM_REVERSE) {
+			item->angle += 45.f * dt;
+			item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
+		}
 	}
 
 	Particles_Update(dt);
@@ -734,6 +745,7 @@ void Game_Render(void)
 	CP_Graphics_ClearBackground(Get_Color(COLOR_BLACK));
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Image_Draw(background_image, 0.f, 0.f, (float) CP_System_GetWindowWidth(), (float) CP_System_GetWindowHeight(), 255);
+	Sprite_SetDt(CP_System_GetDt() * speed_up);
 
 	// reset the color and stroke settings
 	CP_Settings_Stroke(Get_Color(COLOR_BLACK));
@@ -837,7 +849,7 @@ void Game_RenderUI(void) {
 		
 		float w = world_ratios.x;
 		float h = world_ratios.y;
-		float y_mul = (sinf(5.f * CP_System_GetSeconds()) / 5.f) + 1.f;
+		float y_mul = (sinf(5.f * CP_System_GetSeconds() * speed_up) / 5.f) + 1.f;
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		for (int i = 0; i < golf_balls.length; ++i) {
 			GolfBall* ball = golf_arr + i;
@@ -918,6 +930,12 @@ void Game_RenderUI(void) {
 	CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
 	char fps[16]; sprintf_s(fps, 16, "FPS: %d", (int)(1 / CP_System_GetDt()));
 	CP_Font_DrawText(fps, 5.f, 5.f);
+	if (speed_up > 1.f) {
+		CP_Settings_TextAlignment(CP_TEXT_ALIGN_H_LEFT, CP_TEXT_ALIGN_V_TOP);
+		char spd[16]; sprintf_s(spd, 16, "x%0.f speed", speed_up);
+		CP_Font_DrawText(spd, 5.f, 5.f + (25.f * s_scale.x));
+	}
+
 	if (debug_enabled) {
 		CP_Settings_TextSize(20.f * s_scale.x);
 		Game_RenderDebug();
@@ -974,7 +992,7 @@ void Game_RenderTerrains(void) {
 				smallest * world_ratios.x * 0.25f * (1.f - scale_transition),
 				smallest * world_ratios.y * 0.25f * (1.f - scale_transition),
 				128,
-				CP_System_GetSeconds() * 360.f);
+				CP_System_GetSeconds() * 360.f * speed_up);
 
 			CP_Image_DrawAdvanced(wind_arrow,
 				c.x,
@@ -1122,7 +1140,7 @@ void Game_RenderHoles(void) {
 void Game_RenderItems(void) {
 	CP_Vector world_ratios = Get_World_Ratios();
 	Item* item_arr = Get_Items();
-	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
+	float anim_mul = (sinf(5.f * CP_System_GetSeconds() * speed_up) / 5.f) + 1.f;
 	CP_Vector s_scale = Screen_Scale();
 
 	for (int i = 0; i < items.length; ++i) {
@@ -1152,11 +1170,6 @@ void Game_RenderItems(void) {
 		CP_Settings_ImageMode(CP_POSITION_CENTER);
 		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 		if (image != NULL) {
-			if (item->type == ITEM_REVERSE) {
-				item->angle += 45.f * CP_System_GetDt();
-				item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
-			}
-			
 			CP_Image_DrawAdvanced(image,
 				coords.x,
 				coords.y,
@@ -1311,7 +1324,7 @@ void Game_RenderShadows(void) {
 	shadow_images[ITEM_REVERSE] = Asset_GetBlendedImage(REVERSE_ITEM_ASSET, Get_Color(COLOR_BLACK), BLEND_SET);
 
 	Item* item_arr = Get_Items();
-	float anim_mul = (sinf(5.f * CP_System_GetSeconds()) / 10.f) + 1.f;
+	float anim_mul = (sinf(5.f * CP_System_GetSeconds() * speed_up) / 5.f) + 1.f;
 	// render item shadow
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = item_arr + i;
@@ -1407,6 +1420,10 @@ void Process_Inputs(void) {
 		}
 		pause_menu = !pause_menu;
 		return;
+	}
+	speed_up = 1.f;
+	if (CP_Input_KeyDown(KEY_BACKSLASH)) {
+		speed_up = 5.f;
 	}
 
 	// toggle debug drawing (game data, hitboxes, collision line)

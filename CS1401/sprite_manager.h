@@ -78,4 +78,11 @@ int Sprite_GetHeight(SpriteSheet spritesheet);
 */
 void Sprite_ResetFrame(SpriteSheet sheet);
 
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Set the sprite delta time to update with.
+@param dt - The delta time
+*/
+void Sprite_SetDt(float dt);
+
 #endif
