@@ -71,7 +71,12 @@
 // Sounds / Music / Audio
 
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
-#define GOLF_HIT_STROKE_ASSET "Assets/Audio/Golf_hit.wav"
+#define SHRINK_SFX_ASSET "Assets/Audio/shrink_sfx.wav"
+#define GROW_SFX_ASSET "Assets/Audio/grow_sfx.wav"
+#define COIN_SFX_ASSET "Assets/Audio/coin_sfx.wav"
+#define REVERSE_SFX_ASSET "Assets/Audio/reverse_sfx.wav"
+#define BOOST_SFX_ASSET "Assets/Audio/boost_sfx.wav"
+#define BUTTON_SFX_ASSET "Assets/Audio/button_sfx.wav"
 #define VICTORY_ASSET "Assets/Audio/victory.wav"
 #define BACKGROUND_MUSIC_ASSET "Assets/Audio/background_music.wav"
 

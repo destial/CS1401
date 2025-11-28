@@ -31,7 +31,7 @@ typedef struct ButtonStr {
 	float text_size;
 } Button;
 
-static float world_width1 = 48, world_height1 = 27;
+static const float world_width1 = 48, const world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
 int equipped_index, shop_page;
 
@@ -56,28 +56,30 @@ static void background_ball_update(void) {
 		ball_pos.x = world_width1 - diameter * 0.5f;
 		ball_vel.x = -ball_vel.x;
 		ball_vel.y = ball_vel.y;
+		CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
 	}
-
 	// bound the ball at the left border
 	if (ball_pos.x < diameter * 0.5f) {
 		ball_pos.x = diameter * 0.5f;
 		ball_vel.x = -ball_vel.x;
 		ball_vel.y = ball_vel.y;
+		CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
 	}
-
 	// bound the ball at the top border
 	if (ball_pos.y > world_height1 - diameter * 0.5f) {
 		ball_pos.y = world_height1 - diameter * 0.5f;
 		ball_vel.y = -ball_vel.y;
 		ball_vel.x = ball_vel.x;
+		CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
 	}
-
 	// bound the ball at the bottom border
 	if (ball_pos.y < 1.f) {
 		ball_pos.y = 1.f;
 		ball_vel.y = -ball_vel.y ;
 		ball_vel.x = ball_vel.x;
+		CP_Sound_Play(Asset_GetAudio(GOLF_HIT_WALL_ASSET));
 	}
+	// rotate ball based on direction
 	ball_angle += (CP_Vector_Length(ball_vel) * 0.1f) * (ball_vel.x > 0.f ? 1.f : -1.f);
 	if (ball_angle > 360.f) {
 		ball_angle -= 360.f;
@@ -85,8 +87,10 @@ static void background_ball_update(void) {
 	else if (ball_angle < 0.f) {
 		ball_angle += 360.f;
 	}
+	// update ball position in delta time
 	ball_pos = CP_Vector_Add(ball_pos, CP_Vector_Scale(ball_vel, CP_System_GetDt()));
 	CP_Vector coords = World_To_Screen(ball_pos.x, ball_pos.y, world_width1, world_height1);
+	// render ball shadow first if enabled
 	if (is_shadowed) {
 		CP_Settings_Fill(CP_Color_Create(0, 0, 0, 64));
 		CP_Settings_NoStroke();
@@ -96,6 +100,7 @@ static void background_ball_update(void) {
 			diameter * CP_System_GetWindowWidth() / world_width1,
 			(diameter * CP_System_GetWindowHeight() / world_height1) + 7.5f);
 	}
+	// render ball based on equipped texture
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
 	CP_Image_DrawAdvanced(equipped_index == 0 ? golf_ball_default_image : equipped_index == 1 ? golf_ball_gold_image : golf_ball_pool_image,
@@ -105,6 +110,12 @@ static void background_ball_update(void) {
 		diameter * CP_System_GetWindowWidth() / world_width1,
 		255,
 		ball_angle);
+
+	CP_Vector mouse_world = Screen_To_World(CP_Input_GetMouseX(), CP_Input_GetMouseY(), world_width1, world_height1);
+	if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && CP_Vector_Distance(mouse_world, ball_pos) <= diameter * 0.5f) {
+		Particles_Spawn(PARTICLE_STAR, mouse_world, 1, 2.f, 0.3f, 1.f, 1.f, 2.f);
+		CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
+	}
 }
 
 /*
@@ -321,6 +332,10 @@ void main_menu_update(void)
 	float mouse_y = CP_Input_GetMouseY();
 
 	background_ball_update();
+	Particles_Update(CP_System_GetDt());
+	CP_Vector world_limits = (CP_Vector){ world_width1, world_height1 };
+	CP_Vector world_ratios = (CP_Vector){ CP_System_GetWindowWidth() / world_width1, CP_System_GetWindowHeight() / world_height1 };
+	Particles_Render(world_limits, world_ratios);
 
 	main_menu_button(mouse_x, mouse_y);
 	draw_logo_image();
@@ -421,6 +436,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
 				if (buttons[i].func) {
+					CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 					buttons[i].func();
 				}
 			}
@@ -458,6 +474,7 @@ void main_menu_button(float mouse_x, float mouse_y) {
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
 			if (buttons[9].func) {
+				CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 				shop_page = 0;
 				buttons[9].func();
 			}
@@ -516,6 +533,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 			level_buttons[i].text_size = CP_Math_LerpFloat(level_buttons[i].text_size, 3.f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
+				CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 				Game_SetLevel(i + 1);
 				level_buttons[i].func();
 			}
@@ -613,6 +631,7 @@ void settings_button(float mouse_x, float mouse_y) {
 			buttons[i].text_size = CP_Math_LerpFloat(buttons[i].text_size, 1.3f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
+				CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 				change_resolution(i - 4);
 			}
 		}
@@ -649,6 +668,7 @@ void settings_button(float mouse_x, float mouse_y) {
 		buttons[8].text_size = CP_Math_LerpFloat(buttons[8].text_size, 1.3f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
+			CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 			buttons[8].func();
 		}
 	}
@@ -684,6 +704,7 @@ void settings_button(float mouse_x, float mouse_y) {
 		buttons[14].text_size = CP_Math_LerpFloat(buttons[14].text_size, 1.1f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
+			CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 			buttons[14].func();
 		}
 	}
@@ -730,6 +751,7 @@ void shops_button(float mouse_x, float mouse_y)
 
 				if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 				{
+					CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 					if (i == 11) {
 						equip_button(11);
 					}
@@ -791,6 +813,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 		buttons[3].text_size = CP_Math_LerpFloat(buttons[3].text_size, 3.f, CP_System_GetDt() * 5);
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 		{
+			CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 			buttons[3].func();
 		}
 	}
@@ -819,6 +842,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 			buttons[7].text_size = CP_Math_LerpFloat(buttons[7].text_size, 2.0f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
+				CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 				setting_button();
 			}
 		}
@@ -853,6 +877,7 @@ void back_buttons(float mouse_x, float mouse_y) {
 			buttons[10].text_size = CP_Math_LerpFloat(buttons[10].text_size, 2.0f, CP_System_GetDt() * 5);
 			if (CP_Input_MouseTriggered(MOUSE_BUTTON_1) && !GameState_IsTransitioning())
 			{
+				CP_Sound_Play(Asset_GetAudio(BUTTON_SFX_ASSET));
 				shop_button();
 			}
 		}
@@ -1040,7 +1065,7 @@ void draw_logo_image(void) {
 
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_NEAREST);
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
-	Sprite_Draw(Asset_GetSprite(TITLE_SPRITE_ASSET, 12, 5, 2.f), logo_x, logo_y,
+	Sprite_Draw(Asset_GetSprite(TITLE_SPRITE_ASSET, 12, 5, 1.5f), logo_x, logo_y,
 		CP_System_GetWindowWidth() * 0.5f,
 		CP_System_GetWindowHeight() * 0.5f, 255);
 
