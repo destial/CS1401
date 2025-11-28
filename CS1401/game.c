@@ -55,7 +55,6 @@ static unsigned char current_level = 1;
 
 // particles
 static ParticleType particle_type = 0;
-static float particle_counter = 0.f;
 
 // camera
 static CP_Vector camera_pos;
@@ -480,13 +479,6 @@ void Game_UpdatePhysics(float dt)
 			if (!powerup && golf->teleported) {
 				golf->teleported = false;
 			}
-			//}
-			//else {
-
-				// hard stop the ball if too slow
-			//	golf->vel.x = 0;
-			//	golf->vel.y = 0;
-			//}
 
 			// bound the ball at the right border
 			if (golf->pos.x > world_limits.x - golf->diameter * 0.5f) {
@@ -533,6 +525,7 @@ void Game_UpdatePhysics(float dt)
 		}
 
 		// spawn the particles every 0.1s
+		static float particle_counter = 0.f;
 		if ((particle_counter += dt) >= 0.1f) {
 			int amount = 1;
 			float radius = golf->diameter * 0.5f;
@@ -561,11 +554,6 @@ void Game_UpdatePhysics(float dt)
 			float dist = CP_Vector_Distance(golf->pos, hole->pos);
 			if (dist < hole->diameter * 0.5f && !CP_Vector_IsZero(golf->vel)) { // fall into hole
 				CP_Vector dir = CP_Vector_Subtract(hole->pos, golf->pos);
-				//float angle = CP_Vector_AngleCCW(golf->vel, dir);
-				//if (angle > 180.f) {
-				//	angle -= 360.f;
-				//}
-				//CP_Vector rot = CP_Vector_Rotate(golf->vel, -CP_Math_Radians(angle * dt));
 				CP_Vector drag_dir = CP_Vector_Scale(CP_Vector_Normalize(dir), (hole->diameter * 0.5f) - dist);
 				drag_dir = CP_Vector_Subtract(drag_dir, CP_Vector_Scale(drag_dir, (resistance * resistance) - 1.f));
 				if (CP_Vector_LengthSquared(drag_dir) < 0.1f)
@@ -612,6 +600,8 @@ void Game_UpdatePhysics(float dt)
 	}
 
 	// update items
+	static float particle_counter = 0.f;
+	particle_counter += dt;
 	Item* items_arr = Get_Items();
 	for (int i = 0; i < items.length; ++i) {
 		Item* item = items_arr + i;
@@ -619,6 +609,12 @@ void Game_UpdatePhysics(float dt)
 			item->angle += 45.f * dt;
 			item->angle = item->angle < 360.f ? item->angle : 360.f - item->angle;
 		}
+		if (item->type == ITEM_PORTAL && particle_counter >= 0.1f) {
+			Particles_Spawn(PARTICLE_PORTAL, item->pos, 1, 4.f, -1.f, 1.f, 0.5f, 0.7f);
+		}
+	}
+	if (particle_counter >= 0.1f) {
+		particle_counter = 0.f;
 	}
 
 	Particles_Update(dt);
