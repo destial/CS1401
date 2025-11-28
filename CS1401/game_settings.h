@@ -10,6 +10,7 @@
 #define GAME_SETTINGS_H
 #include "utils.h"
 
+// render different cursor depending on current action
 typedef enum CursorEnum {
 	CURSOR_DEFAULT = 0,
 	CURSOR_POINT,
@@ -61,6 +62,22 @@ float GameSetting_GetFloat(const char* key);
 @return The string value of the setting
 */
 const char* GameSetting_GetString(const char* key);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Get a game setting value as a vector
+@param key - The setting key
+@return The vector value of the setting
+*/
+CP_Vector GameSetting_GetVect(const char* key);
+
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@brief Set a game setting value as a vector
+@param key - The setting key
+@param value - The vector value to set
+*/
+void GameSetting_SetVect(const char* key, CP_Vector value);
 
 /*!
 @author Rance Andres (andresrancerowell.g@digipen.edu)

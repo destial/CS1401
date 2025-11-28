@@ -402,7 +402,7 @@ bool Map_GetBool(Map map, const char* key, bool def) {
 
 CP_Vector Map_GetVector(Map map, const char* key) {
     char* value = Map_GetString(map, key);
-    return value ? parse_vector(value) : CP_Vector_Set(0, 0);
+    return value ? parse_vector(value) : CP_Vector_Set(0.f, 0.f);
 }
 
 // recursively loops through the map to free up the allocations, starting from the last node

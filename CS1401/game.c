@@ -78,7 +78,7 @@ typedef struct HintsStruct {
 	CP_Image icon;
 } Hints;
 
-static Hints game_hints[6];
+static Hints game_hints[7];
 
 static Wall* Get_Walls() {
 	return walls.arr; // for auto casting
@@ -221,9 +221,13 @@ void game_init(void)
 	game_hints[4].text = "Reset to last (+1)";
 	game_hints[4].key = " R ";
 
-	game_hints[5].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
-	game_hints[5].text = "Change hit power";
-	game_hints[5].key = "";
+	game_hints[5].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
+	game_hints[5].text = "Speed up game x5";
+	game_hints[5].key = " \\ ";
+
+	game_hints[6].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
+	game_hints[6].text = "Change hit power";
+	game_hints[6].key = "";
 
 	// null instantiation
 	items.arr = walls.arr = terrains.arr = holes.arr = golf_balls.arr = NULL;
@@ -622,6 +626,14 @@ void Game_UpdatePhysics(float dt)
 	if (win && !has_won) {
 		has_won = true;
 		CP_Sound_Play(Asset_GetAudio(VICTORY_ASSET));
+		char pb[16]; sprintf_s(pb, 16, "pb_level_%d", current_level);
+		CP_Vector personal_best = GameSetting_GetVect(pb);
+
+		if (personal_best.x > get_strokes() || personal_best.x < 1.f) {
+			personal_best.x = (float) get_strokes();
+			personal_best.y = og_timer - game_timer;
+			GameSetting_SetVect(pb, personal_best);
+		}
 	}
 }
 
@@ -727,13 +739,13 @@ static void hint_render(void) {
 		Hints* h = &game_hints[i];
 		UI_ButtonImageText(
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 120.f * s_scale.x,
-			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
+			CP_System_GetWindowHeight() * (0.2f + i * 0.1f),
 			40.f * s_scale.x, 40.f * s_scale.y,
 			h->icon, h->icon, h->key);
 
 		UI_TextLeft(
 			Math_CLerpFloat(CP_System_GetWindowWidth() * 1.11f, CP_System_GetWindowWidth() * .85f, t) - 90.f * s_scale.x,
-			CP_System_GetWindowHeight() * (0.3f + i * 0.1f),
+			CP_System_GetWindowHeight() * (0.2f + i * 0.1f),
 			250.f * s_scale.x, 40.f * s_scale.y,
 			Get_Color(COLOR_BLACK), h->text, 30.f * s_scale.x);
 	}
@@ -802,7 +814,7 @@ void Game_Render(void)
 	if (!tab) {
 		hint_transition -= CP_System_GetDt();
 	}
-	hint_transition = min_max(hint_transition, 0.f, 1.f);
+	hint_transition = CP_Math_ClampFloat(hint_transition, 0.f, 1.f);
 	
 	// render hints siderbar
 	hint_render();

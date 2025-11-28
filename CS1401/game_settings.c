@@ -76,11 +76,25 @@ const char* GameSetting_GetString(const char* key) {
 	return Map_GetString(settings_file, key);
 }
 
+CP_Vector GameSetting_GetVect(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetVector(settings_file, key);
+}
+
 void GameSetting_SetBool(const char* key, bool value) {
 	if (!settings_file) // always check for loaded settings file
 		load_settings_file();
 
 	Map_EditBool(settings_file, key, value);
+}
+
+void GameSetting_SetVect(const char* key, CP_Vector value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditVector(settings_file, key, value);
 }
 
 void GameSetting_SetInt(const char* key, int value) {
