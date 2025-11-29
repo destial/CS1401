@@ -89,7 +89,7 @@ void Editor_Update_Walls(ObjectArray* walls) {
 
 	for (int i = 5; i < walls->length; i++) {
 		Wall* wall = (Wall*)walls->arr + i;
-		if (wall == NULL || wall->destroyed)
+		if (wall->destroyed)
 			continue;
 
 		// if clicked on this wall, set as the current editing object
@@ -165,7 +165,7 @@ void Editor_Update_Terrains(ObjectArray* terrains) {
 
 	for (int i = 0; i < terrains->length; i++) {
 		Terrain* terrain = (Terrain*)terrains->arr + i;
-		if (terrain == NULL || terrain->destroyed)
+		if (terrain->destroyed)
 			continue;
 
 		// if clicked on this terrain, set as the current editing object
@@ -223,7 +223,7 @@ void Editor_Update_Holes(ObjectArray* holes) {
 
 	for (int i = 0; i < holes->length; i++) {
 		Hole* hole = (Hole*) holes->arr + i;
-		if (hole == NULL || hole->destroyed)
+		if (hole->destroyed)
 			continue;
 
 		// set the current edit object to be whatever the mouse is on
@@ -270,7 +270,7 @@ void Editor_Update_Golfballs(ObjectArray* golfs) {
 
 	for (int i = 0; i < golfs->length; i++) {
 		GolfBall* golf = (GolfBall*) golfs->arr + i;
-		if (golf == NULL || golf->destroyed)
+		if (golf->destroyed)
 			continue;
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Circle(golf->pos, golf->diameter)) {
@@ -316,7 +316,7 @@ void Editor_Update_Items(ObjectArray* items) {
 
 	for (int i = 0; i < items->length; i++) {
 		Item* item = (Item*)items->arr + i;
-		if (item == NULL || item->destroyed)
+		if (item->destroyed)
 			continue;
 
 		if (CP_Input_MouseTriggered(MOUSE_BUTTON_LEFT) && Check_On_Circle(item->pos, item->diameter)) {
@@ -441,7 +441,6 @@ void Editor_Update_End(void) {
 			if (current_type == EDIT_WALL) {
 				Wall* wall = (Wall*)current_dragging;
 				wall->pos = CP_Vector_Add(mouse_world, current_editing_offset);
-				wall->image = wall->pos.x <= Get_World_Limits().x * 0.5f ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
 				editor_dirty = true;
 			}
 			else if (current_type == EDIT_HOLE) {

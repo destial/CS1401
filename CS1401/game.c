@@ -76,23 +76,23 @@ typedef struct HintsStruct {
 
 static Hints game_hints[7];
 
-static Wall* Get_Walls() {
+static Wall* Get_Walls(void) {
 	return walls.arr; // for auto casting
 }
 
-static Item* Get_Items() {
+static Item* Get_Items(void) {
 	return items.arr; // for auto casting
 }
 
-static GolfBall* Get_Golfs() {
+static GolfBall* Get_Golfs(void) {
 	return golf_balls.arr; // for auto casting
 }
 
-static Hole* Get_Holes() {
+static Hole* Get_Holes(void) {
 	return holes.arr; // for auto casting
 }
 
-static Terrain* Get_Terrains() {
+static Terrain* Get_Terrains(void) {
 	return terrains.arr; // for auto casting
 }
 
@@ -569,7 +569,7 @@ void Game_UpdatePhysics(float dt)
 			continue;
 
 		// update wall's normal
-		Game_UpdateWall(wall, dt);
+		Game_UpdateWall(wall, dt, i);
 
 		if (Editor_GetEditMode())
 			continue;
@@ -1158,9 +1158,11 @@ void Game_RenderItems(void) {
 		CP_Image image = NULL;
 		SpriteSheet sprite = NULL;
 		switch (item->type) {
-		case ITEM_PORTAL:
-			sprite = item_image_cache[(item->pos.x <= world_limits.x * 0.5f ? ITEM_PORTAL - 1 : ITEM_PORTAL)];
-			anim_mul = 1.f;
+		case ITEM_PORTAL: {
+				float dot = CP_Vector_DotProduct(Get_Walls()->normal, CP_Vector_Subtract(Get_Walls()->pos, item->pos));
+				sprite = item_image_cache[(dot > 0 ? ITEM_PORTAL - 1 : ITEM_PORTAL)];
+				anim_mul = 1.f;
+			}
 			break;
 		case ITEM_COIN:
 			sprite = item_image_cache[item->type - 1];
@@ -1517,10 +1519,16 @@ void Process_Inputs(void) {
 }
 
 // Update the wall's normal based on its angle of rotation
-void Game_UpdateWall(Wall* wall, float dt) {
+void Game_UpdateWall(Wall* wall, float dt, int index) {
 	if (!Editor_GetEditMode()) {
 		// update the wall angle based on rotation rate (if any)
 		wall->angle += wall->rotation_rate * dt;
+	}
+
+	if (index > 4) {
+		Wall* mid = Get_Walls();
+		float dot = CP_Vector_DotProduct(mid->normal, CP_Vector_Subtract(mid->pos, wall->pos));
+		wall->image = dot > 0 ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
 	}
 
 	// limit the wall angle to 0 <= x <= 360 degrees for ease of calculation
@@ -1617,7 +1625,12 @@ bool Check_Terrain(Terrain* terrain, CP_Vector pos) {
 
 bool Check_Item(Item* item, GolfBall* ball) {
 	// if the ball is over this item
-	bool collected = CP_Vector_Length(CP_Vector_Subtract(item->pos, ball->pos)) <= (item->diameter * 0.5f) + (ball->diameter * 0.5f);
+	float dist = (item->diameter * 0.5f) + (ball->diameter * 0.5f);
+	if (item->type == ITEM_PORTAL) {
+		dist = item->diameter * 0.5f; // use size of portal so it doesnt look weird when teleporting
+	}
+	CP_Vector offset = CP_Vector_Subtract(ball->pos, item->pos);
+	bool collected = CP_Vector_Length(offset) <= dist;
 	if (collected) {
 		switch (item->type) {
 			case ITEM_BOOST:
@@ -1654,6 +1667,7 @@ bool Check_Item(Item* item, GolfBall* ball) {
 				// we only support 2 portals per level as of right now
 				// implementing support for more than 2 portals would be a hassle :(
 				Item* item_arr = Get_Items();
+				//CP_Vector offset = CP_Vector_Subtract(ball->pos, item->pos);
 				for (int i = 0; i < items.length; ++i) {
 					Item* it = item_arr + i;
 					// get the next portal if exists
@@ -1662,6 +1676,7 @@ bool Check_Item(Item* item, GolfBall* ball) {
 
 					// teleport the ball to the other portal
 					ball->pos = CP_Vector_Set(it->pos.x, it->pos.y);
+					ball->pos = CP_Vector_Add(ball->pos, offset);
 					ball->teleported = true;
 					return collected;
 				}
@@ -1942,8 +1957,10 @@ void Game_Load(void) {
 		walls.arr = gc_malloc(sizeof(Wall) * walls.length);
 		if (walls.arr) { // if the OS couldnt allocate any memory
 			int wall_index = 5;
+			load_borders(loaded_level->middle_wall_angle);
+			Wall* mid = Get_Walls();
 			for (int i = 0; i < loaded_level->walls_size * WALLS_OFFSET; i += WALLS_OFFSET) {
-				Wall* wall = Get_Walls() + wall_index;
+				Wall* wall = mid + wall_index;
 				// loading walls according to index in array
 				wall->pos.x = loaded_level->walls[i];
 				wall->pos.y = loaded_level->walls[i + 1];
@@ -1955,13 +1972,12 @@ void Game_Load(void) {
 				wall->rotation_rate = loaded_level->walls[i + 5];
 
 				wall->color = Get_Color(COLOR_WHITE);
-
-				wall->image = wall->pos.x <= world_limits.x * 0.5f ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
+				float dot = CP_Vector_DotProduct(mid->normal, CP_Vector_Subtract(mid->pos, wall->pos));
+				wall->image = dot > 0 ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
 				wall->destroyed = false;
 				++wall_index;
 			}
 
-			load_borders(loaded_level->middle_wall_angle);
 		}
 		else {
 			// level loading failed, quit the game because heap allocation went wrong!!
@@ -2028,9 +2044,10 @@ void Game_Load(void) {
 }
 
 Wall* Game_AddWall(CP_Vector pos) {
+	Wall* wall_arr = Get_Walls();
 	// object pooling, find an unused wall in memory first, if not we resize the array
 	for (int wall_index = 1; wall_index < walls.length; ++wall_index) {
-		Wall* w = Get_Walls() + wall_index;
+		Wall* w = wall_arr + wall_index;
 		
 		// if there's an unused wall in the array, we overwrite it
 		if (w->destroyed) {
@@ -2038,7 +2055,8 @@ Wall* Game_AddWall(CP_Vector pos) {
 			w->scale.x = 1.f;
 			w->scale.y = 1.f;
 			w->color = Get_Color(COLOR_WHITE);
-			w->image = w->pos.x <= world_limits.x * 0.5f ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
+			float dot = CP_Vector_DotProduct(wall_arr->normal, CP_Vector_Subtract(wall_arr->pos, w->pos));
+			w->image = dot > 0 ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
 			w->angle = 0.f;
 			w->rotation_rate = 0.f;
 			w->destroyed = false;
@@ -2055,7 +2073,8 @@ Wall* Game_AddWall(CP_Vector pos) {
 		new_wall->scale.x = 1.f;
 		new_wall->scale.y = 1.f;
 		new_wall->color = Get_Color(COLOR_WHITE);
-		new_wall->image = new_wall->pos.x <= world_limits.x * 0.5f ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
+		float dot = CP_Vector_DotProduct(wall_arr->normal, CP_Vector_Subtract(wall_arr->pos, new_wall->pos));
+		new_wall->image = dot > 0 ? Asset_GetImage(WALL_LEFT_ASSET) : Asset_GetImage(WALL_RIGHT_ASSET);
 		new_wall->angle = 0.f;
 		new_wall->rotation_rate = 0.f;
 		new_wall->destroyed = false;

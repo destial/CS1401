@@ -154,8 +154,9 @@ void Game_Load(void);
 @brief Update wall normals and rotation
 @param wall - The wall to update
 @param dt - The delta frametime
+@param index - The wall index
 */
-void Game_UpdateWall(Wall* wall, float dt);
+void Game_UpdateWall(Wall* wall, float dt, int index);
 
 /*!
 @brief Internal function to let the game know its resetting without changing state

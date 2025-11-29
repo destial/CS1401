@@ -217,7 +217,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     int ball_index = 0;
     for (int i = 0; i < golf_balls->length; ++i) {
         GolfBall* ball = (GolfBall*)golf_balls->arr + i;
-        if (ball == NULL || ball->destroyed || ball->diameter <= 0.f)
+        if (ball->destroyed || ball->diameter <= 0.f)
             continue;
 
         fprintf(fp,
@@ -252,7 +252,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     int wall_index = 0;
     for (int i = 5; i < walls->length; ++i) {
         Wall* wall = (Wall*)walls->arr + i;
-        if (wall == NULL || wall->destroyed || wall->scale.x <= 0.f || wall->scale.y <= 0.f)
+        if (wall->destroyed || wall->scale.x <= 0.f || wall->scale.y <= 0.f)
             continue;
 
         fprintf(fp,
@@ -271,7 +271,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     int item_index = 0;
     for (int i = 0; i < items->length; ++i) {
         Item* item = (Item*)items->arr + i;
-        if (item == NULL || item->destroyed || item->diameter <= 0.f)
+        if (item->destroyed || item->diameter <= 0.f)
             continue;
 
         fprintf(fp,
@@ -289,7 +289,7 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     int terrain_index = 0;
     for (int i = 0; i < terrains->length; ++i) {
         Terrain* terrain = (Terrain*)terrains->arr + i;
-        if (terrain == NULL || terrain->destroyed || terrain->scale.x <= 0.f)
+        if (terrain->destroyed || terrain->scale.x <= 0.f)
             continue;
 
         fprintf(fp,
