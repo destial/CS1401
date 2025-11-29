@@ -232,9 +232,9 @@ void Level_Save(int level, ObjectArray* walls, ObjectArray* golf_balls, ObjectAr
     fprintf(fp, "\ngolf_amount=%d", ball_index);
 
     int hole_index = 0;
-    for (int i = 0, hole_index = 0; i < holes->length; ++i) {
+    for (int i = 0; i < holes->length; ++i) {
         Hole* hole = (Hole*)holes->arr + i;
-        if (hole == NULL || hole->destroyed || hole->diameter <= 0.f)
+        if (hole->destroyed || hole->diameter <= 0.f)
             continue;
 
         fprintf(fp,
