@@ -33,7 +33,7 @@ typedef struct ButtonStr {
 
 static const float world_width1 = 48, world_height1 = 27;
 static float logo_x, logo_y, logo_start_x, level_select_start, level_select_end, level_select_x, level_select_y;
-int equipped_ball_index, equipped_effect_index, shop_page;
+int shop_page;
 
 static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
