@@ -1,6 +1,9 @@
-/*
+/*!
+@author Htet (heinhtet.lin.edu)
+@date 10 October 2025
+@course CSD1401
+@brief this file contains functions and code that handles the Scoring system
 */
-
 #pragma once
 #ifndef SCORE_H
 #define SCORE_H

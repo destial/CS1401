@@ -1,3 +1,9 @@
+/*!
+@author Htet (heinhtet.lin.edu)
+@date 10 October 2025
+@course CSD1401
+@brief this file contains functions and code that handles the Scoring system
+*/
 #include "scoring.h"
 #include "cprocessing.h"
 #include "utils.h"
@@ -13,15 +19,6 @@
 #include <math.h>
 //void scoring_update();
 //void scoring_exit();
-/*!
-@author Htet (heinhtet.lin.edu)
-@date 10 October 2025
-@course CSD1401
-@brief this file contains functions and code that handles the Scoring system
-*/
-
-
-
 
 //Initialise the variables
 int stroke = 0;
