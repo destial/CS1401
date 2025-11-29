@@ -554,7 +554,8 @@ void level_select_button(float mouse_x, float mouse_y) {
 	CP_Settings_ImageMode(CP_POSITION_CENTER);
 	CP_Image_DrawAdvanced(Asset_GetImage(HANGING_BANNER), level_select_x, level_select_y, 0.3f * CP_System_GetWindowWidth(), 0.15f * CP_System_GetWindowHeight(), 255, 0.f);
 	draw_text(2, "Level Select", level_select_x, level_select_y);
-	int level_highlight = 0;
+	static int level_highlight = 0;
+	bool hover = false;
 	//LEVEL SELECT BUTTONS
 	for (int i = 0; i < TOTAL_LEVELS; i++) {
 		//defining the position of the button
@@ -579,6 +580,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 		if (check_mouse_pos(mouse_x, mouse_y, coords.x, coords.y, local_scale.x, local_scale.y))
 		{
 			level_highlight = i + 1;
+			hover = true;
 			GameSetting_SetCursor(CURSOR_POINT);
 			level_buttons[i].scale.x = CP_Math_LerpFloat(level_buttons[i].scale.x, 4.0f, CP_System_GetDt() * 5);
 			level_buttons[i].scale.y = CP_Math_LerpFloat(level_buttons[i].scale.y, 4.0f, CP_System_GetDt() * 5);
@@ -603,7 +605,7 @@ void level_select_button(float mouse_x, float mouse_y) {
 	if (y < 0.f) {
 		y = CP_System_GetWindowHeight() * 1.1f;
 	}
-	if (level_highlight != 0) {
+	if (hover) {
 		y = CP_Math_LerpFloat(y, CP_System_GetWindowHeight() * 0.9f, CP_System_GetDt() * 5.f);
 	}
 	else {
