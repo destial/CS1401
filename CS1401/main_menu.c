@@ -39,7 +39,7 @@ static Button buttons[30];
 static Button level_buttons[TOTAL_LEVELS];
 static CP_Image background, setting_background, shop_background, golf_ball_default_image, golf_ball_gold_image, golf_ball_pool_image, shop_banner, shop_banner_small;
 
-static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_buy3_clicked = false, is_buy4_clicked = false, is_shadowed = false, is_equip_clicked, is_inversed = false;
+static bool is_clicked = false, is_setting_clicked = false, is_overlayed = false, is_shop_clicked = false, is_buy1_clicked = false, is_buy2_clicked = false, is_buy3_clicked = false, is_buy4_clicked = false, is_shadowed = false, is_equip_clicked = false, is_inversed = false;
 static float sfx_limit = 1.0f, music_limit = 1.0f;
 
 /*
@@ -341,6 +341,8 @@ void main_menu_init(void)
 	//Sets the default golf ball
 	is_buy1_clicked = GameSetting_GetBool("bought1");
 	is_buy2_clicked = GameSetting_GetBool("bought2");
+	is_buy3_clicked = GameSetting_GetBool("bought3");
+	is_buy4_clicked = GameSetting_GetBool("bought4");
 	int index = GameSetting_GetInt("equipped");
 	if (index < 0) index = 11;
 	equip_ball_button(index);
@@ -1416,8 +1418,11 @@ void main_menu_exit(void)
 	GameSetting_SetBool("high_quality", is_shadowed);
 	GameSetting_SetInt("coins", getCoins());
 	GameSetting_SetInt("equipped", equipped_ball_index + 11);
+	GameSetting_SetInt("equipped_effect", equipped_effect_index + 17);
 	GameSetting_SetBool("bought1", is_buy1_clicked);
 	GameSetting_SetBool("bought2", is_buy2_clicked);
+	GameSetting_SetBool("bought3", is_buy3_clicked);
+	GameSetting_SetBool("bought4", is_buy4_clicked);
 	GameSetting_SetBool("inverse_controls", is_inversed);
 	GameSetting_Save();
 	Assets_Free();

@@ -11,7 +11,9 @@
 #include "cprocessing.h"
 
 typedef enum ParticleTypeEnum {
-	PARTICLE_EFFECT,
+	PARTICLE_SPARKLE = 0,
+	PARTICLE_FLAME,
+	PARTICLE_LIGHTNING,
 	PARTICLE_STAR,
 	PARTICLE_PORTAL,
 	PARTICLE_LAST

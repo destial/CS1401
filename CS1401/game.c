@@ -53,9 +53,6 @@ static unsigned char current_level = 1;
 #define MAX_PUTT_POWER 75.f
 #define MIN_VEL 0.05f
 
-// particles
-static ParticleType particle_type = 0;
-
 // camera
 static CP_Vector camera_pos;
 static CP_Matrix camera_matrix;
@@ -532,7 +529,7 @@ void Game_UpdatePhysics(float dt)
 			float speed = 1.f;
 			float maxSize = 0.75f * golf->diameter;
 			float duration = 0.5f;
-			Particles_Spawn(particle_type, golf->pos, amount, radius, speed, duration, 0.25f * golf->diameter, maxSize);
+			Particles_Spawn(equipped_effect_index, golf->pos, amount, radius, speed, duration, 0.25f * golf->diameter, maxSize);
 			particle_counter = 0.f;
 		}
 
@@ -1442,12 +1439,6 @@ void Process_Inputs(void) {
 	// toggle level editor mode
 	if (CP_Input_KeyTriggered(KEY_P)) {
 		Editor_SetEditMode(!Editor_GetEditMode());
-	}
-
-	if (CP_Input_KeyTriggered(KEY_F)) {
-		if (++particle_type == PARTICLE_LAST) {
-			particle_type = 0;
-		}
 	}
 
 	// reset level
