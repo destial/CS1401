@@ -435,8 +435,7 @@ void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height) {
 	}
 
 	//Load all images
-	CP_Image sbb_bg = Asset_GetImage(SCOREBOARD_BG);
-	CP_Image stroke_bg = Asset_GetImage(STROKE_BG);
+	CP_Image sbb_bg = Asset_GetImage(SB_BUTTON_BLUE);
 	CP_Image sbb_h = Asset_GetImage(BANNER);
 
 	CP_Settings_Fill(Get_Color(COLOR_WHITE));

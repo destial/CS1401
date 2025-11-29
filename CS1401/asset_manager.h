@@ -18,7 +18,6 @@
 // #define SPRITE_ASSET "Assets/Images/sprite.png" (same as image)
 
 // Images / Sprites
-
 #define WALL_LEFT_ASSET "Assets/Images/wall_left.png"
 #define WALL_RIGHT_ASSET "Assets/Images/wall_right.png"
 #define BORDER_WALL_ASSET "Assets/Images/stone.png"
@@ -60,9 +59,6 @@
 #define DARK_REPLAY_BUTTON "Assets/Images/icon_repeat_dark.png"
 #define GREY_STAR "Assets/Images/star_outline.png"
 #define YELLOW_STAR "Assets/Images/star.png"
-#define SCOREBOARD_BG "Assets/Images/button_square_flat.png"
-#define STROKE_BG "Assets/Images/button_rectangle_depth_line.png"
-#define SCOREBOARD_HEADER "Assets/Images/button_rectangle_line.png"
 #define BANNER "Assets/Images/banner_classic_curtain.png"
 #define HANGING_BANNER "Assets/Images/banner_hanging.png"
 #define SB_BUTTON_BLUE "Assets/Images/button_square_flat.png"
@@ -73,8 +69,8 @@
 #define CURSOR_GRAB_ASSET "Assets/Images/cursor_grab.png"
 #define CURSOR_POINT_ASSET "Assets/Images/cursor_point.png"
 #define MOUSE_SCROLL_ASSET "Assets/Images/mouse_scroll.png"
-// Sounds / Music / Audio
 
+// Sounds / Music / Audio
 #define GOLF_HIT_WALL_ASSET "Assets/Audio/golf_hit_wall.wav"
 #define SHRINK_SFX_ASSET "Assets/Audio/shrink_sfx.wav"
 #define GROW_SFX_ASSET "Assets/Audio/grow_sfx.wav"
@@ -89,7 +85,6 @@
 #define CARTER_FONT_ASSET "Assets/Fonts/Jersey25-Regular.ttf"
 
 // Level file
-
 #define LEVEL_FILEPATH "Assets/Levels/level_%d.lvl"
 
 // Tutorial phase gifs
