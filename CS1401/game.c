@@ -74,7 +74,7 @@ typedef struct HintsStruct {
 	CP_Image icon;
 } Hints;
 
-static Hints game_hints[7];
+static Hints game_hints[6];
 
 static Wall* Get_Walls(void) {
 	return walls.arr; // for auto casting
@@ -210,20 +210,16 @@ void game_init(void)
 	game_hints[2].key = " G ";
 
 	game_hints[3].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	game_hints[3].text = "Change particles";
-	game_hints[3].key = " F ";
+	game_hints[3].text = "Reset to last (+1)";
+	game_hints[3].key = " R ";
 
 	game_hints[4].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	game_hints[4].text = "Reset to last (+1)";
-	game_hints[4].key = " R ";
+	game_hints[4].text = "Speed up game x5";
+	game_hints[4].key = " \\ ";
 
-	game_hints[5].icon = Asset_GetImage(SMALL_BUTTON_GREY_ASSET);
-	game_hints[5].text = "Speed up game x5";
-	game_hints[5].key = " \\ ";
-
-	game_hints[6].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
-	game_hints[6].text = "Change hit power";
-	game_hints[6].key = "";
+	game_hints[5].icon = Asset_GetImage(MOUSE_SCROLL_ASSET);
+	game_hints[5].text = "Change hit power";
+	game_hints[5].key = "";
 
 	// null instantiation
 	items.arr = walls.arr = terrains.arr = holes.arr = golf_balls.arr = NULL;
