@@ -1,0 +1,129 @@
+/*!
+@author Rance Andres (andresrancerowell.g@digipen.edu)
+@date 13 November 2025
+@course CSD1401
+@brief Definition file for game settings management
+*/
+
+#include "game_settings.h"
+#include "data_manager.h"
+#include "asset_manager.h"
+
+static Map settings_file = NULL;
+static CursorType current_cursor = CURSOR_DEFAULT;
+
+static void load_settings_file(void) {
+	settings_file = Map_Load("user.data");
+	if (!settings_file) { // create default settings file if one doesnt exists
+		printf("User data file not found! Creating new one!\n");
+		settings_file = Map_AddFloat(settings_file, "sfx_volume", 1.f);
+		settings_file = Map_AddFloat(settings_file, "music_volume", 1.f);
+		settings_file = Map_AddBool(settings_file, "high_quality", false);
+		settings_file = Map_AddInt(settings_file, "coins", 0);
+	}
+}
+
+void GameSetting_SetCursor(CursorType cursor) {
+	current_cursor = cursor;
+}
+
+void GameSetting_RenderCursor(void) {
+	CP_System_ShowCursor(!CP_System_GetWindowFocus());
+	if (CP_System_GetWindowFocus()) {
+		CP_Settings_ImageMode(CP_POSITION_CORNER);
+		CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
+		CP_Image cursor;
+		switch (current_cursor) {
+		case CURSOR_GRAB:
+			cursor = Asset_GetImage(CURSOR_GRAB_ASSET);
+			break;
+		case CURSOR_POINT:
+			cursor = Asset_GetImage(CURSOR_POINT_ASSET);
+			break;
+		default:
+			cursor = Asset_GetImage(CURSOR_ASSET);
+			break;
+		}
+		CP_Image_DrawAdvanced(cursor, CP_Input_GetMouseX(), CP_Input_GetMouseY(), 32.f, 32.f, 255, 0.f);
+	}
+}
+
+bool GameSetting_GetBool(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetBool(settings_file, key, false);
+}
+
+int GameSetting_GetInt(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetInt(settings_file, key, -1);
+}
+
+float GameSetting_GetFloat(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetFloat(settings_file, key, -1.f);
+}
+
+const char* GameSetting_GetString(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetString(settings_file, key);
+}
+
+CP_Vector GameSetting_GetVect(const char* key) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	return Map_GetVector(settings_file, key);
+}
+
+void GameSetting_SetBool(const char* key, bool value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditBool(settings_file, key, value);
+}
+
+void GameSetting_SetVect(const char* key, CP_Vector value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditVector(settings_file, key, value);
+}
+
+void GameSetting_SetInt(const char* key, int value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditInt(settings_file, key, value);
+}
+
+void GameSetting_SetFloat(const char* key, float value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditFloat(settings_file, key, value);
+}
+
+void GameSetting_SetString(const char* key, const char* value) {
+	if (!settings_file) // always check for loaded settings file
+		load_settings_file();
+
+	Map_EditString(settings_file, key, value);
+}
+
+void GameSetting_Save(void) {
+	if (!settings_file) // always check for loaded settings file
+		return;
+
+	// save to file
+	Map_Save("user.data", settings_file);
+	Map_Free(settings_file);
+	settings_file = NULL; // set to NULL after freeing to start the cycle once again
+}

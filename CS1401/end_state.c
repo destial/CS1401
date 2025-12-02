@@ -7,7 +7,7 @@
 #include "utils.h"
 #include "game_settings.h"
 
-static CP_Image end_logo[2];
+static CP_Image end_logo[3];
 static float end_alpha = 0.f;
 static float end_duration = 1.f;
 static bool end_revert = false;
@@ -18,8 +18,9 @@ void end_state_init(void)
 	GameSetting_SetCursor(CURSOR_DEFAULT);
 	GameState_SetCurrent(STATE_EXIT);
 	printf("Init end\n");
-	end_logo[0] = Asset_GetImage(TEAM_CREDITS_ASSET);
-	end_logo[1] = Asset_GetImage(SPLASH_SCREEN_ASSET);
+	end_logo[0] = Asset_GetImage(END_CREDITS_1_ASSET);
+	end_logo[1] = Asset_GetImage(END_CREDITS_2_ASSET);
+	end_logo[2] = Asset_GetImage(END_CREDITS_3_ASSET);
 	CP_Settings_ImageMode(CP_POSITION_CORNER);
 	CP_Settings_ImageWrapMode(CP_IMAGE_WRAP_CLAMP);
 	CP_Settings_ImageFilterMode(CP_IMAGE_FILTER_LINEAR);
@@ -47,7 +48,7 @@ void end_state_update(void)
 		end_index++;
 		end_revert = false;
 
-		if (end_index == 2) {
+		if (end_index == 3) {
 			CP_Engine_Terminate();
 		}
 	}

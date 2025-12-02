@@ -1,0 +1,44 @@
+/*!
+@author Htet (heinhtet.lin.edu)
+@date 10 October 2025
+@course CSD1401
+@brief this file contains functions and code that handles the Scoring system
+*/
+#pragma once
+#ifndef SCORE_H
+#define SCORE_H
+#include "cprocessing.h"
+
+void draw_hole(CP_Vector hole, float diameter, float world_width, float world_height, float animation);
+
+void add_stroke(void);
+
+void reset_strokes(void);
+
+int get_strokes(void);
+
+void draw_scoreboard(CP_Vector sBoard, float world_width, float world_height);
+
+void set_lvl_par(int par);
+
+int get_lvl_par(void);
+
+void scoring_init();
+void scoring_update(void);
+
+int get_extra_coins(void);
+
+void add_extra_coins(int add_coin_amt);
+
+//
+//void add_stroke();
+//
+//char is_win(void);
+//
+//char set_win(char win);
+//
+//void draw_scoreboard(void);
+//
+//void draw_hole(void);
+//
+#endif
